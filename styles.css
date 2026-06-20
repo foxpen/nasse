@@ -229,7 +229,33 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   .choices{margin-top:26px;}
 }
 @media (max-width:560px){ .grid{grid-template-columns:1fr;} .choices{grid-template-columns:1fr;} }
-@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover,.choice:hover{transform:none;} .reveal{opacity:1!important;} .intro{display:none!important;} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover,.choice:hover{transform:none;} .reveal{opacity:1!important;} .intro,.splash{display:none!important;} }
+
+/* ---------- landing splash (první načtení) ---------- */
+.splash{position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center;
+  background:var(--bg); overflow:hidden; animation:splashOut .6s var(--ease) 2s forwards;}
+.splash::before{content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(42% 42% at 30% 34%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 60%),
+    radial-gradient(42% 42% at 72% 68%, color-mix(in srgb, #0EA5E9 22%, transparent), transparent 60%);
+  animation:breathe 2.2s ease-in-out infinite;}
+@keyframes breathe{0%,100%{opacity:.7; transform:scale(1);} 50%{opacity:1; transform:scale(1.06);}}
+@keyframes splashOut{to{opacity:0; visibility:hidden; transform:scale(1.05);}}
+.splash-inner{position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:20px;}
+.splash-icons{display:flex; gap:18px;}
+.si{width:74px; height:74px; border-radius:20px; display:flex; align-items:center; justify-content:center; box-shadow:var(--sh); color:#fff;}
+.si svg{width:38px; height:38px;}
+.si-house{background:var(--primary); animation:flyL .75s var(--ease) both;}
+.si-car{background:#0EA5E9; animation:flyR .75s var(--ease) both;}
+@keyframes flyL{0%{opacity:0; transform:translateX(-70px) rotate(-14deg) scale(.7);} 100%{opacity:1; transform:none;}}
+@keyframes flyR{0%{opacity:0; transform:translateX(70px) rotate(14deg) scale(.7);} 100%{opacity:1; transform:none;}}
+.splash-word{font-size:clamp(42px,11vw,74px); font-weight:800; letter-spacing:-.02em; color:var(--fg);
+  animation:wordUp .5s var(--ease) .6s both;}
+@keyframes wordUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+.splash-bar{width:0; height:5px; border-radius:var(--r-pill);
+  background:linear-gradient(90deg,var(--primary) 0%, #14B8A6 50%, #0EA5E9 100%);
+  animation:barGrow .55s var(--ease) .95s both;}
+@keyframes barGrow{from{width:0;} to{width:96px;}}
 
 /* ---------- section intro animations ---------- */
 .intro{position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center;
