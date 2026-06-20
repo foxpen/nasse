@@ -108,12 +108,16 @@ const CARS = [
   {brand:"mazda", n:"Mazda CX-5 Homura 48V", variant:"FWD · nová · top výbava", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:31500, feats:["pravá kůže, ventilace sedaček","15,6\" Google displej, adapt. LED"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-Homura_120-106806"},
   {brand:"mazda", n:"Mazda CX-5 Homura AWD", variant:"4×4 · nová · top výbava", stav:"nové", year:2025, km:0, fuel:"benzin", awd:true, kw:104, ps:141, price:32990, feats:["4×4 + top výbava (jediná)","tan kůže, ventilace sedaček"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-AWD-Homura_120-106809"},
   {brand:"mazda", n:"Mazda CX-5 Homura (nakonfig.)", variant:"FWD · nová · top + příplatky", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:34590, feats:["bohatě nakonfig. (pano/lak)","⚠️ nejdražší FWD Homura"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-Homura_120-105061M"},
+  {brand:"mazda", n:"Mazda CX-5 2.5i AWD Homura", variant:"4×4 · ojeté · ČR (Beroun)", stav:"ojeté", year:2024, km:42000, fuel:"benzin", awd:true, kw:142, ps:193, czk:789900, img:"img/auta/mazda-cx5-sauto.jpg", feats:["2.5 atmosféra 193 PS (silná, bez turba)","Bose, kůže, 360° kamera · česká nabídka"], url:"https://www.sauto.cz/osobni/detail/mazda/cx-5/210620069"},
 ];
 
 const km = n => n.toLocaleString('cs-CZ');
 const RATE = 24.225; // kurz ČNB 19. 6. 2026: 1 EUR = 24,225 Kč
-const eur = p => (p==null ? "?" : km(p)+" €");
-const czk = p => (p==null ? "?" : km(Math.round(p*RATE/1000)*1000)+" Kč");
+// auta z DE mají price (€), česká mají czk (Kč) — sjednotíme:
+const pCzk = d => d.czk!=null ? d.czk : (d.price!=null ? Math.round(d.price*RATE/1000)*1000 : null);
+const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE) : null);
+const czk = v => (v==null ? "?" : km(v)+" Kč");
+const eur = v => (v==null ? "?" : km(v)+" €");
 const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
 function openUrl(u){ if(u) window.open(u,"_blank","noopener"); }
 
@@ -123,7 +127,7 @@ let MINPRICE=0, MAXKM=0, MINKM=0;
 function priceKey(v){ return v==null ? Infinity : v; }
 function sortRows(rows){
   return rows.sort((a,b)=>{
-    if(sort==="price") return priceKey(a.price)-priceKey(b.price);
+    if(sort==="price") return priceKey(pCzk(a))-priceKey(pCzk(b));
     if(sort==="year")  return b.year-a.year;
     if(sort==="km")    return a.km-b.km;
     if(sort==="power") return b.kw-a.kw;
@@ -140,16 +144,16 @@ function renderPick(){
       <h2>${d.n}</h2>
       <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
       <div class="prow">
-        <span class="big">${czk(d.price)}</span>
-        <span class="ppm">≈ ${eur(d.price)}<br>${d.stav} · ${km(d.km)} km</span>
+        <span class="big">${czk(pCzk(d))}</span>
+        <span class="ppm">≈ ${eur(pEur(d))}<br>${d.stav} · ${km(d.km)} km</span>
       </div>
     </div>`;
 }
 
 function renderKpis(){
   document.getElementById("kpi-count").textContent = CARS.length;
-  const prices = CARS.map(c=>c.price).filter(p=>p!=null);
-  const lo=Math.round(Math.min(...prices)*RATE/1000), hi=Math.round(Math.max(...prices)*RATE/1000);
+  const prices = CARS.map(pCzk).filter(p=>p!=null);
+  const lo=Math.round(Math.min(...prices)/1000), hi=Math.round(Math.max(...prices)/1000);
   document.getElementById("kpi-range").innerHTML = km(lo)+'–'+km(hi)+' <span class="u">tis. Kč</span>';
   document.getElementById("kpi-km").innerHTML = km(Math.min(...CARS.map(c=>c.km)))+' <span class="u">km</span>';
   const ys=CARS.map(c=>c.year).sort((a,b)=>a-b), m=Math.floor(ys.length/2);
@@ -166,7 +170,7 @@ function renderCards(){
   document.getElementById("cards").innerHTML = rows.map(d=>{
     const known = d.price!=null;
     const pct = MAXKM===MINKM ? 100 : Math.round(((MAXKM - d.km)/(MAXKM - MINKM))*82 + 18);
-    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(d.price)}"
+    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(pCzk(d))}"
         onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
       <div class="media byt">
         <div class="corner">
@@ -175,7 +179,7 @@ function renderCards(){
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
         ${d.img?`<img src="${d.img}" alt="Foto auta — ${d.n}" loading="lazy" onerror="this.remove()">`:""}
-        <span class="pricechip">${czk(d.price)}</span>
+        <span class="pricechip">${czk(pCzk(d))}</span>
       </div>
       <div class="body">
         <div class="ctitle">${d.n}</div>
@@ -206,8 +210,8 @@ function renderTable(){
       <td class="num">${km(d.km)} km</td>
       <td>${d.awd?"4×4":"FWD"}</td>
       <td class="num">${d.ps} PS</td>
-      <td class="num">${czk(d.price)}${d.win?' ★':''}</td>
-      <td class="num">${eur(d.price)}</td>
+      <td class="num">${czk(pCzk(d))}${d.win?' ★':''}</td>
+      <td class="num">${eur(pEur(d))}</td>
     </tr>`).join("");
 }
 
