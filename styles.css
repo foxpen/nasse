@@ -229,4 +229,42 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   .choices{margin-top:26px;}
 }
 @media (max-width:560px){ .grid{grid-template-columns:1fr;} .choices{grid-template-columns:1fr;} }
-@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover,.choice:hover{transform:none;} .reveal{opacity:1!important;} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover,.choice:hover{transform:none;} .reveal{opacity:1!important;} .intro{display:none!important;} }
+
+/* ---------- section intro animations ---------- */
+.intro{position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center;
+  background:var(--bg); animation:introOut .6s var(--ease) 2s forwards;}
+@keyframes introOut{to{opacity:0; visibility:hidden;}}
+.intro-stage{display:flex; flex-direction:column; align-items:center; gap:20px;}
+.intro-label{font-weight:800; font-size:clamp(22px,5vw,30px); letter-spacing:-.01em; opacity:0;
+  animation:labelIn .5s var(--ease) 1.05s forwards;}
+.intro-byd .intro-label{color:var(--primary);}
+.intro-aut .intro-label{color:var(--accent);}
+@keyframes labelIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+
+/* házení — domeček: cihly naskáčou + nakreslí se zdi a střecha */
+.ib-svg{width:clamp(150px,42vw,184px); height:auto; overflow:visible;}
+.ib-svg .brick{fill:var(--secondary); opacity:0; transform-box:fill-box; transform-origin:center;
+  animation:brickUp .5s var(--ease) forwards;}
+.ib-svg .b1{animation-delay:.05s} .ib-svg .b2{animation-delay:.18s} .ib-svg .b3{animation-delay:.31s}
+@keyframes brickUp{from{transform:translateY(26px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+.ib-svg .line{stroke:var(--primary); stroke-width:6; stroke-linecap:round; stroke-linejoin:round; fill:none;}
+.ib-walls{stroke-dasharray:320; stroke-dashoffset:320; animation:draw .7s var(--ease) .45s forwards;}
+.ib-roof{stroke-dasharray:220; stroke-dashoffset:220; animation:draw .55s var(--ease) 1s forwards;}
+@keyframes draw{to{stroke-dashoffset:0;}}
+.ib-svg .det{fill:var(--primary); opacity:0; transform-box:fill-box; transform-origin:center;
+  animation:popIn .4s var(--ease) 1.35s forwards;}
+@keyframes popIn{from{opacity:0; transform:scale(.5);} to{opacity:1; transform:scale(1);}}
+
+/* auto přijede zleva, kola se točí, čáry rychlosti */
+.ia-svg{width:clamp(190px,58vw,250px); height:auto; overflow:visible;}
+.ia-car{transform:translateX(-150%); animation:driveIn 1.05s var(--ease) .15s forwards;}
+@keyframes driveIn{to{transform:translateX(0);}}
+.ia-body{fill:var(--accent);}
+.ia-win{fill:color-mix(in srgb, var(--accent) 22%, #ffffff);}
+.ia-wheel{transform-box:fill-box; transform-origin:center; animation:spin .55s linear .3s infinite;}
+.ia-wheel .tyre{fill:#1f2a30;} .ia-wheel .hub{fill:#cbd5e1;} .ia-wheel .spoke{stroke:#1f2a30; stroke-width:3; stroke-linecap:round;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ia-road{stroke:var(--line-2); stroke-width:4; stroke-linecap:round; stroke-dasharray:20 16;
+  animation:roadmove .35s linear infinite;}
+@keyframes roadmove{to{stroke-dashoffset:-36;}}
