@@ -45,7 +45,7 @@
   <section class="hero">
     <a class="pick" id="pick" aria-label="Tip — nejlepší poměr cena za metr"></a>
     <div class="kpis" aria-label="Souhrn">
-      <div class="kpi"><div class="l">Nabídek</div><div class="v">8</div></div>
+      <div class="kpi"><div class="l">Nabídek</div><div class="v">9</div></div>
       <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v">7,98–10,0 <span class="u">M</span></div></div>
       <div class="kpi"><div class="l">Hotových hned</div><div class="v" id="kpi-ready">—</div></div>
       <div class="kpi"><div class="l">Medián cena/m²</div><div class="v" id="kpi-ppm">—</div></div>
@@ -118,6 +118,7 @@ const DATA = [
   {n:"Brandýs n. Labem", t:"byt", disp:"byt 3+kk", price:9290000, area:75, land:"zahrada 67 m²", ready:1, when:"novostavba 2021 · 7/2026", en:"B", car:35, pt:65, origin:"Brandýs nad Labem, Seifertova", feats:["garáž v suterénu","sklep, terasa, výtah"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/brandys-nad-labem-stara-boleslav-brandys-nad-labem-seifertova/4115431500"},
   {n:"Bukovany (Benešovsko)", t:"dum", disp:"dům 4+kk · řadovka", price:9999000, area:106, land:"pozemek 150 m²", ready:1, when:"novostavba 2022", en:"A", car:50, pt:90, origin:"Bukovany u Benešova", feats:["pasivní standard, zařízený","lze rozšířit na 5+kk"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/bukovany-bukovany-/2288403276"},
   {n:"Dolní Beřkovice — Podvlčí", t:"dum", disp:"dům 4+kk · řadový", price:8500000, area:99, land:"pozemek 1000 m²", ready:1, when:"novostavba · hotové", en:"B", car:45, pt:85, origin:"Dolní Beřkovice", img:"img/dolni-berkovice.jpg", feats:["velký pozemek 1000 m², sklep","cena vč. provize + práv. servisu"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/dolni-berkovice-podvlci-/1606042444"},
+  {n:"Mukařov — Srbín, Akátová", t:"dum", disp:"dům 3+kk · řadový", price:9990000, area:82, land:"pozemek 123 m² · zahrada", ready:1, when:"novostavba · hotové", en:"B", car:35, pt:60, origin:"Mukařov, Srbín", img:"img/mukarov-srbin.jpg", feats:["zahrada, parkování","cena vč. provize + práv. služeb","~25 km na východ od Prahy"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/mukarov-srbin-akatova/497852492"},
 ];
 DATA.forEach(d => d.ppm = Math.round(d.price/d.area));
 const IMGMAP = ["nymburk","hlizov","kraluvdvur","melnik","pecky","brandys","bukovany"];
