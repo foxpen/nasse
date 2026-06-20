@@ -45,7 +45,7 @@
   <section class="hero">
     <a class="pick" id="pick" aria-label="Tip — nejlepší poměr cena za metr"></a>
     <div class="kpis" aria-label="Souhrn">
-      <div class="kpi"><div class="l">Nabídek</div><div class="v">7</div></div>
+      <div class="kpi"><div class="l">Nabídek</div><div class="v">8</div></div>
       <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v">7,98–10,0 <span class="u">M</span></div></div>
       <div class="kpi"><div class="l">Hotových hned</div><div class="v" id="kpi-ready">—</div></div>
       <div class="kpi"><div class="l">Medián cena/m²</div><div class="v" id="kpi-ppm">—</div></div>
@@ -117,10 +117,11 @@ const DATA = [
   {n:"Pečky, Letohradská", t:"byt", disp:"byt 3+kk", price:8797500, area:71, land:"zahrada až 212 m²", ready:0, when:"ve výstavbě · 2027", en:"G*", car:45, pt:65, origin:"Pečky, Letohradská", feats:["velká zahrada, sklep","rekuperace + příprava na EV"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/pecky-pecky-letohradska/1506517068"},
   {n:"Brandýs n. Labem", t:"byt", disp:"byt 3+kk", price:9290000, area:75, land:"zahrada 67 m²", ready:1, when:"novostavba 2021 · 7/2026", en:"B", car:35, pt:65, origin:"Brandýs nad Labem, Seifertova", feats:["garáž v suterénu","sklep, terasa, výtah"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/brandys-nad-labem-stara-boleslav-brandys-nad-labem-seifertova/4115431500"},
   {n:"Bukovany (Benešovsko)", t:"dum", disp:"dům 4+kk · řadovka", price:9999000, area:106, land:"pozemek 150 m²", ready:1, when:"novostavba 2022", en:"A", car:50, pt:90, origin:"Bukovany u Benešova", feats:["pasivní standard, zařízený","lze rozšířit na 5+kk"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/bukovany-bukovany-/2288403276"},
+  {n:"Dolní Beřkovice — Podvlčí", t:"dum", disp:"dům 4+kk · řadový", price:8500000, area:99, land:"pozemek 1000 m²", ready:1, when:"novostavba · hotové", en:"B", car:45, pt:85, origin:"Dolní Beřkovice", img:"img/dolni-berkovice.jpg", feats:["velký pozemek 1000 m², sklep","cena vč. provize + práv. servisu"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/dolni-berkovice-podvlci-/1606042444"},
 ];
 DATA.forEach(d => d.ppm = Math.round(d.price/d.area));
 const IMGMAP = ["nymburk","hlizov","kraluvdvur","melnik","pecky","brandys","bukovany"];
-DATA.forEach((d,i)=> d.img = "img/"+IMGMAP[i]+".jpg");
+DATA.forEach((d,i)=> { if(!d.img && IMGMAP[i]) d.img = "img/"+IMGMAP[i]+".jpg"; });
 const MAXPPM = Math.max(...DATA.map(d=>d.ppm));
 const MINPPM = Math.min(...DATA.map(d=>d.ppm));
 const DEST = "Arkády Pankrác, Praha";
@@ -168,7 +169,7 @@ function renderPick(){
 }
 
 function renderKpis(){
-  document.getElementById("kpi-ready").innerHTML = DATA.filter(d=>d.ready).length + ' <span class="u">ze 7</span>';
+  document.getElementById("kpi-ready").innerHTML = DATA.filter(d=>d.ready).length + ' <span class="u">z '+DATA.length+'</span>';
   const s=[...DATA].map(d=>d.ppm).sort((a,b)=>a-b), m=Math.floor(s.length/2);
   const med = s.length%2 ? s[m] : Math.round((s[m-1]+s[m])/2);
   document.getElementById("kpi-ppm").innerHTML = czk(med) + ' <span class="u">Kč</span>';
