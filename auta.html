@@ -37,11 +37,12 @@
   </section>
 
   <div class="controls" id="controls" hidden>
-    <div class="seg" id="filters" role="group" aria-label="Filtr paliva">
+    <div class="seg" id="filters" role="group" aria-label="Filtr značky">
       <button data-f="all" aria-pressed="true">Vše</button>
-      <button data-f="benzin" aria-pressed="false">Benzín</button>
-      <button data-f="diesel" aria-pressed="false">Diesel</button>
-      <button data-f="elektro" aria-pressed="false">Elektro</button>
+      <button data-f="mazda" aria-pressed="false">Mazda</button>
+      <button data-f="kia" aria-pressed="false">Kia</button>
+      <button data-f="hyundai" aria-pressed="false">Hyundai</button>
+      <button data-f="jeep" aria-pressed="false">Jeep</button>
     </div>
     <div class="spacer"></div>
     <select id="sort" aria-label="Řazení">
@@ -68,7 +69,7 @@
     <div class="th">Srovnávací tabulka</div>
     <div class="scroll">
       <table>
-        <thead><tr><th>Auto</th><th>Rok</th><th>Najeto</th><th>Palivo</th><th>Výkon</th><th>Cena</th></tr></thead>
+        <thead><tr><th>Auto</th><th>Stav</th><th>Rok</th><th>Najeto</th><th>Pohon</th><th>Výkon</th><th>Cena</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -91,86 +92,101 @@ const I = {
   star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
 };
 
-/* Až budou auta, doplní se sem (foto do img/auta/<klic>.jpg):
-   {n:"Škoda Octavia Combi", variant:"2.0 TDI 110 kW DSG", year:2021, km:78000,
-    fuel:"diesel", power:110, img:"img/auta/octavia.jpg", feats:["1. majitel","servisní kniha"],
-    price:489000, url:"https://www.sauto.cz/..."}
-   fuel: "benzin" | "diesel" | "elektro" | "hybrid"
-*/
-const CARS = [];
+/* Auta z minulé session (Car selection overview). Ceny v EUR (auta z DE).
+   Foto lze doplnit do img/auta/<klic>.jpg a přidat pole img:"img/auta/...". */
+const CARS = [
+  {brand:"kia", n:"Kia Sportage 1.6T 48V Vision Komfort", variant:"FWD · 1 maj. · 48V mild-hybrid · ★ vítěz ojetých", stav:"ojeté", year:2023, km:34000, fuel:"benzin", awd:false, kw:110, ps:150, price:24996, win:true, feats:["1 majitel, 34 tis. km, hned","7letá záruka do 04/2030 (kryje turbo/DCT)"], url:""},
+  {brand:"kia", n:"Kia Sportage 1.6 T-GDI Vision", variant:"FWD · 2 maj. · Vision", stav:"ojeté", year:2023, km:58000, fuel:"benzin", awd:false, kw:110, ps:150, price:24999, feats:["spotřeba 5,7 l, 3-zón. klima","⚠️ 58 tis. km, 2 majitelé"], url:""},
+  {brand:"jeep", n:"Jeep Compass 1.5 mHEV Summit", variant:"FWD · Summit (top výbava)", stav:"ojeté", year:2025, km:16690, fuel:"hybrid", awd:false, kw:96, ps:131, price:25000, feats:["top výbava, nízký nájezd","⚠️ 131 PS nejslabší, Stellantis"], url:""},
+  {brand:"hyundai", n:"Hyundai Tucson 1.6 T-GDI Trend (Panorama)", variant:"4×4 · panorama", stav:"ojeté", year:2023, km:31000, fuel:"benzin", awd:true, kw:132, ps:179, price:25000, feats:["179 PS, panoramatická střecha","❌ 4×4 — nepotřebuješ"], url:"https://suchen.mobile.de/fahrzeuge/details.html?id=454549301"},
+  {brand:"hyundai", n:"Hyundai Tucson 1.6 T-GDI Trend", variant:"FWD · 1 maj. (T1)", stav:"ojeté", year:2025, km:25562, fuel:"benzin", awd:false, kw:118, ps:160, price:null, feats:["160 PS, FWD, hned","⚠️ cena neuvedena"], url:"https://x.b2b-fahrzeuge.de/2209/Kia/Kia-Sportage-1-6T-GDI-DCT7-NAVI-KAM/68ded912fac0cfddf80bc614"},
+  {brand:"hyundai", n:"Hyundai Tucson 1.6 T-GDI Trend", variant:"4×4 · 1 maj. (T2)", stav:"ojeté", year:2025, km:14756, fuel:"benzin", awd:true, kw:118, ps:160, price:29999, feats:["nízký nájezd 14,7 tis.","❌ 4×4 — nepotřebuješ"], url:"https://x.b2b-fahrzeuge.de/2209/Kia/Kia-Sportage-1-6-T-GDI-DCT7-ACC-KEYLESS/68a62676fe771908380a9f6f"},
+  {brand:"mazda", n:"Mazda CX-5 e-Skyactiv-G 141 Prime-Line", variant:"FWD · nová · základ", stav:"nové", year:2025, km:15, fuel:"benzin", awd:false, kw:104, ps:141, price:null, feats:["skladem hned","⚠️ ověřit klimatizaci (bez ní)"], url:"https://suchen.mobile.de/fahrzeuge/details.html?id=457164408"},
+  {brand:"mazda", n:"Mazda CX-5 e-Skyactiv-G 141 Exclusive-Line", variant:"FWD · nová · 48V", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:29900, feats:["Bose, kůže na volantu, 2-zón. klima","dodání ~5 měsíců"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT--Exclusive-Line_120-106805"},
+  {brand:"mazda", n:"Mazda CX-5 Exclusive-Line AWD", variant:"4×4 · nová · 48V", stav:"nové", year:2025, km:0, fuel:"benzin", awd:true, kw:104, ps:141, price:31490, feats:["4×4","umělá kůže, 12,9\" displej"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-AWD-Exclusive-Line_120-106808"},
+  {brand:"mazda", n:"Mazda CX-5 Homura 48V", variant:"FWD · nová · top výbava", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:31500, feats:["pravá kůže, ventilace sedaček","15,6\" Google displej, adapt. LED"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-Homura_120-106806"},
+  {brand:"mazda", n:"Mazda CX-5 Homura AWD", variant:"4×4 · nová · top výbava", stav:"nové", year:2025, km:0, fuel:"benzin", awd:true, kw:104, ps:141, price:32990, feats:["4×4 + top výbava (jediná)","tan kůže, ventilace sedaček"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-AWD-Homura_120-106809"},
+  {brand:"mazda", n:"Mazda CX-5 Homura (nakonfig.)", variant:"FWD · nová · top + příplatky", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:34590, feats:["bohatě nakonfig. (pano/lak)","⚠️ nejdražší FWD Homura"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-Homura_120-105061M"},
+];
 
-const czk = n => n.toLocaleString('cs-CZ');
+const eur = n => (n==null ? "?" : n.toLocaleString('cs-CZ')+" €");
 const km = n => n.toLocaleString('cs-CZ');
-const fuelLabel = f => ({benzin:"Benzín",diesel:"Diesel",elektro:"Elektro",hybrid:"Hybrid"}[f]||f);
-function openUrl(u){ window.open(u,"_blank","noopener"); }
+const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
+function openUrl(u){ if(u) window.open(u,"_blank","noopener"); }
 
 let filter="all", sort="price";
 let MINPRICE=0, MAXKM=0, MINKM=0;
 
+function priceKey(v){ return v==null ? Infinity : v; }
 function sortRows(rows){
   return rows.sort((a,b)=>{
-    if(sort==="price") return a.price-b.price;
+    if(sort==="price") return priceKey(a.price)-priceKey(b.price);
     if(sort==="year")  return b.year-a.year;
     if(sort==="km")    return a.km-b.km;
-    if(sort==="power") return b.power-a.power;
+    if(sort==="power") return b.kw-a.kw;
   });
 }
 
 function renderPick(){
-  const d = [...CARS].sort((a,b)=>a.price-b.price)[0];
+  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>c.price!=null).sort((a,b)=>a.price-b.price)[0];
   const el = document.getElementById("pick");
-  el.href = d.url; el.target="_blank"; el.rel="noopener";
+  el.href = d.url || "#"; if(d.url){el.target="_blank"; el.rel="noopener";}
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
-    <span class="badge">${I.star} Tip — nejnižší cena</span>
+    <span class="badge">${I.star} Tip — vítěz výběru</span>
     <div>
       <h2>${d.n}</h2>
-      <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${fuelLabel(d.fuel)} · ${d.power} kW</div>
+      <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
       <div class="prow">
-        <span class="big">${czk(d.price)} Kč</span>
-        <span class="ppm">${d.year}<br>${km(d.km)} km</span>
+        <span class="big">${eur(d.price)}</span>
+        <span class="ppm">${d.stav}<br>${km(d.km)} km</span>
       </div>
     </div>`;
 }
 
 function renderKpis(){
   document.getElementById("kpi-count").textContent = CARS.length;
-  const prices = CARS.map(c=>c.price);
-  document.getElementById("kpi-range").innerHTML = Math.round(Math.min(...prices)/1000)+'–'+Math.round(Math.max(...prices)/1000)+' <span class="u">tis.</span>';
+  const prices = CARS.map(c=>c.price).filter(p=>p!=null);
+  document.getElementById("kpi-range").innerHTML = km(Math.min(...prices))+'–'+km(Math.max(...prices))+' <span class="u">€</span>';
   document.getElementById("kpi-km").innerHTML = km(Math.min(...CARS.map(c=>c.km)))+' <span class="u">km</span>';
   const ys=CARS.map(c=>c.year).sort((a,b)=>a-b), m=Math.floor(ys.length/2);
   document.getElementById("kpi-year").textContent = ys.length%2 ? ys[m] : Math.round((ys[m-1]+ys[m])/2);
 }
 
+function stavTag(d){ return d.stav==="nové"
+  ? `<span class="tag" style="background:var(--info-bg);color:var(--info);">${I.star}nové</span>`
+  : `<span class="tag" style="background:var(--warn-bg);color:var(--warn);">ojeté</span>`; }
+
 function renderCards(){
-  let rows = sortRows(CARS.filter(d=> filter==="all"||d.fuel===filter));
+  let rows = sortRows(CARS.filter(d=> filter==="all"||d.brand===filter));
   document.getElementById("count").textContent = rows.length + (rows.length===1?" auto":(rows.length<5?" auta":" aut"));
   document.getElementById("cards").innerHTML = rows.map(d=>{
-    const cheapest = d.price===MINPRICE;
+    const known = d.price!=null;
     const pct = MAXKM===MINKM ? 100 : Math.round(((MAXKM - d.km)/(MAXKM - MINKM))*82 + 18);
-    return `<article class="card" tabindex="0" role="link" aria-label="${d.n}, ${czk(d.price)} korun"
+    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${d.n}, ${eur(d.price)}"
         onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
       <div class="media byt">
         <div class="corner">
-          <span class="tag" style="background:var(--info-bg);color:var(--info);">${I.cal}${d.year}</span>
-          <span class="tag" style="background:var(--bg);color:var(--fg);">${I.fuel}${fuelLabel(d.fuel)}</span>
+          ${stavTag(d)}
+          <span class="tag" style="background:var(--bg);color:var(--fg);">${I.cal}${d.year}</span>
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
         ${d.img?`<img src="${d.img}" alt="Foto auta — ${d.n}" loading="lazy" onerror="this.remove()">`:""}
-        <span class="pricechip">${czk(d.price)} Kč</span>
+        <span class="pricechip">${eur(d.price)}</span>
       </div>
       <div class="body">
         <div class="ctitle">${d.n}</div>
         <div class="csub">${d.variant}</div>
         <div class="chips">
           <span class="chip">${I.gauge}${km(d.km)} km</span>
-          <span class="chip">${I.bolt}${d.power} kW</span>
+          <span class="chip">${I.bolt}${d.ps} PS</span>
+          <span class="chip">${I.fuel}${d.awd?"4×4":"FWD"}</span>
         </div>
         <div class="ppmwrap">
           <div class="ppmtop"><span>Najeto${d.km===MINKM?' · nejméně':''}</span><b>${km(d.km)} km</b></div>
-          <div class="bar"><i class="${cheapest?'lo':''}" style="width:${pct}%"></i></div>
+          <div class="bar"><i class="${d.win?'lo':''}" style="width:${pct}%"></i></div>
         </div>
         <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${f}</span></li>`).join("")}</ul>
-        <a class="cta aut" href="${d.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>
+        ${d.url?`<a class="cta aut" href="${d.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>`:`<span class="cta aut" style="background:var(--line);color:var(--muted-fg);cursor:default;">Bez odkazu</span>`}
       </div>
     </article>`;
   }).join("");
@@ -181,11 +197,12 @@ function renderTable(){
   document.getElementById("tbody").innerHTML = rows.map(d=>`
     <tr onclick="openUrl('${d.url}')">
       <td class="name">${d.n}</td>
+      <td>${d.stav}</td>
       <td class="num">${d.year}</td>
       <td class="num">${km(d.km)} km</td>
-      <td>${fuelLabel(d.fuel)}</td>
-      <td class="num">${d.power} kW</td>
-      <td class="num">${czk(d.price)} Kč${d.price===MINPRICE?' ★':''}</td>
+      <td>${d.awd?"4×4":"FWD"}</td>
+      <td class="num">${d.ps} PS</td>
+      <td class="num">${eur(d.price)}${d.win?' ★':''}</td>
     </tr>`).join("");
 }
 
@@ -196,7 +213,7 @@ function init(){
   }
   document.getElementById("empty").hidden = true;
   ["hero","controls","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=false);
-  MINPRICE = Math.min(...CARS.map(c=>c.price));
+  MINPRICE = Math.min(...CARS.map(c=>c.price).filter(p=>p!=null));
   MAXKM = Math.max(...CARS.map(c=>c.km));
   MINKM = Math.min(...CARS.map(c=>c.km));
   document.getElementById("filters").addEventListener("click", e=>{
