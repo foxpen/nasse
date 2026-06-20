@@ -141,10 +141,21 @@
   footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center; line-height:1.7;}
 
   @media (max-width:880px){ .hero{grid-template-columns:1fr;} }
-  @media (max-width:560px){
-    .kpis{grid-template-columns:1fr 1fr;} .grid{grid-template-columns:1fr;}
-    .brand span.t{display:none;} .sec-head .note{display:none;}
+  @media (max-width:640px){
+    .topbar .inner{padding:10px 16px; gap:10px;}
+    .topbar .spacer{display:none;}
+    .brand{flex:1 1 100%; font-size:16px;}
+    #filters{flex:1 1 0; min-width:0;}
+    #filters button{flex:1; padding:8px 6px; font-size:13px;}
+    #sort{flex:1 1 0; min-width:0;}
+    .sec-head .note{display:none;}
+    .pick{padding:22px 20px; min-height:0;}
+    .pick h2{font-size:23px;}
+    .pick .big{font-size:26px;}
+    .pick .pmeta{font-size:13px;}
+    main{padding-top:22px;}
   }
+  @media (max-width:560px){ .grid{grid-template-columns:1fr;} }
   @media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover{transform:none;} }
 </style>
 </head>
