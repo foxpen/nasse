@@ -73,7 +73,7 @@
     <span class="mlabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></svg>Hypotéka</span>
     <label>Úrok <input id="m-rate" type="number" value="3.95" step="0.05" min="0" inputmode="decimal"> %</label>
     <label>Doba <input id="m-years" type="number" value="30" min="5" max="40" step="1"> let</label>
-    <label>Akontace <input id="m-down" type="number" value="0" min="0" max="90" step="5"> %</label>
+    <label>Akontace <input id="m-down" type="number" value="10" min="0" max="90" step="5"> %</label>
     <label>Pojištění <input id="m-ins" type="number" value="0" min="0" step="100"> Kč/měs</label>
     <span class="mnote">orientační měsíční splátka u každé nemovitosti</span>
   </div>
@@ -146,7 +146,7 @@ function mapUrl(origin, mode){
 }
 
 let filter="all", sort="ppm";
-let mRate=3.95, mYears=30, mDown=0, mIns=0;
+let mRate=3.95, mYears=30, mDown=10, mIns=0;
 function monthly(price){
   const P=price*(1-mDown/100), r=mRate/100/12, n=mYears*12;
   const m = r===0 ? P/n : P*r/(1-Math.pow(1+r,-n));
