@@ -69,14 +69,15 @@
     <div class="th">Srovnávací tabulka</div>
     <div class="scroll">
       <table>
-        <thead><tr><th>Auto</th><th>Stav</th><th>Rok</th><th>Najeto</th><th>Pohon</th><th>Výkon</th><th>Cena</th></tr></thead>
+        <thead><tr><th>Auto</th><th>Stav</th><th>Rok</th><th>Najeto</th><th>Pohon</th><th>Výkon</th><th>Cena (Kč)</th><th>Cena (€)</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
   </section>
 
   <footer>
-    Lokální přehled · ceny orientační, ověřit u prodejce a v inzerátu.
+    Lokální přehled · ceny orientační, ověřit u prodejce a v inzerátu.<br>
+    Auta jsou z Německa (ceny v €), přepočet na Kč kurzem ČNB <strong>24,225 Kč/€</strong> (19. 6. 2026), zaokrouhleno na tisíce.
   </footer>
 </main>
 
@@ -109,8 +110,10 @@ const CARS = [
   {brand:"mazda", n:"Mazda CX-5 Homura (nakonfig.)", variant:"FWD · nová · top + příplatky", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:34590, feats:["bohatě nakonfig. (pano/lak)","⚠️ nejdražší FWD Homura"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-Homura_120-105061M"},
 ];
 
-const eur = n => (n==null ? "?" : n.toLocaleString('cs-CZ')+" €");
 const km = n => n.toLocaleString('cs-CZ');
+const RATE = 24.225; // kurz ČNB 19. 6. 2026: 1 EUR = 24,225 Kč
+const eur = p => (p==null ? "?" : km(p)+" €");
+const czk = p => (p==null ? "?" : km(Math.round(p*RATE/1000)*1000)+" Kč");
 const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
 function openUrl(u){ if(u) window.open(u,"_blank","noopener"); }
 
@@ -137,8 +140,8 @@ function renderPick(){
       <h2>${d.n}</h2>
       <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
       <div class="prow">
-        <span class="big">${eur(d.price)}</span>
-        <span class="ppm">${d.stav}<br>${km(d.km)} km</span>
+        <span class="big">${czk(d.price)}</span>
+        <span class="ppm">≈ ${eur(d.price)}<br>${d.stav} · ${km(d.km)} km</span>
       </div>
     </div>`;
 }
@@ -146,7 +149,8 @@ function renderPick(){
 function renderKpis(){
   document.getElementById("kpi-count").textContent = CARS.length;
   const prices = CARS.map(c=>c.price).filter(p=>p!=null);
-  document.getElementById("kpi-range").innerHTML = km(Math.min(...prices))+'–'+km(Math.max(...prices))+' <span class="u">€</span>';
+  const lo=Math.round(Math.min(...prices)*RATE/1000), hi=Math.round(Math.max(...prices)*RATE/1000);
+  document.getElementById("kpi-range").innerHTML = km(lo)+'–'+km(hi)+' <span class="u">tis. Kč</span>';
   document.getElementById("kpi-km").innerHTML = km(Math.min(...CARS.map(c=>c.km)))+' <span class="u">km</span>';
   const ys=CARS.map(c=>c.year).sort((a,b)=>a-b), m=Math.floor(ys.length/2);
   document.getElementById("kpi-year").textContent = ys.length%2 ? ys[m] : Math.round((ys[m-1]+ys[m])/2);
@@ -162,7 +166,7 @@ function renderCards(){
   document.getElementById("cards").innerHTML = rows.map(d=>{
     const known = d.price!=null;
     const pct = MAXKM===MINKM ? 100 : Math.round(((MAXKM - d.km)/(MAXKM - MINKM))*82 + 18);
-    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${d.n}, ${eur(d.price)}"
+    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(d.price)}"
         onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
       <div class="media byt">
         <div class="corner">
@@ -171,7 +175,7 @@ function renderCards(){
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
         ${d.img?`<img src="${d.img}" alt="Foto auta — ${d.n}" loading="lazy" onerror="this.remove()">`:""}
-        <span class="pricechip">${eur(d.price)}</span>
+        <span class="pricechip">${czk(d.price)}</span>
       </div>
       <div class="body">
         <div class="ctitle">${d.n}</div>
@@ -202,7 +206,8 @@ function renderTable(){
       <td class="num">${km(d.km)} km</td>
       <td>${d.awd?"4×4":"FWD"}</td>
       <td class="num">${d.ps} PS</td>
-      <td class="num">${eur(d.price)}${d.win?' ★':''}</td>
+      <td class="num">${czk(d.price)}${d.win?' ★':''}</td>
+      <td class="num">${eur(d.price)}</td>
     </tr>`).join("");
 }
 
