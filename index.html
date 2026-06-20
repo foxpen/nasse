@@ -85,11 +85,13 @@
   .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden;
         display:flex; flex-direction:column; cursor:pointer; box-shadow:var(--sh-sm); transition:.25s var(--ease);}
   .card:hover{transform:translateY(-4px); box-shadow:var(--sh-lg); border-color:var(--line-2);}
-  .media{position:relative; height:128px; background:var(--tint-byt); display:flex; align-items:center; justify-content:center;}
+  .media{position:relative; height:160px; background:var(--tint-byt); display:flex; align-items:center; justify-content:center; overflow:hidden;}
   .media.house{background:var(--tint-house);}
+  .media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
   .media .glyph{width:54px; height:54px; color:var(--primary); opacity:.85;}
   .media.byt .glyph{color:var(--accent);}
-  .media .corner{position:absolute; top:12px; left:12px; right:12px; display:flex; justify-content:space-between; gap:8px;}
+  .media .corner{position:absolute; top:12px; left:12px; right:12px; z-index:2; display:flex; justify-content:space-between; gap:8px;}
+  .media .corner .tag{box-shadow:0 1px 3px rgba(0,0,0,.18); backdrop-filter:saturate(140%);}
   .pricechip{position:absolute; left:16px; bottom:-18px; background:var(--surface); border:1px solid var(--line);
              border-radius:var(--r-pill); padding:8px 16px; font-weight:800; font-size:18px; letter-spacing:-.02em; box-shadow:var(--sh);}
   .body{padding:30px 18px 18px; display:flex; flex-direction:column; flex:1;}
@@ -246,6 +248,8 @@ const DATA = [
   {n:"Bukovany (Benešovsko)", t:"dum", disp:"dům 4+kk · řadovka", price:9999000, area:106, land:"pozemek 150 m²", ready:1, when:"novostavba 2022", en:"A", car:50, pt:90, origin:"Bukovany u Benešova", feats:["pasivní standard, zařízený","lze rozšířit na 5+kk"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/bukovany-bukovany-/2288403276"},
 ];
 DATA.forEach(d => d.ppm = Math.round(d.price/d.area));
+const IMGMAP = ["nymburk","hlizov","kraluvdvur","melnik","pecky","brandys","bukovany"];
+DATA.forEach((d,i)=> d.img = "img/"+IMGMAP[i]+".jpg");
 const MAXPPM = Math.max(...DATA.map(d=>d.ppm));
 const MINPPM = Math.min(...DATA.map(d=>d.ppm));
 const DEST = "Arkády Pankrác, Praha";
@@ -315,6 +319,7 @@ function renderCards(){
           <span class="tag" style="${enStyle(d.en)}">${I.bolt}${d.en}</span>
         </div>
         <span class="glyph" aria-hidden="true">${isHouse?I.house:I.building}</span>
+        <img src="${d.img}" alt="Foto nemovitosti — ${d.n}" loading="lazy" onerror="this.remove()">
         <span class="pricechip">${czk(d.price)} Kč</span>
       </div>
       <div class="body">
