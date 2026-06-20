@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Naše — vyber sekci</title>
+<title>NAŠE — vyber sekci</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,26 +11,35 @@
 </head>
 <body>
 <main class="onboard">
-  <div class="logo" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
-  </div>
-  <h1>Co dnes hledáme?</h1>
-  <p class="sub">Vyber sekci, do které chceš jít.</p>
+  <div class="ob-inner">
+    <div class="logo reveal" style="animation-delay:.02s" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+    </div>
+    <h1 class="wordmark reveal" style="animation-delay:.08s">NAŠE</h1>
+    <p class="sub reveal" style="animation-delay:.14s">Náš rodinný přehled — co zrovna vybíráme.</p>
 
-  <div class="choices">
-    <a class="choice byd" href="bydleni.html">
-      <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg></span>
-      <h2>Naše Bydleníčko</h2>
-      <span class="cdesc">Přehled sledovaných nemovitostí — cena, m², dojezd na Pankrác.</span>
-      <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-    </a>
+    <div class="choices">
+      <a class="choice byd reveal" href="bydleni.html" style="animation-delay:.22s">
+        <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg></span>
+        <h2>Naše Bydleníčko</h2>
+        <span class="cdesc">Sledované nemovitosti — cena, m², dojezd na Pankrác.</span>
+        <span class="cstat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>7 nemovitostí · od 7,98 mil. Kč</span>
+        <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
 
-    <a class="choice aut" href="auta.html">
-      <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg></span>
-      <h2>Naše Autíčko</h2>
-      <span class="cdesc">Přehled sledovaných aut — cena, rok, najeto, výkon.</span>
-      <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-    </a>
+      <a class="choice aut reveal" href="auta.html" style="animation-delay:.3s">
+        <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg></span>
+        <h2>Naše Autíčko</h2>
+        <span class="cdesc">Sledovaná auta — cena, rok, najeto, výkon.</span>
+        <span class="cstat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>13 vozů · od 606 000 Kč</span>
+        <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+
+    <p class="ob-foot reveal" style="animation-delay:.4s">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      Soukromý přehled · jen pro nás
+    </p>
   </div>
 </main>
 </body>
