@@ -1,8 +1,13 @@
-# Naše bydleníčko
+# Naše
 
-Přehledový dashboard sledovaných nemovitostí (sreality.cz) — porovnání ceny, ceny za m², stavu, energetické třídy a orientačního dojezdu do OC Arkády Pankrác (autem / MHD).
+Soukromý rozcestník se dvěma sekcemi:
 
-Statická stránka bez build kroku — stačí otevřít `index.html` v prohlížeči.
-Filtrování (domy/byty), řazení (cena, cena/m², plocha, dojezd) a srovnávací tabulka běží lokálně v JS.
+- **index.html** — onboarding: výběr sekce (Bydleníčko / Autíčko)
+- **bydleni.html** — přehled sledovaných nemovitostí (cena, m², dojezd na Arkády Pankrác)
+- **auta.html** — přehled sledovaných aut (zatím prázdné, čeká na odkazy z inzerátů)
+- **styles.css** — sdílený design (jeden zdroj vzhledu pro všechny stránky)
+- **img/** — stažené fotky nemovitostí
 
-Ceny i dojezdy jsou orientační — ověřit u makléře a v Mapách Google.
+Statické HTML bez build kroku — otevři `index.html` v prohlížeči. Přepínač nahoře
+přepíná mezi sekcemi, logo vlevo vrací na rozcestník. Filtrování, řazení i srovnávací
+tabulka běží lokálně v JS. Ceny i dojezdy jsou orientační — ověřit u zdroje.

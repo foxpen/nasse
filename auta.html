@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naše Autíčko — auta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html" aria-label="Zpět na rozcestník">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>
+      <span class="t">Naše</span>
+    </a>
+    <div class="spacer"></div>
+    <nav class="switch" aria-label="Sekce">
+      <a href="bydleni.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
+      <a href="auta.html" class="active aut" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
+    </nav>
+  </div>
+</div>
+
+<main>
+  <section class="hero" id="hero" hidden>
+    <a class="pick aut" id="pick" aria-label="Tip — nejlevnější auto"></a>
+    <div class="kpis" aria-label="Souhrn">
+      <div class="kpi"><div class="l">Aut</div><div class="v" id="kpi-count">—</div></div>
+      <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v" id="kpi-range">—</div></div>
+      <div class="kpi"><div class="l">Nejméně najeto</div><div class="v" id="kpi-km">—</div></div>
+      <div class="kpi"><div class="l">Medián rok</div><div class="v" id="kpi-year">—</div></div>
+    </div>
+  </section>
+
+  <div class="controls" id="controls" hidden>
+    <div class="seg" id="filters" role="group" aria-label="Filtr paliva">
+      <button data-f="all" aria-pressed="true">Vše</button>
+      <button data-f="benzin" aria-pressed="false">Benzín</button>
+      <button data-f="diesel" aria-pressed="false">Diesel</button>
+      <button data-f="elektro" aria-pressed="false">Elektro</button>
+    </div>
+    <div class="spacer"></div>
+    <select id="sort" aria-label="Řazení">
+      <option value="price">Nejnižší cena</option>
+      <option value="year">Nejnovější</option>
+      <option value="km">Nejméně najeto</option>
+      <option value="power">Nejvýkonnější</option>
+    </select>
+  </div>
+
+  <div class="sec-head" id="sechead" hidden>
+    <h3>Nabídky</h3>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="grid" id="cards"></div>
+
+  <section class="empty" id="empty">
+    <div class="eic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg></div>
+    <h3>Zatím tu nejsou žádná auta</h3>
+    <p>Pošli mi odkazy z inzerátů (sauto.cz, tipcars.com, sreality auto…) a doplním je sem ve stejném stylu jako bydlení — s fotkou, cenou, rokem, najetými km a výkonem.</p>
+  </section>
+
+  <section class="tablewrap" id="tablewrap" hidden>
+    <div class="th">Srovnávací tabulka</div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Auto</th><th>Rok</th><th>Najeto</th><th>Palivo</th><th>Výkon</th><th>Cena</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Lokální přehled · ceny orientační, ověřit u prodejce a v inzerátu.
+  </footer>
+</main>
+
+<script>
+const I = {
+  car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".6"/><circle cx="16.5" cy="14" r=".6"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>',
+  gauge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a8 8 0 1 1 8-8"/><path d="M12 14l4-4"/><path d="M4 20h16"/></svg>',
+  fuel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="9" height="18" rx="1.5"/><path d="M13 9h3a2 2 0 0 1 2 2v6a2 2 0 0 0 2-2V8l-3-3"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>',
+  dot:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
+};
+
+/* Až budou auta, doplní se sem (foto do img/auta/<klic>.jpg):
+   {n:"Škoda Octavia Combi", variant:"2.0 TDI 110 kW DSG", year:2021, km:78000,
+    fuel:"diesel", power:110, img:"img/auta/octavia.jpg", feats:["1. majitel","servisní kniha"],
+    price:489000, url:"https://www.sauto.cz/..."}
+   fuel: "benzin" | "diesel" | "elektro" | "hybrid"
+*/
+const CARS = [];
+
+const czk = n => n.toLocaleString('cs-CZ');
+const km = n => n.toLocaleString('cs-CZ');
+const fuelLabel = f => ({benzin:"Benzín",diesel:"Diesel",elektro:"Elektro",hybrid:"Hybrid"}[f]||f);
+function openUrl(u){ window.open(u,"_blank","noopener"); }
+
+let filter="all", sort="price";
+let MINPRICE=0, MAXKM=0, MINKM=0;
+
+function sortRows(rows){
+  return rows.sort((a,b)=>{
+    if(sort==="price") return a.price-b.price;
+    if(sort==="year")  return b.year-a.year;
+    if(sort==="km")    return a.km-b.km;
+    if(sort==="power") return b.power-a.power;
+  });
+}
+
+function renderPick(){
+  const d = [...CARS].sort((a,b)=>a.price-b.price)[0];
+  const el = document.getElementById("pick");
+  el.href = d.url; el.target="_blank"; el.rel="noopener";
+  el.innerHTML = `<div class="ring" aria-hidden="true"></div>
+    <span class="badge">${I.star} Tip — nejnižší cena</span>
+    <div>
+      <h2>${d.n}</h2>
+      <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${fuelLabel(d.fuel)} · ${d.power} kW</div>
+      <div class="prow">
+        <span class="big">${czk(d.price)} Kč</span>
+        <span class="ppm">${d.year}<br>${km(d.km)} km</span>
+      </div>
+    </div>`;
+}
+
+function renderKpis(){
+  document.getElementById("kpi-count").textContent = CARS.length;
+  const prices = CARS.map(c=>c.price);
+  document.getElementById("kpi-range").innerHTML = Math.round(Math.min(...prices)/1000)+'–'+Math.round(Math.max(...prices)/1000)+' <span class="u">tis.</span>';
+  document.getElementById("kpi-km").innerHTML = km(Math.min(...CARS.map(c=>c.km)))+' <span class="u">km</span>';
+  const ys=CARS.map(c=>c.year).sort((a,b)=>a-b), m=Math.floor(ys.length/2);
+  document.getElementById("kpi-year").textContent = ys.length%2 ? ys[m] : Math.round((ys[m-1]+ys[m])/2);
+}
+
+function renderCards(){
+  let rows = sortRows(CARS.filter(d=> filter==="all"||d.fuel===filter));
+  document.getElementById("count").textContent = rows.length + (rows.length===1?" auto":(rows.length<5?" auta":" aut"));
+  document.getElementById("cards").innerHTML = rows.map(d=>{
+    const cheapest = d.price===MINPRICE;
+    const pct = MAXKM===MINKM ? 100 : Math.round(((MAXKM - d.km)/(MAXKM - MINKM))*82 + 18);
+    return `<article class="card" tabindex="0" role="link" aria-label="${d.n}, ${czk(d.price)} korun"
+        onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
+      <div class="media byt">
+        <div class="corner">
+          <span class="tag" style="background:var(--info-bg);color:var(--info);">${I.cal}${d.year}</span>
+          <span class="tag" style="background:var(--bg);color:var(--fg);">${I.fuel}${fuelLabel(d.fuel)}</span>
+        </div>
+        <span class="glyph" aria-hidden="true">${I.car}</span>
+        ${d.img?`<img src="${d.img}" alt="Foto auta — ${d.n}" loading="lazy" onerror="this.remove()">`:""}
+        <span class="pricechip">${czk(d.price)} Kč</span>
+      </div>
+      <div class="body">
+        <div class="ctitle">${d.n}</div>
+        <div class="csub">${d.variant}</div>
+        <div class="chips">
+          <span class="chip">${I.gauge}${km(d.km)} km</span>
+          <span class="chip">${I.bolt}${d.power} kW</span>
+        </div>
+        <div class="ppmwrap">
+          <div class="ppmtop"><span>Najeto${d.km===MINKM?' · nejméně':''}</span><b>${km(d.km)} km</b></div>
+          <div class="bar"><i class="${cheapest?'lo':''}" style="width:${pct}%"></i></div>
+        </div>
+        <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${f}</span></li>`).join("")}</ul>
+        <a class="cta aut" href="${d.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function renderTable(){
+  let rows = sortRows([...CARS]);
+  document.getElementById("tbody").innerHTML = rows.map(d=>`
+    <tr onclick="openUrl('${d.url}')">
+      <td class="name">${d.n}</td>
+      <td class="num">${d.year}</td>
+      <td class="num">${km(d.km)} km</td>
+      <td>${fuelLabel(d.fuel)}</td>
+      <td class="num">${d.power} kW</td>
+      <td class="num">${czk(d.price)} Kč${d.price===MINPRICE?' ★':''}</td>
+    </tr>`).join("");
+}
+
+function init(){
+  if(CARS.length===0){
+    document.getElementById("empty").hidden = false;
+    return;
+  }
+  document.getElementById("empty").hidden = true;
+  ["hero","controls","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=false);
+  MINPRICE = Math.min(...CARS.map(c=>c.price));
+  MAXKM = Math.max(...CARS.map(c=>c.km));
+  MINKM = Math.min(...CARS.map(c=>c.km));
+  document.getElementById("filters").addEventListener("click", e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    filter=b.dataset.f;
+    document.querySelectorAll("#filters button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+    renderCards();
+  });
+  document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderCards(); renderTable(); });
+  renderPick(); renderKpis(); renderCards(); renderTable();
+}
+init();
+</script>
+</body>
+</html>

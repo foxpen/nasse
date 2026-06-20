@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naše Bydleníčko — nemovitosti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html" aria-label="Zpět na rozcestník">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>
+      <span class="t">Naše</span>
+    </a>
+    <div class="spacer"></div>
+    <nav class="switch" aria-label="Sekce">
+      <a href="bydleni.html" class="active" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
+      <a href="auta.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
+    </nav>
+  </div>
+</div>
+
+<main>
+  <section class="hero">
+    <a class="pick" id="pick" aria-label="Tip — nejlepší poměr cena za metr"></a>
+    <div class="kpis" aria-label="Souhrn">
+      <div class="kpi"><div class="l">Nabídek</div><div class="v">7</div></div>
+      <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v">7,98–10,0 <span class="u">M</span></div></div>
+      <div class="kpi"><div class="l">Hotových hned</div><div class="v" id="kpi-ready">—</div></div>
+      <div class="kpi"><div class="l">Medián cena/m²</div><div class="v" id="kpi-ppm">—</div></div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="seg" id="filters" role="group" aria-label="Filtr typu">
+      <button data-f="all" aria-pressed="true">Vše</button>
+      <button data-f="dum" aria-pressed="false">Domy</button>
+      <button data-f="byt" aria-pressed="false">Byty</button>
+    </div>
+    <div class="spacer"></div>
+    <select id="sort" aria-label="Řazení">
+      <option value="ppm">Nejlepší cena/m²</option>
+      <option value="price">Nejnižší cena</option>
+      <option value="area">Největší plocha</option>
+      <option value="ready">Hotové první</option>
+      <option value="car">Nejblíž autem</option>
+      <option value="pt">Nejblíž MHD</option>
+    </select>
+  </div>
+
+  <div class="sec-head">
+    <h3>Nabídky</h3>
+    <span class="count" id="count"></span>
+    <span class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do Arkád Pankrác (mimo špičku)</span>
+  </div>
+  <div class="grid" id="cards"></div>
+
+  <section class="tablewrap">
+    <div class="th">Srovnávací tabulka</div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Nemovitost</th><th>Typ</th><th>Cena</th><th>Plocha</th><th>Cena/m²</th><th>Pankrác · auto</th><th>Pankrác · MHD</th><th>Stav</th><th>PENB</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Lokální přehled · zdroj dat sreality.cz · ceny i dojezdy orientační, ověřit u makléře a v mapách<br>
+    Dojezdové časy jsou odhad mimo špičku do OC Arkády Pankrác (Praha 4). Klikni na štítek dojezdu pro živou trasu v Mapách Google.<br>
+    Energetická třída „G*" u rozestavěných staveb je nejspíš jen nevyhotovený PENB, ne reálná spotřeba.
+  </footer>
+</main>
+
+<script>
+const I = {
+  house:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>',
+  building:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h0M15 7h0M9 11h0M15 11h0M9 15h0M15 15h0"/><path d="M9.5 21v-3h5v3"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>',
+  ruler:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16 16 3l5 5L8 21z"/><path d="m7 11 2 2M11 7l2 2M15 11l1.5 1.5"/></svg>',
+  tree:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-6"/><path d="M9 16a4 4 0 0 1-1-7.5A4.5 4.5 0 0 1 16.5 7 3.5 3.5 0 0 1 15 16z"/></svg>',
+  car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".6"/><circle cx="16.5" cy="14" r=".6"/></svg>',
+  transit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="13" rx="2.5"/><path d="M5 11h14"/><path d="M8 16l-2 3M16 16l2 3"/><circle cx="8.5" cy="13.5" r=".6"/><circle cx="15.5" cy="13.5" r=".6"/></svg>',
+  dot:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
+};
+
+const DATA = [
+  {n:"Nymburk, K Lesu", t:"byt", disp:"byt 3+kk", price:7980000, area:71, land:"zahrada 79 m²", ready:1, when:"hotovo · novostavba", en:"B", car:50, pt:80, origin:"Nymburk, K Lesu", feats:["sklep, výtah, 2 terasy","bezbariérový vstup"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/nymburk-nymburk-k-lesu/38028108"},
+  {n:"Hlízov (u Kutné Hory)", t:"dum", disp:"dům 4+kk", price:8396320, area:94, land:"pozemek 209 / zahr. 143 m²", ready:1, when:"novostavba 2024", en:"B", car:65, pt:110, origin:"Hlízov", feats:["tep. čerpadlo + podlah. topení","provize + právní služby v ceně"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/hlizov-hlizov-/407994444"},
+  {n:"Králův Dvůr — Levín", t:"byt", disp:"3+kk · 1/3 řadovky", price:8699000, area:80, land:"zahrada 140 m²", ready:1, when:"jako nová", en:"B", car:35, pt:65, origin:"Králův Dvůr, Větrná", feats:["2 parkovací místa","~2 km Beroun, ~25 km Praha"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/kraluv-dvur-levin-vetrna/2757694284"},
+  {n:"Mělník, Pod Chloumečkem", t:"dum", disp:"dům 4+kk · dvojdomek", price:8790000, area:79, land:"pozemek 333 m²", ready:0, when:"ve výstavbě · 2026", en:"G*", car:40, pt:75, origin:"Mělník, Pod Chloumečkem", feats:["příprava FVE + wallbox","2 parkovací místa"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/melnik-melnik-pod-chloumeckem/2291920972"},
+  {n:"Pečky, Letohradská", t:"byt", disp:"byt 3+kk", price:8797500, area:71, land:"zahrada až 212 m²", ready:0, when:"ve výstavbě · 2027", en:"G*", car:45, pt:65, origin:"Pečky, Letohradská", feats:["velká zahrada, sklep","rekuperace + příprava na EV"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/pecky-pecky-letohradska/1506517068"},
+  {n:"Brandýs n. Labem", t:"byt", disp:"byt 3+kk", price:9290000, area:75, land:"zahrada 67 m²", ready:1, when:"novostavba 2021 · 7/2026", en:"B", car:35, pt:65, origin:"Brandýs nad Labem, Seifertova", feats:["garáž v suterénu","sklep, terasa, výtah"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/brandys-nad-labem-stara-boleslav-brandys-nad-labem-seifertova/4115431500"},
+  {n:"Bukovany (Benešovsko)", t:"dum", disp:"dům 4+kk · řadovka", price:9999000, area:106, land:"pozemek 150 m²", ready:1, when:"novostavba 2022", en:"A", car:50, pt:90, origin:"Bukovany u Benešova", feats:["pasivní standard, zařízený","lze rozšířit na 5+kk"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/bukovany-bukovany-/2288403276"},
+];
+DATA.forEach(d => d.ppm = Math.round(d.price/d.area));
+const IMGMAP = ["nymburk","hlizov","kraluvdvur","melnik","pecky","brandys","bukovany"];
+DATA.forEach((d,i)=> d.img = "img/"+IMGMAP[i]+".jpg");
+const MAXPPM = Math.max(...DATA.map(d=>d.ppm));
+const MINPPM = Math.min(...DATA.map(d=>d.ppm));
+const DEST = "Arkády Pankrác, Praha";
+
+const czk = n => n.toLocaleString('cs-CZ');
+const enStyle = e => e.startsWith("A") ? "background:#E2F2D6;color:#3B6D11;"
+  : e.startsWith("B") ? "background:var(--ok-bg);color:var(--ok);"
+  : "background:var(--warn-bg);color:var(--warn);";
+function openUrl(u){ window.open(u,"_blank","noopener"); }
+function mapUrl(origin, mode){
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(DEST)}&travelmode=${mode}`;
+}
+
+let filter="all", sort="ppm";
+
+function readyTag(d){return d.ready
+  ? `<span class="tag" style="background:var(--ok-bg);color:var(--ok);">${I.check}hotové</span>`
+  : `<span class="tag" style="background:var(--warn-bg);color:var(--warn);">${I.clock}ve výstavbě</span>`;}
+
+function sortRows(rows){
+  return rows.sort((a,b)=>{
+    if(sort==="ppm")   return a.ppm-b.ppm;
+    if(sort==="price") return a.price-b.price;
+    if(sort==="area")  return b.area-a.area;
+    if(sort==="ready") return (b.ready-a.ready)||(a.price-b.price);
+    if(sort==="car")   return a.car-b.car;
+    if(sort==="pt")    return a.pt-b.pt;
+  });
+}
+
+function renderPick(){
+  const d = [...DATA].sort((a,b)=>a.ppm-b.ppm)[0];
+  const el = document.getElementById("pick");
+  el.href = d.url; el.target = "_blank"; el.rel = "noopener";
+  el.innerHTML = `<div class="ring" aria-hidden="true"></div>
+    <span class="badge">${I.star} Tip — nejlepší cena/m²</span>
+    <div>
+      <h2>${d.n}</h2>
+      <div class="pmeta">${d.disp} · ${d.land} · ${d.when} · 🚗 ~${d.car} min / 🚆 ~${d.pt} min na Pankrác</div>
+      <div class="prow">
+        <span class="big">${czk(d.price)} Kč</span>
+        <span class="ppm"><b style="font-size:18px;">${czk(d.ppm)}</b> Kč/m²<br>${d.area} m²</span>
+      </div>
+    </div>`;
+}
+
+function renderKpis(){
+  document.getElementById("kpi-ready").innerHTML = DATA.filter(d=>d.ready).length + ' <span class="u">ze 7</span>';
+  const s=[...DATA].map(d=>d.ppm).sort((a,b)=>a-b), m=Math.floor(s.length/2);
+  const med = s.length%2 ? s[m] : Math.round((s[m-1]+s[m])/2);
+  document.getElementById("kpi-ppm").innerHTML = czk(med) + ' <span class="u">Kč</span>';
+}
+
+function renderCards(){
+  let rows = sortRows(DATA.filter(d=> filter==="all"||d.t===filter));
+  document.getElementById("count").textContent = rows.length + (rows.length===1?" nabídka":(rows.length<5?" nabídky":" nabídek"));
+  document.getElementById("cards").innerHTML = rows.map(d=>{
+    const isHouse = d.t==="dum";
+    const pct = Math.round(((MAXPPM - d.ppm)/(MAXPPM - MINPPM))*82 + 18);
+    const best = d.ppm===MINPPM;
+    return `<article class="card" tabindex="0" role="link" aria-label="${d.n}, ${czk(d.price)} korun"
+        onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
+      <div class="media ${isHouse?'house':'byt'}">
+        <div class="corner">
+          ${readyTag(d)}
+          <span class="tag" style="${enStyle(d.en)}">${I.bolt}${d.en}</span>
+        </div>
+        <span class="glyph" aria-hidden="true">${isHouse?I.house:I.building}</span>
+        <img src="${d.img}" alt="Foto nemovitosti — ${d.n}" loading="lazy" onerror="this.remove()">
+        <span class="pricechip">${czk(d.price)} Kč</span>
+      </div>
+      <div class="body">
+        <div class="ctitle">${d.n}</div>
+        <div class="csub">${d.disp}</div>
+        <div class="chips">
+          <span class="chip">${I.ruler}${d.area} m²</span>
+          <span class="chip">${I.tree}${d.land}</span>
+        </div>
+        <div class="ppmwrap">
+          <div class="ppmtop"><span>Cena za m²${best?' · nejlepší':''}</span><b>${czk(d.ppm)} Kč</b></div>
+          <div class="bar"><i class="${best?'lo':''}" style="width:${pct}%"></i></div>
+        </div>
+        <div class="commute">
+          <a href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Trasa autem v Mapách Google" aria-label="Autem zhruba ${d.car} minut na Arkády Pankrác">
+            ${I.car}<span><b>~${d.car} min</b><small>autem</small></span>
+          </a>
+          <a href="${mapUrl(d.origin,'transit')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Trasa MHD v Mapách Google" aria-label="MHD zhruba ${d.pt} minut na Arkády Pankrác">
+            ${I.transit}<span><b>~${d.pt} min</b><small>MHD</small></span>
+          </a>
+        </div>
+        <ul class="feats">${d.feats.map(f=>`<li>${I.dot}<span>${f}</span></li>`).join("")}</ul>
+        <a class="cta" href="${d.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function renderTable(){
+  let rows = sortRows([...DATA]);
+  document.getElementById("tbody").innerHTML = rows.map(d=>`
+    <tr onclick="openUrl('${d.url}')">
+      <td class="name">${d.n}</td>
+      <td>${d.t==="dum"?"dům":"byt"}</td>
+      <td class="num">${czk(d.price)} Kč</td>
+      <td class="num">${d.area} m²</td>
+      <td class="num">${czk(d.ppm)}${d.ppm===MINPPM?' ★':''}</td>
+      <td class="num">~${d.car} min</td>
+      <td class="num">~${d.pt} min</td>
+      <td><span class="mini" style="${d.ready?'background:var(--ok-bg);color:var(--ok);':'background:var(--warn-bg);color:var(--warn);'}">${d.ready?"hotové":"výstavba"}</span></td>
+      <td><span class="mini" style="${enStyle(d.en)}">${d.en}</span></td>
+    </tr>`).join("");
+}
+
+function renderAll(){ renderCards(); renderTable(); }
+
+document.getElementById("filters").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  filter=b.dataset.f;
+  document.querySelectorAll("#filters button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  renderCards();
+});
+document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderAll(); });
+
+renderPick(); renderKpis(); renderAll();
+</script>
+</body>
+</html>
