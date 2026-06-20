@@ -20,6 +20,22 @@
     --sh-sm:0 1px 2px rgba(0,0,0,.4); --sh:0 6px 18px rgba(0,0,0,.4); --sh-lg:0 14px 40px rgba(0,0,0,.5);
   }
 }
+/* ---------- car section theme (ocean wave azure) ---------- */
+.theme-auto{
+  --primary:#0284C7; --primary-700:#0369A1; --secondary:#38BDF8;
+  --accent:#0284C7; --accent-700:#0369A1;
+  --tint-byt:#E0F2FE; --info:#075985; --info-bg:#E0F2FE;
+}
+.choice.aut{ --accent:#0284C7; --tint-byt:#E0F2FE; }
+@media (prefers-color-scheme: dark){
+  .theme-auto{
+    --primary:#38BDF8; --primary-700:#0EA5E9; --secondary:#0EA5E9;
+    --accent:#38BDF8; --accent-700:#0EA5E9;
+    --tint-byt:#0C2A3A; --info:#7DD3FC; --info-bg:#0C2A3A;
+  }
+  .choice.aut{ --accent:#38BDF8; --tint-byt:#0C2A3A; }
+}
+
 *{box-sizing:border-box; margin:0; padding:0;}
 html{-webkit-text-size-adjust:100%; scroll-behavior:smooth;}
 body{background:var(--bg); color:var(--fg); font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
