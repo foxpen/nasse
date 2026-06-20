@@ -73,7 +73,8 @@
     <span class="mlabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></svg>Hypotéka</span>
     <label>Úrok <input id="m-rate" type="number" value="3.95" step="0.05" min="0" inputmode="decimal"> %</label>
     <label>Doba <input id="m-years" type="number" value="30" min="5" max="40" step="1"> let</label>
-    <label>Akontace <input id="m-down" type="number" value="20" min="0" max="90" step="5"> %</label>
+    <label>Akontace <input id="m-down" type="number" value="0" min="0" max="90" step="5"> %</label>
+    <label>Pojištění <input id="m-ins" type="number" value="0" min="0" step="100"> Kč/měs</label>
     <span class="mnote">orientační měsíční splátka u každé nemovitosti</span>
   </div>
 
@@ -145,12 +146,13 @@ function mapUrl(origin, mode){
 }
 
 let filter="all", sort="ppm";
-let mRate=3.95, mYears=30, mDown=20;
+let mRate=3.95, mYears=30, mDown=0, mIns=0;
 function monthly(price){
   const P=price*(1-mDown/100), r=mRate/100/12, n=mYears*12;
   const m = r===0 ? P/n : P*r/(1-Math.pow(1+r,-n));
   return Math.round(m/100)*100;
 }
+function totalPay(price){ return Math.round((monthly(price)+mIns)/100)*100; }
 const bankIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></svg>';
 
 function readyTag(d){return d.ready
@@ -176,7 +178,7 @@ function renderPick(){
     <span class="badge">${I.star} Tip — nejlepší cena/m²</span>
     <div>
       <h2>${d.n}</h2>
-      <div class="pmeta">${d.disp} · ${d.land} · ${d.when}<br>🏦 splátka ~${czk(monthly(d.price))} Kč/měs · 🚗 ~${d.car} / 🚆 ~${d.pt} min na Pankrác</div>
+      <div class="pmeta">${d.disp} · ${d.land} · ${d.when}<br>🏦 splátka ~${czk(totalPay(d.price))} Kč/měs · 🚗 ~${d.car} / 🚆 ~${d.pt} min na Pankrác</div>
       <div class="prow">
         <span class="big">${czk(d.price)} Kč</span>
         <span class="ppm"><b style="font-size:18px;">${czk(d.ppm)}</b> Kč/m²<br>${d.area} m²</span>
@@ -220,7 +222,7 @@ function renderCards(){
           <div class="ppmtop"><span>Cena za m²${best?' · nejlepší':''}</span><b>${czk(d.ppm)} Kč</b></div>
           <div class="bar"><i class="${best?'lo':''}" style="width:${pct}%"></i></div>
         </div>
-        <div class="mort">${bankIcon}Hypotéka <b>~${czk(monthly(d.price))} Kč</b>/měs</div>
+        <div class="mort">${bankIcon}Splátka <b>~${czk(totalPay(d.price))} Kč</b>/měs${mIns>0?' <span style="font-weight:600">(vč. poj.)</span>':''}</div>
         <div class="commute">
           <a href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Trasa autem v Mapách Google" aria-label="Autem zhruba ${d.car} minut na Arkády Pankrác">
             ${I.car}<span><b>~${d.car} min</b><small>autem</small></span>
@@ -266,9 +268,10 @@ function recalcMortgage(){
   mRate = parseFloat(document.getElementById("m-rate").value) || 0;
   mYears = Math.min(40, Math.max(1, parseInt(document.getElementById("m-years").value) || 30));
   mDown = Math.min(95, Math.max(0, parseFloat(document.getElementById("m-down").value) || 0));
+  mIns = Math.max(0, parseFloat(document.getElementById("m-ins").value) || 0);
   renderPick(); renderCards();
 }
-["m-rate","m-years","m-down"].forEach(id=>document.getElementById(id).addEventListener("input", recalcMortgage));
+["m-rate","m-years","m-down","m-ins"].forEach(id=>document.getElementById(id).addEventListener("input", recalcMortgage));
 
 renderPick(); renderKpis(); renderAll();
 </script>
