@@ -20,7 +20,7 @@
     <span class="splash-bar" aria-hidden="true"></span>
   </div>
 </div>
-<script>(function(){var s=document.getElementById('splash');if(!s)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches||sessionStorage.getItem('naseSplash')){s.remove();return;}sessionStorage.setItem('naseSplash','1');setTimeout(function(){s.remove();},2750);})();</script>
+<script>(function(){var s=document.getElementById('splash');if(!s)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){s.remove();return;}setTimeout(function(){s.remove();},2750);})();</script>
 
 <main class="onboard">
   <div class="ob-inner">
