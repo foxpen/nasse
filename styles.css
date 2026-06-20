@@ -182,9 +182,10 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .ob-inner{position:relative; z-index:1; width:100%; max-width:780px; margin:0 auto; text-align:center;}
 .onboard .logo{width:62px;height:62px;border-radius:18px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:var(--sh);}
 .onboard .logo svg{width:34px;height:34px;}
-.wordmark{font-size:clamp(54px,13vw,104px); font-weight:800; letter-spacing:.04em; line-height:.95; margin:4px 0 2px;
-  background:linear-gradient(95deg,var(--primary) 0%, #14B8A6 40%, #0EA5E9 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
-.onboard p.sub{color:var(--muted-fg); font-size:16.5px; margin-top:8px;}
+.wordmark{font-size:clamp(46px,9vw,78px); font-weight:800; letter-spacing:-.02em; line-height:1.12; color:var(--fg); margin:2px 0 0;}
+.accentbar{display:block; width:74px; height:5px; border-radius:var(--r-pill); margin:14px auto 0;
+  background:linear-gradient(90deg,var(--primary) 0%, #14B8A6 50%, #0EA5E9 100%);}
+.onboard p.sub{color:var(--muted-fg); font-size:16.5px; margin-top:14px;}
 .choices{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:36px;}
 .choice{position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
         padding:32px 28px; text-decoration:none; color:var(--fg); display:flex; flex-direction:column; align-items:flex-start;
