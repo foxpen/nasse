@@ -373,3 +373,23 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   border-left:3px solid var(--primary); border-radius:8px; padding:8px 11px; white-space:pre-wrap; line-height:1.5;}
 .theme-auto .cardnote{border-left-color:var(--accent);}
 .modal textarea{resize:vertical; min-height:90px; line-height:1.5;}
+
+/* ---------- companion mascot ---------- */
+#buddy{position:fixed; right:18px; bottom:18px; z-index:900; width:104px; height:104px; cursor:pointer;
+  -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;}
+#buddy img{width:100%; height:100%; object-fit:contain; display:block; pointer-events:none;
+  filter:drop-shadow(0 10px 16px rgba(16,44,41,.20)); transform-origin:bottom center; animation:buddyBob 3.4s ease-in-out infinite;}
+@keyframes buddyBob{0%,100%{transform:translateY(0) rotate(-1.5deg);} 50%{transform:translateY(-7px) rotate(1.5deg);}}
+#buddy.jump img{animation:buddyJump .7s var(--ease);}
+@keyframes buddyJump{0%{transform:translateY(0)}28%{transform:translateY(-30px) scale(1.06)}52%{transform:translateY(0) scale(.95)}72%{transform:translateY(-10px)}100%{transform:translateY(0)}}
+#buddy.wiggle img{animation:buddyWiggle .55s ease;}
+@keyframes buddyWiggle{0%,100%{transform:rotate(0)}20%{transform:rotate(-9deg)}60%{transform:rotate(9deg)}80%{transform:rotate(-4deg)}}
+#buddy.sleep img{animation:buddyBreathe 4.5s ease-in-out infinite; filter:drop-shadow(0 8px 14px rgba(16,44,41,.12)) saturate(.75) brightness(.97);}
+@keyframes buddyBreathe{0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-3px) scale(1.012)}}
+.buddy-bubble{position:fixed; right:128px; bottom:60px; z-index:901; max-width:240px; background:var(--surface); color:var(--fg);
+  border:1px solid var(--line); border-radius:14px; border-bottom-right-radius:5px; padding:10px 14px; font-size:13.5px;
+  font-weight:600; line-height:1.45; box-shadow:var(--sh); opacity:0; transform:translateY(8px) scale(.96);
+  transition:.22s var(--ease); pointer-events:none;}
+.buddy-bubble.show{opacity:1; transform:none;}
+@media (max-width:560px){ #buddy{width:78px; height:78px; right:12px; bottom:12px;} .buddy-bubble{right:96px; bottom:42px; max-width:170px; font-size:12.5px;} }
+@media (prefers-reduced-motion: reduce){ #buddy img{animation:none!important;} }

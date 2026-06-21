@@ -269,6 +269,7 @@ async function delById(id){
   if(!confirm("Smazat tohle auto?")) return;
   try{ const r=await fetch(API+"/delete?id="+id,{method:"DELETE"}); if(!r.ok) throw 0; }
   catch(e){ alert("Smazání selhalo."); return; }
+  window.dispatchEvent(new CustomEvent('nase:react',{detail:'del'}));
   loadData();
 }
 
@@ -293,6 +294,7 @@ function editNote(id){
     try{
       const r=await fetch(API+"/note",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,note})});
       if(!r.ok) throw new Error("HTTP "+r.status);
+      window.dispatchEvent(new CustomEvent('nase:react',{detail:'note'}));
       close(); loadData();
     }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
   };
@@ -354,6 +356,7 @@ function openAdd(){
     try{
       const r=await fetch(API+"/add",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({section:"auto",data})});
       if(!r.ok) throw new Error("HTTP "+r.status);
+      window.dispatchEvent(new CustomEvent('nase:react',{detail:'add'}));
       close(); loadData();
     }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
   };
@@ -369,5 +372,6 @@ document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.va
 document.getElementById("btn-add").addEventListener("click", openAdd);
 loadData();
 </script>
+<script src="companion.js"></script>
 </body>
 </html>
