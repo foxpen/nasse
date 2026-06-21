@@ -360,3 +360,16 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .tile:hover .tile-go svg{transform:translateX(4px);}
 .tile:active{transform:translateY(-2px) scale(.99);}
 @media (max-width:640px){ .tiles{grid-template-columns:1fr;} .tile{min-height:230px;} }
+
+/* ---------- per-item note + card actions ---------- */
+.del{display:none; gap:8px;}
+.card:hover .del,.card:focus-within .del{display:flex;}
+.btn-note{font:inherit; font-size:12px; font-weight:700; color:var(--fg); background:var(--surface);
+  border:1px solid var(--line-2); border-radius:var(--r-pill); padding:5px 12px; cursor:pointer; box-shadow:var(--sh);}
+.btn-note:hover{border-color:var(--primary);}
+.theme-auto .btn-note:hover{border-color:var(--accent);}
+.btn-del{padding:5px 11px;}
+.cardnote{margin-top:12px; font-size:13px; color:var(--fg); background:var(--bg); border:1px solid var(--line);
+  border-left:3px solid var(--primary); border-radius:8px; padding:8px 11px; white-space:pre-wrap; line-height:1.5;}
+.theme-auto .cardnote{border-left-color:var(--accent);}
+.modal textarea{resize:vertical; min-height:90px; line-height:1.5;}

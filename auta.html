@@ -131,6 +131,7 @@ const pCzk = d => d.czk!=null ? d.czk : (d.price!=null ? Math.round(d.price*RATE
 const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE) : null);
 const czk = v => (v==null ? "?" : km(v)+" Kč");
 const eur = v => (v==null ? "?" : km(v)+" €");
+const esc = s => String(s==null?'':s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
 function openUrl(u){ if(u && u!=='undefined') window.open(u,"_blank","noopener"); }
 
@@ -190,7 +191,10 @@ function renderCards(){
           ${stavTag(d)}
           <span class="tag" style="background:var(--bg);color:var(--fg);">${I.cal}${d.year}</span>
         </div>
-        <div class="del"><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕ smazat</button></div>
+        <div class="del">
+          <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝 Poznámka</button>
+          <button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button>
+        </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
         ${d.img?`<img src="${d.img}" alt="Foto auta · ${d.n}" loading="lazy" onerror="this.remove()">`:""}
         <span class="pricechip">${czk(pCzk(d))}</span>
@@ -208,6 +212,7 @@ function renderCards(){
           <div class="bar"><i class="${d.win?'lo':''}" style="width:${pct}%"></i></div>
         </div>
         <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${f}</span></li>`).join("")}</ul>
+        ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
         ${d.url?`<a class="cta aut" href="${d.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>`:`<span class="cta aut" style="background:var(--line);color:var(--muted-fg);cursor:default;">Bez odkazu</span>`}
       </div>
     </article>`;
@@ -265,6 +270,32 @@ async function delById(id){
   try{ const r=await fetch(API+"/delete?id="+id,{method:"DELETE"}); if(!r.ok) throw 0; }
   catch(e){ alert("Smazání selhalo."); return; }
   loadData();
+}
+
+function editNote(id){
+  const item=CARS.find(x=>x.id===id); if(!item) return;
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal" style="max-width:460px">
+    <h3>Poznámka</h3>
+    <p class="hint">${esc(item.n)}</p>
+    <textarea id="nm_txt" rows="5" placeholder="Napiš si poznámku k tomuhle autu…">${esc(item.note)}</textarea>
+    <div class="msg" id="nm_msg"></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="nm_cancel">Zrušit</button><button class="btn-add" type="button" id="nm_save">Uložit</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#nm_cancel").onclick=close;
+  wrap.querySelector("#nm_txt").focus();
+  wrap.querySelector("#nm_save").onclick=async()=>{
+    const note=wrap.querySelector("#nm_txt").value;
+    const msg=wrap.querySelector("#nm_msg"); msg.className="msg"; msg.textContent="Ukládám…";
+    try{
+      const r=await fetch(API+"/note",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,note})});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      close(); loadData();
+    }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
+  };
 }
 
 function fld(label,id,ph){ return `<label>${label}</label><input id="m_${id}" placeholder="${ph||''}">`; }
