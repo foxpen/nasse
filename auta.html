@@ -78,6 +78,7 @@
       <option value="km">Nejméně najeto</option>
       <option value="power">Nejvýkonnější</option>
     </select>
+    <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
   </div>
 
   <div class="sec-head" id="sechead" hidden>
@@ -120,23 +121,8 @@ const I = {
   star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
 };
 
-/* Auta z minulé session (Car selection overview). Ceny v EUR (auta z DE).
-   Foto lze doplnit do img/auta/<klic>.jpg a přidat pole img:"img/auta/...". */
-const CARS = [
-  {brand:"kia", n:"Kia Sportage 1.6T 48V Vision Komfort", variant:"FWD · 1 maj. · 48V mild-hybrid · ★ vítěz ojetých", stav:"ojeté", year:2023, km:34000, fuel:"benzin", awd:false, kw:110, ps:150, price:24996, win:true, feats:["1 majitel, 34 tis. km, hned","7letá záruka do 04/2030 (kryje turbo/DCT)"], url:""},
-  {brand:"kia", n:"Kia Sportage 1.6 T-GDI Vision", variant:"FWD · 2 maj. · Vision", stav:"ojeté", year:2023, km:58000, fuel:"benzin", awd:false, kw:110, ps:150, price:24999, feats:["spotřeba 5,7 l, 3-zón. klima","⚠️ 58 tis. km, 2 majitelé"], url:""},
-  {brand:"jeep", n:"Jeep Compass 1.5 mHEV Summit", variant:"FWD · Summit (top výbava)", stav:"ojeté", year:2025, km:16690, fuel:"hybrid", awd:false, kw:96, ps:131, price:25000, feats:["top výbava, nízký nájezd","⚠️ 131 PS nejslabší, Stellantis"], url:""},
-  {brand:"hyundai", n:"Hyundai Tucson 1.6 T-GDI Trend (Panorama)", variant:"4×4 · panorama", stav:"ojeté", year:2023, km:31000, fuel:"benzin", awd:true, kw:132, ps:179, price:25000, feats:["179 PS, panoramatická střecha","❌ 4×4 — nepotřebuješ"], url:"https://suchen.mobile.de/fahrzeuge/details.html?id=454549301"},
-  {brand:"hyundai", n:"Hyundai Tucson 1.6 T-GDI Trend", variant:"FWD · 1 maj. (T1)", stav:"ojeté", year:2025, km:25562, fuel:"benzin", awd:false, kw:118, ps:160, price:null, feats:["160 PS, FWD, hned","⚠️ cena neuvedena"], url:"https://x.b2b-fahrzeuge.de/2209/Kia/Kia-Sportage-1-6T-GDI-DCT7-NAVI-KAM/68ded912fac0cfddf80bc614"},
-  {brand:"hyundai", n:"Hyundai Tucson 1.6 T-GDI Trend", variant:"4×4 · 1 maj. (T2)", stav:"ojeté", year:2025, km:14756, fuel:"benzin", awd:true, kw:118, ps:160, price:29999, feats:["nízký nájezd 14,7 tis.","❌ 4×4 — nepotřebuješ"], url:"https://x.b2b-fahrzeuge.de/2209/Kia/Kia-Sportage-1-6-T-GDI-DCT7-ACC-KEYLESS/68a62676fe771908380a9f6f"},
-  {brand:"mazda", n:"Mazda CX-5 e-Skyactiv-G 141 Prime-Line", variant:"FWD · nová · základ", stav:"nové", year:2025, km:15, fuel:"benzin", awd:false, kw:104, ps:141, price:null, feats:["skladem hned","⚠️ ověřit klimatizaci (bez ní)"], url:"https://suchen.mobile.de/fahrzeuge/details.html?id=457164408"},
-  {brand:"mazda", n:"Mazda CX-5 e-Skyactiv-G 141 Exclusive-Line", variant:"FWD · nová · 48V", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:29900, feats:["Bose, kůže na volantu, 2-zón. klima","dodání ~5 měsíců"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT--Exclusive-Line_120-106805"},
-  {brand:"mazda", n:"Mazda CX-5 Exclusive-Line AWD", variant:"4×4 · nová · 48V", stav:"nové", year:2025, km:0, fuel:"benzin", awd:true, kw:104, ps:141, price:31490, feats:["4×4","umělá kůže, 12,9\" displej"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-AWD-Exclusive-Line_120-106808"},
-  {brand:"mazda", n:"Mazda CX-5 Homura 48V", variant:"FWD · nová · top výbava", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:31500, feats:["pravá kůže, ventilace sedaček","15,6\" Google displej, adapt. LED"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-Homura_120-106806"},
-  {brand:"mazda", n:"Mazda CX-5 Homura AWD", variant:"4×4 · nová · top výbava", stav:"nové", year:2025, km:0, fuel:"benzin", awd:true, kw:104, ps:141, price:32990, feats:["4×4 + top výbava (jediná)","tan kůže, ventilace sedaček"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-AWD-Homura_120-106809"},
-  {brand:"mazda", n:"Mazda CX-5 Homura (nakonfig.)", variant:"FWD · nová · top + příplatky", stav:"nové", year:2025, km:0, fuel:"benzin", awd:false, kw:104, ps:141, price:34590, feats:["bohatě nakonfig. (pano/lak)","⚠️ nejdražší FWD Homura"], url:"https://rahmen-automobile.de/fahrzeuge/alle-angebote/Mazda-CX-5-e-Skyactiv-G-141-48V-AT-Homura_120-105061M"},
-  {brand:"mazda", n:"Mazda CX-5 2.5i AWD Homura", variant:"4×4 · ojeté · ČR (Beroun)", stav:"ojeté", year:2024, km:42000, fuel:"benzin", awd:true, kw:142, ps:193, czk:789900, img:"img/auta/mazda-cx5-sauto.jpg", feats:["2.5 atmosféra 193 PS (silná, bez turba)","Bose, kůže, 360° kamera · česká nabídka"], url:"https://www.sauto.cz/osobni/detail/mazda/cx-5/210620069"},
-];
+const API = "/.netlify/functions";
+let CARS = [];
 
 const km = n => n.toLocaleString('cs-CZ');
 const RATE = 24.225; // kurz ČNB 19. 6. 2026: 1 EUR = 24,225 Kč
@@ -146,7 +132,7 @@ const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE
 const czk = v => (v==null ? "?" : km(v)+" Kč");
 const eur = v => (v==null ? "?" : km(v)+" €");
 const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
-function openUrl(u){ if(u) window.open(u,"_blank","noopener"); }
+function openUrl(u){ if(u && u!=='undefined') window.open(u,"_blank","noopener"); }
 
 let filter="all", sort="price";
 let MINPRICE=0, MAXKM=0, MINKM=0;
@@ -204,6 +190,7 @@ function renderCards(){
           ${stavTag(d)}
           <span class="tag" style="background:var(--bg);color:var(--fg);">${I.cal}${d.year}</span>
         </div>
+        <div class="del"><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕ smazat</button></div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
         ${d.img?`<img src="${d.img}" alt="Foto auta — ${d.n}" loading="lazy" onerror="this.remove()">`:""}
         <span class="pricechip">${czk(pCzk(d))}</span>
@@ -242,26 +229,113 @@ function renderTable(){
     </tr>`).join("");
 }
 
-function init(){
-  if(CARS.length===0){
-    document.getElementById("empty").hidden = false;
-    return;
-  }
-  document.getElementById("empty").hidden = true;
-  ["hero","controls","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=false);
-  MINPRICE = Math.min(...CARS.map(c=>c.price).filter(p=>p!=null));
-  MAXKM = Math.max(...CARS.map(c=>c.km));
-  MINKM = Math.min(...CARS.map(c=>c.km));
-  document.getElementById("filters").addEventListener("click", e=>{
-    const b=e.target.closest("button"); if(!b) return;
-    filter=b.dataset.f;
-    document.querySelectorAll("#filters button").forEach(x=>x.setAttribute("aria-pressed", x===b));
-    renderCards();
-  });
-  document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderCards(); renderTable(); });
+function computeExtents(){
+  const prices=CARS.map(pCzk).filter(p=>p!=null);
+  MINPRICE = prices.length?Math.min(...prices):0;
+  const kms=CARS.map(c=>c.km).filter(k=>k!=null);
+  MAXKM = kms.length?Math.max(...kms):1;
+  MINKM = kms.length?Math.min(...kms):0;
+}
+function refresh(){
+  const has = CARS.length>0;
+  document.getElementById("empty").hidden = has;
+  ["hero","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=!has);
+  document.getElementById("controls").hidden = false;
+  if(!has) return;
+  computeExtents();
   renderPick(); renderKpis(); renderCards(); renderTable();
 }
-init();
+async function loadData(){
+  try{
+    const res = await fetch(API+"/list?section=auto");
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    CARS = await res.json();
+  }catch(e){
+    document.getElementById("controls").hidden=false;
+    document.getElementById("empty").hidden=false;
+    document.querySelector("#empty h3").textContent="Nepodařilo se načíst data";
+    document.querySelector("#empty p").innerHTML="Appka funguje nasazená na Netlify s připojenou Neon DB.<br><small>"+e.message+"</small>";
+    return;
+  }
+  refresh();
+}
+async function delById(id){
+  if(!confirm("Smazat tohle auto?")) return;
+  try{ const r=await fetch(API+"/delete?id="+id,{method:"DELETE"}); if(!r.ok) throw 0; }
+  catch(e){ alert("Smazání selhalo."); return; }
+  loadData();
+}
+
+function fld(label,id,ph){ return `<label>${label}</label><input id="m_${id}" placeholder="${ph||''}">`; }
+function openAdd(){
+  const wrap=document.createElement("div");
+  wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal">
+    <h3>Přidat auto</h3>
+    <p class="hint">Vlož odkaz ze sauto.cz a dej Načíst — pole se vyplní sama. Zahraniční (mobile.de…) vyplň ručně.</p>
+    <label>Odkaz (sauto.cz)</label>
+    <div class="urlrow"><input id="m_url" placeholder="https://www.sauto.cz/osobni/detail/..."><button class="btn-ghost" type="button" id="m_fetch">Načíst</button></div>
+    <div class="msg" id="m_msg"></div>
+    ${fld("Název (značka + model)","n","Mazda CX-5 ...")}
+    <div class="grid2"><div>${fld("Značka","brand","mazda")}</div><div>${fld("Varianta / popis","variant","FWD · ojeté")}</div></div>
+    <div class="grid2"><div><label>Stav</label><select id="m_stav" style="width:100%"><option value="ojeté">ojeté</option><option value="nové">nové</option></select></div><div><label>Pohon</label><select id="m_awd" style="width:100%"><option value="false">FWD</option><option value="true">4×4</option></select></div></div>
+    <div class="grid2"><div>${fld("Rok","year")}</div><div>${fld("Najeto (km)","km")}</div></div>
+    <div class="grid2"><div>${fld("Výkon (kW)","kw")}</div><div>${fld("Palivo","fuel","benzin")}</div></div>
+    <div class="grid2"><div>${fld("Cena (Kč) — české","czk")}</div><div>${fld("Cena (€) — zahraniční","price")}</div></div>
+    ${fld("Foto (URL)","img")}
+    ${fld("Vlastnosti (oddělené čárkou)","feats")}
+    <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  const msg=wrap.querySelector("#m_msg");
+  const g=id=>wrap.querySelector("#m_"+id).value.trim();
+  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#m_cancel").onclick=close;
+  wrap.querySelector("#m_fetch").onclick=async()=>{
+    const u=g("url"); if(!u) return;
+    msg.className="msg"; msg.textContent="Načítám…";
+    try{
+      const r=await fetch(API+"/extract?url="+encodeURIComponent(u));
+      const j=await r.json();
+      if(!r.ok||j.error){ msg.className="msg err"; msg.textContent=j.error||"Nepovedlo se."; return; }
+      const d=j.data||{};
+      const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!=="") el.value=v; };
+      set("n",d.n); set("brand",d.brand); set("variant",d.variant); set("year",d.year); set("km",d.km);
+      set("kw",d.kw); set("fuel",d.fuel); set("czk",d.czk); set("price",d.price); set("img",d.img);
+      set("feats",(d.feats||[]).join(", "));
+      if(d.stav) wrap.querySelector("#m_stav").value=d.stav;
+      wrap.querySelector("#m_awd").value=String(!!d.awd);
+      msg.className="msg ok"; msg.textContent="Vyplněno — zkontroluj a ulož.";
+    }catch(e){ msg.className="msg err"; msg.textContent="Chyba: "+e.message; }
+  };
+  wrap.querySelector("#m_save").onclick=async()=>{
+    const kw=Number(g("kw"))||0;
+    const data={ brand:(g("brand")||"").toLowerCase(), n:g("n"), variant:g("variant"),
+      stav:wrap.querySelector("#m_stav").value, awd:wrap.querySelector("#m_awd").value==="true",
+      year:Number(g("year"))||new Date().getFullYear(), km:Number(g("km").replace(/\s/g,''))||0,
+      fuel:g("fuel")||"benzin", kw, ps:kw?Math.round(kw*1.35962):0,
+      czk:g("czk")?Number(g("czk").replace(/\s/g,'')):null, price:g("price")?Number(g("price").replace(/\s/g,'')):null,
+      img:g("img"), feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url") };
+    if(!data.n){ msg.className="msg err"; msg.textContent="Vyplň aspoň název."; return; }
+    msg.className="msg"; msg.textContent="Ukládám…";
+    try{
+      const r=await fetch(API+"/add",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({section:"auto",data})});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      close(); loadData();
+    }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
+  };
+}
+
+document.getElementById("filters").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  filter=b.dataset.f;
+  document.querySelectorAll("#filters button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  renderCards();
+});
+document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderCards(); renderTable(); });
+document.getElementById("btn-add").addEventListener("click", openAdd);
+loadData();
 </script>
 </body>
 </html>

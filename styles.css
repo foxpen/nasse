@@ -308,3 +308,28 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .mort svg{width:14px;height:14px;color:var(--primary);}
 .mort b{color:var(--primary); font-weight:800;}
 @media (max-width:560px){ .mortgage .mnote{display:none;} }
+
+/* ---------- add / delete / modal ---------- */
+.btn-add{font:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--primary);border:none;border-radius:var(--r-pill);padding:9px 16px;min-height:42px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.2s var(--ease);}
+.btn-add svg{width:16px;height:16px;}
+.theme-auto .btn-add{background:var(--accent);}
+.btn-add:hover{filter:brightness(1.06);}
+.state{padding:40px 20px;text-align:center;color:var(--muted-fg);font-weight:600;}
+.del{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;display:none;}
+.card:hover .del,.card:focus-within .del{display:block;}
+.btn-del{font:inherit;font-size:12px;font-weight:700;color:#fff;background:rgba(192,57,43,.92);border:none;border-radius:var(--r-pill);padding:5px 12px;cursor:pointer;box-shadow:var(--sh);}
+.btn-del:hover{background:#c0392b;}
+.modal-bg{position:fixed;inset:0;z-index:1100;background:rgba(8,20,18,.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);width:100%;max-width:560px;padding:22px;}
+.modal h3{font-size:19px;font-weight:800;margin-bottom:4px;}
+.modal .hint{font-size:13px;color:var(--muted-fg);margin-bottom:14px;}
+.modal label{display:block;font-size:12px;font-weight:700;color:var(--muted-fg);margin:10px 0 4px;letter-spacing:.02em;}
+.modal input,.modal textarea{width:100%;font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line-2);border-radius:10px;padding:9px 11px;}
+.modal .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal .urlrow{display:flex;gap:8px;}
+.modal .urlrow input{flex:1;}
+.modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+.modal .msg{font-size:13px;font-weight:600;margin-top:10px;min-height:18px;}
+.modal .msg.err{color:var(--warn);}
+.modal .msg.ok{color:var(--primary);}
+.btn-ghost{font:inherit;font-size:14px;font-weight:700;background:transparent;border:1px solid var(--line-2);color:var(--fg);border-radius:var(--r-pill);padding:9px 16px;cursor:pointer;min-height:42px;}

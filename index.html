@@ -36,7 +36,7 @@
         <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg></span>
         <h2>Naše Bydleníčko</h2>
         <span class="cdesc">Sledované nemovitosti — cena, m², dojezd na Pankrác.</span>
-        <span class="cstat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>9 nemovitostí · od 7,98 mil. Kč</span>
+        <span class="cstat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg><span id="stat-byd">9 nemovitostí · od 7,98 mil. Kč</span></span>
         <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
 
@@ -44,7 +44,7 @@
         <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg></span>
         <h2>Naše Autíčko</h2>
         <span class="cdesc">Sledovaná auta — cena, rok, najeto, výkon.</span>
-        <span class="cstat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>13 vozů · od 606 000 Kč</span>
+        <span class="cstat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg><span id="stat-aut">13 vozů · od 606 000 Kč</span></span>
         <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
     </div>
@@ -55,5 +55,18 @@
     </p>
   </div>
 </main>
+<script>(async function(){
+  try{
+    const r=await fetch('/.netlify/functions/list'); if(!r.ok) return;
+    const all=await r.json();
+    const byd=all.filter(x=>x.section==='byd'), aut=all.filter(x=>x.section==='auto');
+    if(byd.length){
+      const prices=byd.map(x=>x.price).filter(Boolean);
+      const m=prices.length?(Math.min(...prices)/1e6).toFixed(2).replace('.',','):null;
+      document.getElementById('stat-byd').textContent = byd.length+' nemovitostí'+(m?' · od '+m+' mil. Kč':'');
+    }
+    if(aut.length){ document.getElementById('stat-aut').textContent = aut.length+' vozů'; }
+  }catch(e){}
+})();</script>
 </body>
 </html>

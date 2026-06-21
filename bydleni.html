@@ -45,8 +45,8 @@
   <section class="hero">
     <a class="pick" id="pick" aria-label="Tip — nejlepší poměr cena za metr"></a>
     <div class="kpis" aria-label="Souhrn">
-      <div class="kpi"><div class="l">Nabídek</div><div class="v">9</div></div>
-      <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v">7,98–10,0 <span class="u">M</span></div></div>
+      <div class="kpi"><div class="l">Nabídek</div><div class="v" id="kpi-count">—</div></div>
+      <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v" id="kpi-range">—</div></div>
       <div class="kpi"><div class="l">Hotových hned</div><div class="v" id="kpi-ready">—</div></div>
       <div class="kpi"><div class="l">Medián cena/m²</div><div class="v" id="kpi-ppm">—</div></div>
     </div>
@@ -67,6 +67,7 @@
       <option value="car">Nejblíž autem</option>
       <option value="pt">Nejblíž MHD</option>
     </select>
+    <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
   </div>
 
   <div class="mortgage" id="mortgage">
@@ -118,29 +119,38 @@ const I = {
   star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
 };
 
-const DATA = [
-  {n:"Nymburk, K Lesu", t:"byt", disp:"byt 3+kk", price:7980000, area:71, land:"zahrada 79 m²", ready:1, when:"hotovo · novostavba", en:"B", car:50, pt:80, origin:"Nymburk, K Lesu", feats:["sklep, výtah, 2 terasy","bezbariérový vstup"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/nymburk-nymburk-k-lesu/38028108"},
-  {n:"Hlízov (u Kutné Hory)", t:"dum", disp:"dům 4+kk", price:8396320, area:94, land:"pozemek 209 / zahr. 143 m²", ready:1, when:"novostavba 2024", en:"B", car:65, pt:110, origin:"Hlízov", feats:["tep. čerpadlo + podlah. topení","provize + právní služby v ceně"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/hlizov-hlizov-/407994444"},
-  {n:"Králův Dvůr — Levín", t:"byt", disp:"3+kk · 1/3 řadovky", price:8699000, area:80, land:"zahrada 140 m²", ready:1, when:"jako nová", en:"B", car:35, pt:65, origin:"Králův Dvůr, Větrná", feats:["2 parkovací místa","~2 km Beroun, ~25 km Praha"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/kraluv-dvur-levin-vetrna/2757694284"},
-  {n:"Mělník, Pod Chloumečkem", t:"dum", disp:"dům 4+kk · dvojdomek", price:8790000, area:79, land:"pozemek 333 m²", ready:0, when:"ve výstavbě · 2026", en:"G*", car:40, pt:75, origin:"Mělník, Pod Chloumečkem", feats:["příprava FVE + wallbox","2 parkovací místa"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/melnik-melnik-pod-chloumeckem/2291920972"},
-  {n:"Pečky, Letohradská", t:"byt", disp:"byt 3+kk", price:8797500, area:71, land:"zahrada až 212 m²", ready:0, when:"ve výstavbě · 2027", en:"G*", car:45, pt:65, origin:"Pečky, Letohradská", feats:["velká zahrada, sklep","rekuperace + příprava na EV"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/pecky-pecky-letohradska/1506517068"},
-  {n:"Brandýs n. Labem", t:"byt", disp:"byt 3+kk", price:9290000, area:75, land:"zahrada 67 m²", ready:1, when:"novostavba 2021 · 7/2026", en:"B", car:35, pt:65, origin:"Brandýs nad Labem, Seifertova", feats:["garáž v suterénu","sklep, terasa, výtah"], url:"https://www.sreality.cz/detail/prodej/byt/3+kk/brandys-nad-labem-stara-boleslav-brandys-nad-labem-seifertova/4115431500"},
-  {n:"Bukovany (Benešovsko)", t:"dum", disp:"dům 4+kk · řadovka", price:9999000, area:106, land:"pozemek 150 m²", ready:1, when:"novostavba 2022", en:"A", car:50, pt:90, origin:"Bukovany u Benešova", feats:["pasivní standard, zařízený","lze rozšířit na 5+kk"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/bukovany-bukovany-/2288403276"},
-  {n:"Dolní Beřkovice — Podvlčí", t:"dum", disp:"dům 4+kk · řadový", price:8500000, area:99, land:"pozemek 1000 m²", ready:1, when:"novostavba · hotové", en:"B", car:45, pt:85, origin:"Dolní Beřkovice", img:"img/dolni-berkovice.jpg", feats:["velký pozemek 1000 m², sklep","cena vč. provize + práv. servisu"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/dolni-berkovice-podvlci-/1606042444"},
-  {n:"Mukařov — Srbín, Akátová", t:"dum", disp:"dům 3+kk · řadový", price:9990000, area:82, land:"pozemek 123 m² · zahrada", ready:1, when:"novostavba · hotové", en:"B", car:35, pt:60, origin:"Mukařov, Srbín", img:"img/mukarov-srbin.jpg", feats:["zahrada, parkování","cena vč. provize + práv. služeb","~25 km na východ od Prahy"], url:"https://www.sreality.cz/detail/prodej/dum/rodinny/mukarov-srbin-akatova/497852492"},
-];
-DATA.forEach(d => d.ppm = Math.round(d.price/d.area));
-const IMGMAP = ["nymburk","hlizov","kraluvdvur","melnik","pecky","brandys","bukovany"];
-DATA.forEach((d,i)=> { if(!d.img && IMGMAP[i]) d.img = "img/"+IMGMAP[i]+".jpg"; });
-const MAXPPM = Math.max(...DATA.map(d=>d.ppm));
-const MINPPM = Math.min(...DATA.map(d=>d.ppm));
+const API = "/.netlify/functions";
+let DATA = [];
+let MINPPM = 0, MAXPPM = 1;
 const DEST = "Arkády Pankrác, Praha";
 
-const czk = n => n.toLocaleString('cs-CZ');
+function computeExtents(){
+  DATA.forEach(d => d.ppm = (d.area>0 && d.price) ? Math.round(d.price/d.area) : 0);
+  const vals = DATA.map(d=>d.ppm).filter(v=>v>0);
+  MINPPM = vals.length ? Math.min(...vals) : 0;
+  MAXPPM = vals.length ? Math.max(...vals) : 1;
+}
+
+async function loadData(){
+  const grid = document.getElementById("cards");
+  grid.innerHTML = '<div class="state">Načítám…</div>';
+  try{
+    const res = await fetch(API+"/list?section=byd");
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    DATA = await res.json();
+  }catch(e){
+    grid.innerHTML = '<div class="state">Nepodařilo se načíst data z databáze.<br>Appka funguje nasazená na Netlify s připojenou Neon DB.<br><small>'+e.message+'</small></div>';
+    return;
+  }
+  computeExtents();
+  renderPick(); renderKpis(); renderAll();
+}
+
+const czk = n => (n==null ? "?" : n.toLocaleString('cs-CZ'));
 const enStyle = e => e.startsWith("A") ? "background:#E2F2D6;color:#3B6D11;"
   : e.startsWith("B") ? "background:var(--ok-bg);color:var(--ok);"
   : "background:var(--warn-bg);color:var(--warn);";
-function openUrl(u){ window.open(u,"_blank","noopener"); }
+function openUrl(u){ if(u && u!=='undefined') window.open(u,"_blank","noopener"); }
 function mapUrl(origin, mode){
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(DEST)}&travelmode=${mode}`;
 }
@@ -148,6 +158,7 @@ function mapUrl(origin, mode){
 let filter="all", sort="ppm";
 let mRate=3.95, mYears=30, mDown=10, mIns=0;
 function monthly(price){
+  if(!price) return 0;
   const P=price*(1-mDown/100), r=mRate/100/12, n=mYears*12;
   const m = r===0 ? P/n : P*r/(1-Math.pow(1+r,-n));
   return Math.round(m/100)*100;
@@ -171,9 +182,11 @@ function sortRows(rows){
 }
 
 function renderPick(){
-  const d = [...DATA].sort((a,b)=>a.ppm-b.ppm)[0];
   const el = document.getElementById("pick");
-  el.href = d.url; el.target = "_blank"; el.rel = "noopener";
+  const d = [...DATA].filter(x=>x.ppm>0).sort((a,b)=>a.ppm-b.ppm)[0];
+  if(!d){ el.style.display="none"; return; }
+  el.style.display="";
+  el.href = d.url || "#"; el.target = "_blank"; el.rel = "noopener";
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
     <span class="badge">${I.star} Tip — nejlepší cena/m²</span>
     <div>
@@ -187,9 +200,15 @@ function renderPick(){
 }
 
 function renderKpis(){
+  document.getElementById("kpi-count").textContent = DATA.length;
+  const prices = DATA.map(d=>d.price).filter(Boolean);
+  if(prices.length){
+    const lo=(Math.min(...prices)/1e6).toFixed(2).replace('.',','), hi=(Math.max(...prices)/1e6).toFixed(2).replace('.',',');
+    document.getElementById("kpi-range").innerHTML = lo+'–'+hi+' <span class="u">M</span>';
+  } else document.getElementById("kpi-range").textContent="—";
   document.getElementById("kpi-ready").innerHTML = DATA.filter(d=>d.ready).length + ' <span class="u">z '+DATA.length+'</span>';
-  const s=[...DATA].map(d=>d.ppm).sort((a,b)=>a-b), m=Math.floor(s.length/2);
-  const med = s.length%2 ? s[m] : Math.round((s[m-1]+s[m])/2);
+  const s=DATA.map(d=>d.ppm).filter(v=>v>0).sort((a,b)=>a-b), m=Math.floor(s.length/2);
+  const med = s.length ? (s.length%2 ? s[m] : Math.round((s[m-1]+s[m])/2)) : 0;
   document.getElementById("kpi-ppm").innerHTML = czk(med) + ' <span class="u">Kč</span>';
 }
 
@@ -205,8 +224,9 @@ function renderCards(){
       <div class="media ${isHouse?'house':'byt'}">
         <div class="corner">
           ${readyTag(d)}
-          <span class="tag" style="${enStyle(d.en)}">${I.bolt}${d.en}</span>
+          ${d.en?`<span class="tag" style="${enStyle(d.en)}">${I.bolt}${d.en}</span>`:''}
         </div>
+        <div class="del"><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕ smazat</button></div>
         <span class="glyph" aria-hidden="true">${isHouse?I.house:I.building}</span>
         <img src="${d.img}" alt="Foto nemovitosti — ${d.n}" loading="lazy" onerror="this.remove()">
         <span class="pricechip">${czk(d.price)} Kč</span>
@@ -273,7 +293,75 @@ function recalcMortgage(){
 }
 ["m-rate","m-years","m-down","m-ins"].forEach(id=>document.getElementById(id).addEventListener("input", recalcMortgage));
 
-renderPick(); renderKpis(); renderAll();
+async function delById(id){
+  if(!confirm("Smazat tuto nabídku?")) return;
+  try{ const r=await fetch(API+"/delete?id="+id,{method:"DELETE"}); if(!r.ok) throw 0; }
+  catch(e){ alert("Smazání selhalo."); return; }
+  loadData();
+}
+
+function fld(label,id,ph){ return `<label>${label}</label><input id="m_${id}" placeholder="${ph||''}">`; }
+
+function openAdd(){
+  const wrap=document.createElement("div");
+  wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal">
+    <h3>Přidat nemovitost</h3>
+    <p class="hint">Vlož odkaz ze sreality.cz a dej Načíst — pole se vyplní sama. Co nevyplní, doplň ručně.</p>
+    <label>Odkaz (sreality.cz)</label>
+    <div class="urlrow"><input id="m_url" placeholder="https://www.sreality.cz/detail/..."><button class="btn-ghost" type="button" id="m_fetch">Načíst</button></div>
+    <div class="msg" id="m_msg"></div>
+    ${fld("Název / lokalita","n")}
+    <div class="grid2"><div><label>Typ</label><select id="m_t" style="width:100%"><option value="dum">dům</option><option value="byt">byt</option></select></div><div>${fld("Dispozice (popis)","disp","dům 4+kk · řadový")}</div></div>
+    <div class="grid2"><div>${fld("Cena (Kč)","price")}</div><div>${fld("Plocha (m²)","area")}</div></div>
+    ${fld("Pozemek / zahrada","land")}
+    <div class="grid2"><div>${fld("Energ. třída","en","B")}</div><div><label>Stav</label><select id="m_ready" style="width:100%"><option value="1">hotové</option><option value="0">ve výstavbě</option></select></div></div>
+    ${fld("Stav / kdy (text)","when","novostavba · hotové")}
+    <div class="grid2"><div>${fld("Dojezd autem (min)","car")}</div><div>${fld("Dojezd MHD (min)","pt")}</div></div>
+    ${fld("Foto (URL)","img")}
+    ${fld("Vlastnosti (oddělené čárkou)","feats")}
+    <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  const msg=wrap.querySelector("#m_msg");
+  const g=id=>wrap.querySelector("#m_"+id).value.trim();
+  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#m_cancel").onclick=close;
+  wrap.querySelector("#m_fetch").onclick=async()=>{
+    const u=g("url"); if(!u) return;
+    msg.className="msg"; msg.textContent="Načítám…";
+    try{
+      const r=await fetch(API+"/extract?url="+encodeURIComponent(u));
+      const j=await r.json();
+      if(!r.ok||j.error){ msg.className="msg err"; msg.textContent=j.error||"Nepovedlo se."; return; }
+      const d=j.data||{};
+      const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!=="") el.value=v; };
+      set("n",d.n); set("disp",d.disp); set("price",d.price); set("area",d.area); set("land",d.land);
+      set("when",d.when); set("img",d.img); set("feats",(d.feats||[]).join(", "));
+      if(d.t) wrap.querySelector("#m_t").value=d.t;
+      wrap.querySelector("#m_ready").value=String(d.ready==null?1:d.ready);
+      msg.className="msg ok"; msg.textContent="Vyplněno — zkontroluj a ulož (energ. třídu a dojezd doplň ručně).";
+    }catch(e){ msg.className="msg err"; msg.textContent="Chyba: "+e.message; }
+  };
+  wrap.querySelector("#m_save").onclick=async()=>{
+    const data={ n:g("n"), t:wrap.querySelector("#m_t").value, disp:g("disp"),
+      price:Number(g("price").replace(/\s/g,''))||null, area:Number(g("area").replace(/\s/g,''))||0,
+      land:g("land"), ready:Number(wrap.querySelector("#m_ready").value), en:g("en"), when:g("when"),
+      car:Number(g("car"))||0, pt:Number(g("pt"))||0, origin:(g("n").split(/[-–,]/)[0]||"").trim(),
+      img:g("img"), feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url") };
+    if(!data.n){ msg.className="msg err"; msg.textContent="Vyplň aspoň název."; return; }
+    msg.className="msg"; msg.textContent="Ukládám…";
+    try{
+      const r=await fetch(API+"/add",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({section:"byd",data})});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      close(); loadData();
+    }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
+  };
+}
+document.getElementById("btn-add").addEventListener("click", openAdd);
+
+loadData();
 </script>
 </body>
 </html>
