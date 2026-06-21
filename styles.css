@@ -373,3 +373,21 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   border-left:3px solid var(--primary); border-radius:8px; padding:8px 11px; white-space:pre-wrap; line-height:1.5;}
 .theme-auto .cardnote{border-left-color:var(--accent);}
 .modal textarea{resize:vertical; min-height:90px; line-height:1.5;}
+
+/* ---------- tabs: Naše / K roztřídění ---------- */
+.tabs{display:flex; gap:8px; margin:4px 0 18px; border-bottom:1px solid var(--line);}
+.tab{font:inherit; font-size:15px; font-weight:700; color:var(--muted-fg); background:none; border:none;
+  padding:10px 4px; margin-right:14px; cursor:pointer; border-bottom:3px solid transparent; transition:.2s var(--ease);}
+.tab:hover{color:var(--fg);}
+.tab.on{color:var(--primary); border-bottom-color:var(--primary);}
+.tab .cnt{font-size:12.5px; color:var(--muted-fg); font-weight:700; margin-left:4px;}
+.tab.on .cnt{color:var(--primary);}
+.scorebadge{position:absolute; top:12px; right:12px; z-index:3; font-size:12px; font-weight:800; color:#fff;
+  background:var(--primary); border-radius:var(--r-pill); padding:4px 10px; box-shadow:var(--sh);}
+.scorebadge.mid{background:var(--warn);}
+.cand-actions{display:flex; gap:8px; margin-top:14px;}
+.cand-actions button{flex:1; font:inherit; font-size:14px; font-weight:700; border-radius:var(--r-pill); padding:10px 12px; min-height:44px; cursor:pointer; border:1px solid var(--line-2);}
+.cand-take{background:var(--primary); color:#fff; border:none;}
+.cand-take:hover{background:var(--primary-700);}
+.cand-drop{background:transparent; color:var(--muted-fg);}
+.cand-drop:hover{color:#fff; background:#c0392b; border-color:#c0392b;}
