@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Naše Autíčko — auta</title>
+<title>Naše Autíčko · auta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -54,12 +54,12 @@
 
 <main>
   <section class="hero" id="hero" hidden>
-    <a class="pick aut" id="pick" aria-label="Tip — nejlevnější auto"></a>
+    <a class="pick aut" id="pick" aria-label="Tip · nejlevnější auto"></a>
     <div class="kpis" aria-label="Souhrn">
-      <div class="kpi"><div class="l">Aut</div><div class="v" id="kpi-count">—</div></div>
-      <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v" id="kpi-range">—</div></div>
-      <div class="kpi"><div class="l">Nejméně najeto</div><div class="v" id="kpi-km">—</div></div>
-      <div class="kpi"><div class="l">Medián rok</div><div class="v" id="kpi-year">—</div></div>
+      <div class="kpi"><div class="l">Aut</div><div class="v" id="kpi-count">·</div></div>
+      <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v" id="kpi-range">·</div></div>
+      <div class="kpi"><div class="l">Nejméně najeto</div><div class="v" id="kpi-km">·</div></div>
+      <div class="kpi"><div class="l">Medián rok</div><div class="v" id="kpi-year">·</div></div>
     </div>
   </section>
 
@@ -90,7 +90,7 @@
   <section class="empty" id="empty">
     <div class="eic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg></div>
     <h3>Zatím tu nejsou žádná auta</h3>
-    <p>Pošli mi odkazy z inzerátů (sauto.cz, tipcars.com, sreality auto…) a doplním je sem ve stejném stylu jako bydlení — s fotkou, cenou, rokem, najetými km a výkonem.</p>
+    <p>Pošli mi odkazy z inzerátů (sauto.cz, tipcars.com, sreality auto…) a doplním je sem ve stejném stylu jako bydlení · s fotkou, cenou, rokem, najetými km a výkonem.</p>
   </section>
 
   <section class="tablewrap" id="tablewrap" hidden>
@@ -126,7 +126,7 @@ let CARS = [];
 
 const km = n => n.toLocaleString('cs-CZ');
 const RATE = 24.225; // kurz ČNB 19. 6. 2026: 1 EUR = 24,225 Kč
-// auta z DE mají price (€), česká mají czk (Kč) — sjednotíme:
+// auta z DE mají price (€), česká mají czk (Kč) · sjednotíme:
 const pCzk = d => d.czk!=null ? d.czk : (d.price!=null ? Math.round(d.price*RATE/1000)*1000 : null);
 const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE) : null);
 const czk = v => (v==null ? "?" : km(v)+" Kč");
@@ -152,7 +152,7 @@ function renderPick(){
   const el = document.getElementById("pick");
   el.href = d.url || "#"; if(d.url){el.target="_blank"; el.rel="noopener";}
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
-    <span class="badge">${I.star} Tip — vítěz výběru</span>
+    <span class="badge">${I.star} Tip · vítěz výběru</span>
     <div>
       <h2>${d.n}</h2>
       <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
@@ -192,7 +192,7 @@ function renderCards(){
         </div>
         <div class="del"><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕ smazat</button></div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
-        ${d.img?`<img src="${d.img}" alt="Foto auta — ${d.n}" loading="lazy" onerror="this.remove()">`:""}
+        ${d.img?`<img src="${d.img}" alt="Foto auta · ${d.n}" loading="lazy" onerror="this.remove()">`:""}
         <span class="pricechip">${czk(pCzk(d))}</span>
       </div>
       <div class="body">
@@ -250,6 +250,7 @@ async function loadData(){
     const res = await fetch(API+"/list?section=auto");
     if(!res.ok) throw new Error("HTTP "+res.status);
     CARS = await res.json();
+    CARS.forEach(d=>{ if(d.n) d.n=d.n.replace(/—/g,'·'); });
   }catch(e){
     document.getElementById("controls").hidden=false;
     document.getElementById("empty").hidden=false;
@@ -272,7 +273,7 @@ function openAdd(){
   wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal">
     <h3>Přidat auto</h3>
-    <p class="hint">Vlož odkaz ze sauto.cz a dej Načíst — pole se vyplní sama. Zahraniční (mobile.de…) vyplň ručně.</p>
+    <p class="hint">Vlož odkaz ze sauto.cz a dej Načíst · pole se vyplní sama. Zahraniční (mobile.de…) vyplň ručně.</p>
     <label>Odkaz (sauto.cz)</label>
     <div class="urlrow"><input id="m_url" placeholder="https://www.sauto.cz/osobni/detail/..."><button class="btn-ghost" type="button" id="m_fetch">Načíst</button></div>
     <div class="msg" id="m_msg"></div>
@@ -281,7 +282,7 @@ function openAdd(){
     <div class="grid2"><div><label>Stav</label><select id="m_stav" style="width:100%"><option value="ojeté">ojeté</option><option value="nové">nové</option></select></div><div><label>Pohon</label><select id="m_awd" style="width:100%"><option value="false">FWD</option><option value="true">4×4</option></select></div></div>
     <div class="grid2"><div>${fld("Rok","year")}</div><div>${fld("Najeto (km)","km")}</div></div>
     <div class="grid2"><div>${fld("Výkon (kW)","kw")}</div><div>${fld("Palivo","fuel","benzin")}</div></div>
-    <div class="grid2"><div>${fld("Cena (Kč) — české","czk")}</div><div>${fld("Cena (€) — zahraniční","price")}</div></div>
+    <div class="grid2"><div>${fld("Cena (Kč) · české","czk")}</div><div>${fld("Cena (€) · zahraniční","price")}</div></div>
     ${fld("Foto (URL)","img")}
     ${fld("Vlastnosti (oddělené čárkou)","feats")}
     <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
@@ -306,7 +307,7 @@ function openAdd(){
       set("feats",(d.feats||[]).join(", "));
       if(d.stav) wrap.querySelector("#m_stav").value=d.stav;
       wrap.querySelector("#m_awd").value=String(!!d.awd);
-      msg.className="msg ok"; msg.textContent="Vyplněno — zkontroluj a ulož.";
+      msg.className="msg ok"; msg.textContent="Vyplněno · zkontroluj a ulož.";
     }catch(e){ msg.className="msg err"; msg.textContent="Chyba: "+e.message; }
   };
   wrap.querySelector("#m_save").onclick=async()=>{
