@@ -401,3 +401,20 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 #buddy.look img{animation:buddyLook .95s ease;}
 @keyframes buddyLook{0%,100%{transform:rotate(-1.5deg)}30%{transform:rotate(9deg)}65%{transform:rotate(-9deg)}}
 @media (prefers-reduced-motion: reduce){ #buddy{transition:none!important;} }
+
+/* ---------- companion: live video badge ---------- */
+#buddy{width:118px; height:120px;}
+#buddy .badge{position:relative; width:100%; height:100%; border-radius:var(--r-lg); overflow:hidden;
+  background:#000; border:2px solid var(--primary); box-shadow:0 12px 26px rgba(16,44,41,.30);
+  transform-origin:center bottom; animation:buddyBob 3.6s ease-in-out infinite;}
+.theme-auto #buddy .badge{border-color:var(--accent);}
+#buddy .badge video,#buddy .badge img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; filter:none;}
+#buddy .badge video{z-index:1;}
+#buddy img{animation:none!important; filter:none!important;}
+#buddy.jump .badge{animation:buddyJump .7s var(--ease);}
+#buddy.wiggle .badge{animation:buddyWiggle .55s ease;}
+#buddy.hop .badge{animation:buddyHop .6s var(--ease);}
+#buddy.look .badge{animation:buddyLook .95s ease;}
+#buddy.sleep .badge{animation:buddyBreathe 4.5s ease-in-out infinite; filter:brightness(.9) saturate(.8);}
+@media (max-width:560px){ #buddy{width:90px; height:92px;} }
+@media (prefers-reduced-motion: reduce){ #buddy .badge{animation:none!important;} #buddy .badge video{display:none;} }

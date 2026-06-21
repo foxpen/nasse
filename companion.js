@@ -2,7 +2,7 @@
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var buddy = document.createElement('div');
   buddy.id = 'buddy';
-  buddy.innerHTML = '<img src="img/mascot.png" alt="Maskot Naše">';
+  buddy.innerHTML = '<div class="badge"><video autoplay muted loop playsinline preload="auto"><source src="img/mascot.mp4" type="video/mp4"></video><img src="img/mascot.png" alt="Maskot Naše"></div>';
   var bubble = document.createElement('div');
   bubble.className = 'buddy-bubble';
   document.body.appendChild(buddy);
