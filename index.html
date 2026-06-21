@@ -33,27 +33,21 @@
       <p class="sub reveal" style="animation-delay:.16s">Náš rodinný přehled. Bydlení a auta na jednom místě.</p>
     </div>
 
-    <div class="tiles">
-      <a class="tile byd reveal" href="bydleni.html" style="animation-delay:.24s">
-        <div class="tile-media" id="media-byd"></div>
-        <div class="tile-body">
-          <span class="tile-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg></span>
-          <h2>Naše Bydleníčko</h2>
-          <span class="tile-desc">Cena, m², dojezd na Pankrác, hypotéka</span>
-          <span class="tile-stat" id="stat-byd">Nemovitosti k porovnání</span>
-          <span class="tile-go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </div>
+    <div class="choices">
+      <a class="choice byd reveal" href="bydleni.html" style="animation-delay:.24s">
+        <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg></span>
+        <h2>Naše Bydleníčko</h2>
+        <span class="cdesc">Cena, m², dojezd na Pankrác, hypotéka.</span>
+        <span class="cstat" id="stat-byd">Nemovitosti k porovnání</span>
+        <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
 
-      <a class="tile aut reveal" href="auta.html" style="animation-delay:.32s">
-        <div class="tile-media" id="media-aut"></div>
-        <div class="tile-body">
-          <span class="tile-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg></span>
-          <h2>Naše Autíčko</h2>
-          <span class="tile-desc">Cena, rok, najeto, výkon</span>
-          <span class="tile-stat" id="stat-aut">Auta k porovnání</span>
-          <span class="tile-go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </div>
+      <a class="choice aut reveal" href="auta.html" style="animation-delay:.32s">
+        <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg></span>
+        <h2>Naše Autíčko</h2>
+        <span class="cdesc">Cena, rok, najeto, výkon.</span>
+        <span class="cstat" id="stat-aut">Auta k porovnání</span>
+        <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
     </div>
 
@@ -73,13 +67,9 @@
       const prices=byd.map(x=>x.price).filter(Boolean);
       const m=prices.length?(Math.min(...prices)/1e6).toFixed(2).replace('.',','):null;
       document.getElementById('stat-byd').textContent = byd.length+' nemovitostí'+(m?' · od '+m+' mil. Kč':'');
-      const pic=byd.slice().sort((a,b)=>(a.price/a.area)-(b.price/b.area)).find(x=>x.img);
-      if(pic) document.getElementById('media-byd').style.backgroundImage='url("'+pic.img+'")';
     }
     if(aut.length){
       document.getElementById('stat-aut').textContent = aut.length+' vozů';
-      const pic=aut.find(x=>x.win&&x.img)||aut.find(x=>x.img);
-      if(pic) document.getElementById('media-aut').style.backgroundImage='url("'+pic.img+'")';
     }
   }catch(e){}
 })();</script>
