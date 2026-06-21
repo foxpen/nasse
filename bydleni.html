@@ -318,6 +318,7 @@ function openAdd(){
     <div class="grid2"><div>${fld("Energ. třída","en","B")}</div><div><label>Stav</label><select id="m_ready" style="width:100%"><option value="1">hotové</option><option value="0">ve výstavbě</option></select></div></div>
     ${fld("Stav / kdy (text)","when","novostavba · hotové")}
     <div class="grid2"><div>${fld("Dojezd autem (min)","car")}</div><div>${fld("Dojezd MHD (min)","pt")}</div></div>
+    <button class="btn-ghost" type="button" id="m_commute" style="margin-top:6px;font-size:13px;padding:7px 12px;min-height:36px">Spočítat dojezd autem (Mapy.com)</button>
     ${fld("Foto (URL)","img")}
     ${fld("Vlastnosti (oddělené čárkou)","feats")}
     <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
@@ -328,6 +329,17 @@ function openAdd(){
   const g=id=>wrap.querySelector("#m_"+id).value.trim();
   wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
   wrap.querySelector("#m_cancel").onclick=close;
+  async function computeCommute(){
+    const q = g("n") || g("origin"); if(!q) return;
+    msg.className="msg"; msg.textContent="Počítám dojezd…";
+    try{
+      const r=await fetch(API+"/commute?q="+encodeURIComponent(q));
+      const j=await r.json();
+      if(j.error){ msg.className="msg err"; msg.textContent="Dojezd: "+(j.message||j.error); return; }
+      if(j.car){ wrap.querySelector("#m_car").value=j.car; msg.className="msg ok"; msg.textContent="Dojezd autem ~"+j.car+" min"+(j.km?" ("+j.km+" km)":"")+" doplněn. MHD doplň ručně."; }
+    }catch(e){ msg.className="msg err"; msg.textContent="Dojezd: "+e.message; }
+  }
+  wrap.querySelector("#m_commute").onclick=computeCommute;
   wrap.querySelector("#m_fetch").onclick=async()=>{
     const u=g("url"); if(!u) return;
     msg.className="msg"; msg.textContent="Načítám…";
@@ -341,7 +353,8 @@ function openAdd(){
       set("when",d.when); set("img",d.img); set("feats",(d.feats||[]).join(", "));
       if(d.t) wrap.querySelector("#m_t").value=d.t;
       wrap.querySelector("#m_ready").value=String(d.ready==null?1:d.ready);
-      msg.className="msg ok"; msg.textContent="Vyplněno — zkontroluj a ulož (energ. třídu a dojezd doplň ručně).";
+      msg.className="msg ok"; msg.textContent="Vyplněno — počítám dojezd…";
+      computeCommute();
     }catch(e){ msg.className="msg err"; msg.textContent="Chyba: "+e.message; }
   };
   wrap.querySelector("#m_save").onclick=async()=>{
