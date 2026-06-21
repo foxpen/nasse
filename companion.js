@@ -1,5 +1,5 @@
 (function(){
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { /* still show, just no idle wandering */ }
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var buddy = document.createElement('div');
   buddy.id = 'buddy';
   buddy.innerHTML = '<img src="img/mascot.png" alt="Maskot Naše">';
@@ -33,25 +33,25 @@
   };
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 
-  var hideT, awake = true, idleT, sleepT;
+  var hideT, awake = true, idleT, sleepT, actT;
   function say(text, ms){
     bubble.textContent = text;
     bubble.classList.add('show');
     clearTimeout(hideT);
     hideT = setTimeout(function(){ bubble.classList.remove('show'); }, ms || 3800);
   }
-  function react(cls){
-    buddy.classList.remove('jump','wiggle');
+  function flash(cls, dur){
+    buddy.classList.remove('jump','wiggle','hop','look');
     void buddy.offsetWidth;
     buddy.classList.add(cls);
-    setTimeout(function(){ buddy.classList.remove(cls); }, 800);
+    setTimeout(function(){ buddy.classList.remove(cls); }, dur || 800);
   }
   function wake(){
     if(!awake){ awake = true; buddy.classList.remove('sleep'); }
     clearTimeout(sleepT);
     sleepT = setTimeout(sleep, 70000);
   }
-  function sleep(){ awake = false; buddy.classList.add('sleep'); say('Zzz…', 2500); }
+  function sleep(){ awake = false; buddy.classList.add('sleep'); lean(0,0); say('Zzz…', 2500); }
 
   function idleLoop(){
     clearTimeout(idleT);
@@ -60,32 +60,49 @@
       idleLoop();
     }, 24000);
   }
+  // small spontaneous moves so it feels alive
+  function actLoop(){
+    clearTimeout(actT);
+    actT = setTimeout(function(){
+      if(awake && !document.hidden && !reduce) flash(Math.random()<0.5?'hop':'look', 950);
+      actLoop();
+    }, 6000 + Math.random()*5000);
+  }
 
-  // greeting
+  // cursor follow — leans toward the pointer like it's watching
+  var lastLean = 0;
+  function lean(tx, rot){ buddy.style.transform = 'translateX('+tx+'px) rotate('+rot+'deg)'; }
+  function onMove(e){
+    if(reduce || !awake) return;
+    var now = Date.now(); if(now - lastLean < 40) return; lastLean = now;
+    var r = buddy.getBoundingClientRect();
+    var cx = r.left + r.width/2;
+    var dx = e.clientX - cx;
+    var tx = Math.max(-10, Math.min(10, dx*0.02));
+    var rot = Math.max(-12, Math.min(12, dx*0.025));
+    lean(tx, rot);
+  }
+  window.addEventListener('mousemove', onMove, {passive:true});
+
+  // greeting + loops
   setTimeout(function(){ say(pick(L.greet[page]), 4200); }, 700);
-  idleLoop();
+  idleLoop(); actLoop();
   sleepT = setTimeout(sleep, 70000);
 
-  // mascot click
-  buddy.addEventListener('click', function(){
-    wake(); react('jump'); say(pick(L.poke[page]));
-  });
+  buddy.addEventListener('click', function(){ wake(); flash('jump'); say(pick(L.poke[page])); });
 
-  // wake on activity
   ['mousemove','keydown','scroll','touchstart','click'].forEach(function(ev){
     window.addEventListener(ev, wake, {passive:true});
   });
 
-  // app reactions
   window.addEventListener('nase:react', function(e){
     wake();
     var t = e.detail;
-    if(t==='add'){ react('jump'); say(pick(L.add)); }
-    else if(t==='del'){ react('wiggle'); say(pick(L.del)); }
-    else if(t==='note'){ say(pick(L.note)); }
+    if(t==='add'){ flash('jump'); say(pick(L.add)); }
+    else if(t==='del'){ flash('wiggle'); say(pick(L.del)); }
+    else if(t==='note'){ flash('hop',950); say(pick(L.note)); }
   });
 
-  // open add modal hint
   document.addEventListener('click', function(e){
     if(e.target.closest && e.target.closest('#btn-add')){ wake(); say(pick(L.addopen)); }
   });

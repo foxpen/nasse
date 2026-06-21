@@ -393,3 +393,11 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .buddy-bubble.show{opacity:1; transform:none;}
 @media (max-width:560px){ #buddy{width:78px; height:78px; right:12px; bottom:12px;} .buddy-bubble{right:96px; bottom:42px; max-width:170px; font-size:12.5px;} }
 @media (prefers-reduced-motion: reduce){ #buddy img{animation:none!important;} }
+
+/* ---------- companion: more life ---------- */
+#buddy{transition:transform .35s var(--ease);}
+#buddy.hop img{animation:buddyHop .6s var(--ease);}
+@keyframes buddyHop{0%{transform:translateY(0)}40%{transform:translateY(-15px)}70%{transform:translateY(0)}86%{transform:translateY(-5px)}100%{transform:translateY(0)}}
+#buddy.look img{animation:buddyLook .95s ease;}
+@keyframes buddyLook{0%,100%{transform:rotate(-1.5deg)}30%{transform:rotate(9deg)}65%{transform:rotate(-9deg)}}
+@media (prefers-reduced-motion: reduce){ #buddy{transition:none!important;} }
