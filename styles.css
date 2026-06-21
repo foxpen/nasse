@@ -418,3 +418,18 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 #buddy.sleep .badge{animation:buddyBreathe 4.5s ease-in-out infinite; filter:brightness(.9) saturate(.8);}
 @media (max-width:560px){ #buddy{width:90px; height:92px;} }
 @media (prefers-reduced-motion: reduce){ #buddy .badge{animation:none!important;} #buddy .badge video{display:none;} }
+
+/* ---------- companion: transparent sprite (floating, no frame) ---------- */
+#buddy{width:124px; height:128px; background:none!important;}
+#buddy .spritewrap{position:relative; width:100%; height:100%; transform-origin:bottom center;
+  animation:buddyBob 3.6s ease-in-out infinite; filter:drop-shadow(0 10px 15px rgba(16,44,41,.22));}
+#buddy .sprite{width:100%; height:100%; background-image:url("img/mascot-sprite.png"); background-repeat:no-repeat;
+  background-size:1800% 100%; background-position-x:0%; animation:spritePlay 1.9s steps(17) infinite alternate;}
+@keyframes spritePlay{from{background-position-x:0%;} to{background-position-x:100%;}}
+#buddy.jump .spritewrap{animation:buddyJump .7s var(--ease);}
+#buddy.wiggle .spritewrap{animation:buddyWiggle .55s ease;}
+#buddy.hop .spritewrap{animation:buddyHop .6s var(--ease);}
+#buddy.look .spritewrap{animation:buddyLook .95s ease;}
+#buddy.sleep .spritewrap{animation:buddyBreathe 4.5s ease-in-out infinite; filter:drop-shadow(0 8px 12px rgba(16,44,41,.14)) saturate(.8) brightness(.97);}
+@media (max-width:560px){ #buddy{width:96px; height:100px;} }
+@media (prefers-reduced-motion: reduce){ #buddy .sprite{animation:none!important; background-position-x:0%;} #buddy .spritewrap{animation:none!important;} }
