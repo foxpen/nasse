@@ -9,9 +9,11 @@ export async function handler(event) {
   const q = event.queryStringParameters?.q;
   if (!q) return json(400, { error: 'missing q' });
   try {
-    const gr = await fetch(`https://api.mapy.com/v1/geocode?lang=cs&limit=1&apikey=${KEY}&query=${encodeURIComponent(q)}`);
+    const gr = await fetch(`https://api.mapy.com/v1/geocode?lang=cs&limit=5&apikey=${KEY}&query=${encodeURIComponent(q)}`);
     const gj = await gr.json();
-    const pos = gj.items?.[0]?.position;
+    if (event.queryStringParameters?.debug) return json(200, { status: gr.status, geocode: gj });
+    const it = gj.items?.[0] || gj.results?.[0] || (Array.isArray(gj) ? gj[0] : null);
+    const pos = it?.position || (it && it.lon != null ? { lon: it.lon, lat: it.lat } : null);
     if (!pos) return json(200, { error: 'not_found', message: 'adresa nenalezena: ' + q });
 
     const rr = await fetch(`https://api.mapy.com/v1/routing/route?apikey=${KEY}&lang=cs&routeType=car_fast&start=${pos.lon},${pos.lat}&end=${DEST.lon},${DEST.lat}`);
