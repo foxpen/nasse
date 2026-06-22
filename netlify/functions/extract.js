@@ -86,6 +86,59 @@ function parseSauto(url, html) {
   };
 }
 
+function parseBezrealitky(url, html) {
+  const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+  let data = null;
+  if (m) { try { data = JSON.parse(m[1]); } catch (e) { data = null; } }
+  const idMatch = url.match(/\/(\d+)-/);
+  const wantId = idMatch ? idMatch[1] : null;
+  const objs = [];
+  (function walk(o){ if (o && typeof o === 'object') { if (!Array.isArray(o)) objs.push(o); for (const k in o) walk(o[k]); } })(data);
+  let adv = objs.find(o => String(o.id) === wantId && 'price' in o)
+         || objs.find(o => 'price' in o && ('disposition' in o || 'estateType' in o));
+  if (!adv) {
+    let img2 = '';
+    const im = html.match(/https:\/\/api\.bezrealitky\.cz\/media\/cache\/record_main\/[^"\\ ]+\.jpg/);
+    if (im) img2 = im[0];
+    return { section: 'byd', data: { n: '', t: 'dum', disp: '', price: null, area: 0, land: '', ready: 1, when: '', en: '', car: 0, pt: 0, origin: '', img: img2, feats: [], url } };
+  }
+  let img = '';
+  const ref = adv.mainImage && adv.mainImage.__ref;
+  for (const o of objs) {
+    if (o.__typename === 'Image' && ('Image:' + o.id) === ref) {
+      for (const k in o) { const v = o[k]; if (typeof v === 'string' && v.startsWith('http') && /record_main/.test(v)) { img = v; break; } }
+    }
+  }
+  if (!img) { const im = html.match(/https:\/\/api\.bezrealitky\.cz\/media\/cache\/record_main\/[^"\\ ]+\.jpg/); if (im) img = im[0]; }
+  const disp = String(adv.disposition || '').replace('DISP_', '').replace('_KK', '+kk').replace('_1', '+1').replace(/_/g, '+');
+  const t = adv.estateType === 'DUM' ? 'dum' : 'byt';
+  const condMap = { NOVOSTAVBA: 'Novostavba', VELMI_DOBRY: 'Velmi dobrý', PO_REKONSTRUKCI: 'Po rekonstrukci', DOBRY: 'Dobrý', VE_VYSTAVBE: 've výstavbě', K_REKONSTRUKCI: 'Před rekonstrukcí' };
+  const when = condMap[adv.condition] || '';
+  const en = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].includes(adv.penb) ? adv.penb : '';
+  const land = adv.surfaceLand;
+  let city = '';
+  for (const k in adv) { if (/^city/.test(k) && typeof adv[k] === 'string' && adv[k]) { city = adv[k]; break; } }
+  if (!city) {
+    const slug = (url.split('/').pop() || '').replace(/^\d+-/, '').replace(/^(nabidka-)?prodej-(domu|bytu|rodinneho-domu)-/, '');
+    city = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+  const feats = [];
+  if (adv.terrace) feats.push('terasa');
+  if (adv.garage) feats.push('garáž');
+  if (adv.parking) feats.push('parkování');
+  if (adv.cellar) feats.push('sklep');
+  if (adv.frontGarden) feats.push('předzahrádka');
+  if (adv.lift) feats.push('výtah');
+  return { section: 'byd', data: {
+    n: (city || 'Nemovitost') + (disp ? ' ' + disp : ''),
+    t, disp: (t === 'dum' ? 'dům ' : 'byt ') + disp,
+    price: adv.price || null, area: adv.surface || 0,
+    land: land ? ('pozemek ' + land + ' m²' + (t === 'dum' ? ' · zahrada' : '')) : '',
+    ready: when === 've výstavbě' ? 0 : 1, when, en, car: 0, pt: 0,
+    origin: city || '', img, feats, url
+  } };
+}
+
 export async function handler(event) {
   try {
     const url = event.queryStringParameters?.url;
@@ -98,7 +151,8 @@ export async function handler(event) {
 
     if (/sreality\.cz/.test(host)) return json(200, parseSreality(url, html));
     if (/sauto\.cz/.test(host)) return json(200, parseSauto(url, html));
-    return json(422, { error: 'tento web extraktor neumí (zkus sreality.cz / sauto.cz, jinak vyplň ručně)', source: host });
+    if (/bezrealitky\.cz/.test(host)) return json(200, parseBezrealitky(url, html));
+    return json(422, { error: 'tento web extraktor neumí (zkus sreality.cz / sauto.cz / bezrealitky.cz, jinak vyplň ručně)', source: host });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }
