@@ -391,3 +391,20 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .cand-take:hover{background:var(--primary-700);}
 .cand-drop{background:transparent; color:var(--muted-fg);}
 .cand-drop:hover{color:#fff; background:#c0392b; border-color:#c0392b;}
+
+/* ---------- stav flags + domluvená cena ---------- */
+.flagchips{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 2px;}
+.flagchip{font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill); display:inline-flex; align-items:center; gap:4px;}
+.flagchip.fav{background:#FBEFD8; color:#92560A;}
+.flagchip.prohlidka{background:var(--info-bg); color:var(--info);}
+.flagchip.po{background:var(--ok-bg); color:var(--ok);}
+.flagchip.no{background:#FCEBEB; color:#A32D2D;}
+.deal{display:inline-flex; align-items:baseline; gap:7px;}
+.deal .old{font-size:12.5px; color:var(--muted-fg); text-decoration:line-through; font-weight:600;}
+.card.zamitnuto{opacity:.5;}
+.card.zamitnuto:hover{opacity:.85;}
+.btn-stav{font:inherit; font-size:12px; font-weight:700; color:var(--fg); background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-pill); padding:5px 12px; cursor:pointer; box-shadow:var(--sh);}
+.btn-stav:hover{border-color:var(--primary);}
+.modal .checks{display:flex; flex-direction:column; gap:10px; margin:6px 0 4px;}
+.modal .checks label{display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:600; color:var(--fg); cursor:pointer;}
+.modal .checks input[type=checkbox]{width:18px; height:18px; cursor:pointer;}

@@ -130,7 +130,7 @@ let MINPPM = 0, MAXPPM = 1;
 const DEST = "Arkády Pankrác, Praha";
 
 function computeExtents(){
-  DATA.forEach(d => d.ppm = (d.area>0 && d.price) ? Math.round(d.price/d.area) : 0);
+  DATA.forEach(d => d.ppm = (d.area>0 && (d.dealPrice||d.price)) ? Math.round((d.dealPrice||d.price)/d.area) : 0);
   const vals = kept().map(d=>d.ppm).filter(v=>v>0);
   MINPPM = vals.length ? Math.min(...vals) : 0;
   MAXPPM = vals.length ? Math.max(...vals) : 1;
@@ -155,6 +155,8 @@ async function loadData(){
 
 const czk = n => (n==null ? "?" : n.toLocaleString('cs-CZ'));
 const esc = s => String(s==null?'':s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const FLAGS = {favorit:{l:'Favorit',c:'fav',i:'⭐'}, prohlidka:{l:'Prohlídka domluvená',c:'prohlidka',i:'📅'}, po:{l:'Po prohlídce',c:'po',i:'✓'}, zamitnuto:{l:'Zamítnuto',c:'no',i:'✕'}};
+const flagChips = d => (d.flags||[]).map(f=>FLAGS[f]?`<span class="flagchip ${FLAGS[f].c}">${FLAGS[f].i} ${FLAGS[f].l}</span>`:'').join('');
 const enStyle = e => e.startsWith("A") ? "background:#E2F2D6;color:#3B6D11;"
   : e.startsWith("B") ? "background:var(--ok-bg);color:var(--ok);"
   : "background:var(--warn-bg);color:var(--warn);";
@@ -212,7 +214,7 @@ function renderPick(){
 function renderKpis(){
   const K=kept();
   document.getElementById("kpi-count").textContent = K.length;
-  const prices = K.map(d=>d.price).filter(Boolean);
+  const prices = K.map(d=>d.dealPrice||d.price).filter(Boolean);
   if(prices.length){
     const lo=(Math.min(...prices)/1e6).toFixed(2).replace('.',','), hi=(Math.max(...prices)/1e6).toFixed(2).replace('.',',');
     document.getElementById("kpi-range").innerHTML = lo+'–'+hi+' <span class="u">M</span>';
@@ -233,25 +235,27 @@ function renderCards(){
   document.getElementById("cards").innerHTML = rows.map(d=>{
     const isHouse = d.t==="dum";
     const isCand = d.status==='candidate';
+    const ep = d.dealPrice || d.price;
     const pct = (MAXPPM>MINPPM && d.ppm) ? Math.round(((MAXPPM - d.ppm)/(MAXPPM - MINPPM))*82 + 18) : 60;
     const best = !isCand && d.ppm===MINPPM;
     const carLink = d.car?`<a href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Trasa autem">${I.car}<span><b>~${d.car} min</b><small>autem</small></span></a>`:'';
     const ptLink = d.pt?`<a href="${mapUrl(d.origin,'transit')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Trasa MHD">${I.transit}<span><b>~${d.pt} min</b><small>MHD</small></span></a>`:'';
-    return `<article class="card" tabindex="0" role="link" aria-label="${d.n}, ${czk(d.price)} korun"
+    return `<article class="card${(d.flags||[]).includes('zamitnuto')?' zamitnuto':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(ep)} korun"
         onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
       <div class="media ${isHouse?'house':'byt'}">
         <div class="corner">
           ${readyTag(d)}
           ${d.en?`<span class="tag" style="${enStyle(d.en)}">${I.bolt}${d.en}</span>`:''}
         </div>
-        ${isCand&&d.score?`<span class="scorebadge ${d.score>=80?'':'mid'}">${d.score}% shoda</span>`:`<div class="del"><button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝 Poznámka</button><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button></div>`}
+        ${isCand&&d.score?`<span class="scorebadge ${d.score>=80?'':'mid'}">${d.score}% shoda</span>`:`<div class="del"><button class="btn-stav" type="button" onclick="event.stopPropagation();editStav(${d.id})">✎ Stav</button><button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝</button><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button></div>`}
         <span class="glyph" aria-hidden="true">${isHouse?I.house:I.building}</span>
         ${d.img?`<img src="${d.img}" alt="Foto · ${d.n}" loading="lazy" onerror="this.remove()">`:''}
-        <span class="pricechip">${czk(d.price)} Kč</span>
+        <span class="pricechip">${d.dealPrice?`<span class="deal"><span class="old">${czk(d.price)}</span>${czk(d.dealPrice)} Kč</span>`:`${czk(d.price)} Kč`}</span>
       </div>
       <div class="body">
         <div class="ctitle">${d.n}</div>
         <div class="csub">${d.disp||''}</div>
+        ${(d.flags&&d.flags.length)?`<div class="flagchips">${flagChips(d)}</div>`:''}
         <div class="chips">
           <span class="chip">${I.ruler}${d.area} m²</span>
           ${d.land?`<span class="chip">${I.tree}${d.land}</span>`:''}
@@ -260,7 +264,7 @@ function renderCards(){
           <div class="ppmtop"><span>Cena za m²${best?' · nejlepší':''}</span><b>${czk(d.ppm)} Kč</b></div>
           <div class="bar"><i class="${best?'lo':''}" style="width:${pct}%"></i></div>
         </div>
-        <div class="mort">${bankIcon}Splátka <b>~${czk(totalPay(d.price))} Kč</b>/měs${mIns>0?' <span style="font-weight:600">(vč. poj.)</span>':''}</div>
+        <div class="mort">${bankIcon}Splátka <b>~${czk(totalPay(ep))} Kč</b>/měs${mIns>0?' <span style="font-weight:600">(vč. poj.)</span>':''}</div>
         ${carLink||ptLink?`<div class="commute">${carLink}${ptLink}</div>`:''}
         <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${f}</span></li>`).join("")}</ul>
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
@@ -320,6 +324,38 @@ async function take(id){
   loadData();
 }
 function discard(id){ delById(id); }
+
+function editStav(id){
+  const item=DATA.find(x=>x.id===id); if(!item) return;
+  const f=new Set(item.flags||[]);
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  const checks=Object.entries(FLAGS).map(([k,v])=>`<label><input type="checkbox" id="fl_${k}" ${f.has(k)?'checked':''}> ${v.i} ${v.l}</label>`).join("");
+  wrap.innerHTML=`<div class="modal" style="max-width:440px">
+    <h3>Stav nemovitosti</h3>
+    <p class="hint">${esc(item.n)}</p>
+    <div class="checks">${checks}</div>
+    <label>Domluvená cena (Kč)</label>
+    <input id="dealp" type="number" inputmode="numeric" placeholder="napiš usmlouvanou cenu" value="${item.dealPrice||''}">
+    <div class="msg" id="sv_msg"></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="sv_cancel">Zrušit</button><button class="btn-add" type="button" id="sv_save">Uložit</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#sv_cancel").onclick=close;
+  wrap.querySelector("#sv_save").onclick=async()=>{
+    const flags=Object.keys(FLAGS).filter(k=>wrap.querySelector("#fl_"+k).checked);
+    const dpRaw=wrap.querySelector("#dealp").value.replace(/\s/g,'');
+    const dealPrice=dpRaw?Number(dpRaw):null;
+    const msg=wrap.querySelector("#sv_msg"); msg.className="msg"; msg.textContent="Ukládám…";
+    try{
+      const r=await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch:{flags,dealPrice}})});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      window.dispatchEvent(new CustomEvent('nase:react',{detail:'note'}));
+      close(); loadData();
+    }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
+  };
+}
 
 function recalcMortgage(){
   mRate = parseFloat(document.getElementById("m-rate").value) || 0;
