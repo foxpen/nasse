@@ -1,121 +1,101 @@
-# Naše 🏠🚗
+# Nase Bydlenicko
 
-Soukromá webová appka na **výběr nemovitosti a auta** pod jednou střechou. Jedno místo, kde si rodina drží shortlist nabídek, porovnává je, počítá hypotéku, dojezd a značkuje stav (prohlídka domluvená, usmlouvaná cena…).
+Soukroma webova aplikace pro vyber a porovnavani nemovitosti. Bezi jako staticky frontend na Netlify, data drzi v Neon Postgres a prakticke veci kolem importu, dojezdu, vyhledavani a refreshu resi Netlify Functions.
 
-- **Naše Bydleníčko** — nemovitosti: cena, m², cena/m², dojezd autem, hypoteční splátka, poznámky, stavové štítky, domluvená cena, záložka „K roztřídění" pro kandidáty.
-- **Naše Autíčko** — auta: cena (Kč/€), rok, najeto, výkon, palivo, poznámky.
-- **Rozcestník** (`index.html`) — výběr sekce.
+Aktualni verze: `1.1.0`.
 
-Statický frontend (HTML/CSS/JS, bez build kroku) + **Netlify Functions** (serverless) + **Neon Postgres**. Vše běží zdarma na free tierech.
+## Co umi
 
----
-
-## Co appka umí
-- Přidávání přes **odkaz** s auto-extraktorem (sreality.cz, bezrealitky.cz, sauto.cz, bazoš, mobil.de) + ruční fallback.
-- **Hypoteční kalkulačka** (úrok / doba / akontace / pojištění) — splátka u každé nemovitosti, živě.
-- **Dojezd autem** na zvolené místo přes **Mapy.com API** (volitelné).
-- **Mazání**, **poznámky**, **stavové štítky** (⭐ favorit, 📅 prohlídka, ✓ po prohlídce, ✕ zamítnuto) a **domluvená cena** (přepočítá splátku i cenu/m²).
-- Záložky **Naše** / **K roztřídění** (kandidáti se skóre).
-- Filtrování, řazení, srovnávací tabulka, dark mode, mobil.
-
----
+- sprava vlastniho shortlistu domu a bytu,
+- import z `sreality.cz` a `bezrealitky.cz`,
+- samostatne pole pro adresu, nazev, uzitnou plochu, pozemek, zahradu, terasu, balkon/lodzii, garaz, parkovani, PENB, stav a kontakt,
+- galerie fotek v detailu, sipky mezi fotkami a proxy cache obrazku pres Netlify funkci,
+- detail nemovitosti s mapou, trasou autem, trasou MHD a odkazem na puvodni inzerat,
+- hypotecni kalkulacka s fixaci, urokem, dobou, procentem pujcky a pojistenim,
+- automaticky prepocet mesicni splatky na kartach,
+- ulozene cile dojezdu, naseptavac adres pres Mapy API a rucni prepocet po kliknuti,
+- Google Maps odkazy na trasu autem i MHD,
+- mapa nemovitosti s body podle score,
+- porovnavaci rezim az pro 3 nemovitosti,
+- tabulka s razenim podle sloupcu,
+- vyhledavac realit jako kandidatni pohled, vcetne hromadneho pridavani kandidatu,
+- refresh inzeratu a mazani nenalezenych nabidek,
+- jednoduche heslo pred vstupem do aplikace.
 
 ## Architektura
 
+```text
+staticke HTML/CSS/JS
+        |
+        v
+Netlify Functions
+        |
+        v
+Neon Postgres: listings(id, section, data jsonb, created_at)
 ```
-Neon Postgres  (tabulka `listings`: id, section, data jsonb, created_at)
-      ▲
-Netlify Functions (Node ESM, /netlify/functions/*)
-   list · add · delete · update · note · status · extract · commute · seed · recompute-commute
-      ▲  fetch /.netlify/functions/*
-public (statické): index.html · bydleni.html · auta.html · styles.css · img/
-```
 
-Vše je v jedné tabulce `listings`. Typ řeší `section` (`byd` / `auto`), zbytek je v `data` (JSONB) — žádné migrace při přidání pole. „K roztřídění" = řádky s `data.status = "candidate"`.
+Frontend je bez build kroku. Hlavni soubory:
 
----
+- `index.html` - vstup a rozcestnik,
+- `bydleni.html` - hlavni aplikace pro nemovitosti,
+- `auta.html` - starsi sekce pro auta,
+- `styles.css` - sdilene styly,
+- `netlify/functions/*` - API funkce,
+- `db/schema.sql` - zakladni DB schema.
 
-## 🚀 Zprovoznění pro sebe
+## Netlify Functions
 
-### Co to obecně potřebuje (nezávisle na konkrétní službě)
-1. **Postgres databáze** — kdekoli (Neon, Supabase, Railway, Render, vlastní Postgres…). Její connection string dáš do proměnné prostředí (`DATABASE_URL`, případně `NETLIFY_DATABASE_URL`).
-2. **Hosting, který servíruje statické soubory + umí serverless funkce** (Netlify, Vercel, Cloudflare Pages…), nebo vlastní malý Node server.
-3. **Vytvořit tabulku** `listings` z `db/schema.sql` — funguje na jakémkoli Postgresu.
-4. *(volitelně)* **API klíč na mapy** pro auto-výpočet dojezdu (Mapy.com).
+Vybrane funkce:
 
-Proměnné prostředí:
+- `list` - nacteni nabidek,
+- `add` - pridani nabidky,
+- `update` - ulozeni uprav,
+- `delete` - smazani,
+- `extract` - import dat z inzeratu,
+- `refresh-listings` - aktualizace ulozenych inzeratu,
+- `delete-not-found` - smazani nenalezenych inzeratu,
+- `commute` - prepocet dojezdu,
+- `address-suggest` - naseptavac adres,
+- `search-listings` - vyhledani kandidatu na Srealitach,
+- `image-proxy` - proxy/cache fotek z inzeratu.
 
-| Proměnná | Povinná? | K čemu |
-|---|---|---|
-| `DATABASE_URL` *(nebo `NETLIFY_DATABASE_URL`)* | **ano** | připojení k Postgresu |
-| `MAPY_API_KEY` | volitelná | dojezd autem ([api.mapy.com](https://api.mapy.com), free) |
+## Promenne prostredi
 
-> Funkce čtou DB z `process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL` (viz `netlify/functions/_lib/db.js`).
+| Promenna | Povinna | Popis |
+| --- | --- | --- |
+| `DATABASE_URL` nebo `NETLIFY_DATABASE_URL` | ano | Postgres connection string |
+| `APP_PASSWORD` nebo `NASE_PASSWORD` | ano | heslo do aplikace |
+| `AUTH_SECRET` | doporuceno | podpis prihlasovaci cookie |
+| `MAPY_API_KEY` | doporuceno | geokodovani, naseptavac a auto dojezd |
+| `GOOGLE_MAPS_API_KEY` | volitelne | pripraveno pro pripadne presnejsi Google routovani |
 
----
+## Lokalni spusteni
 
-### 📦 Příklad: Netlify + Neon (nejjednodušší, doporučeno)
-Tohle je konkrétní postup pro nejrychlejší rozjezd. Klidně použij jinou DB/hosting (viz níže).
-
-1. **Repo:** forkni / naklonuj tenhle repozitář na svůj GitHub.
-2. **DB (Neon):** na [neon.tech](https://neon.tech) vytvoř projekt a zkopíruj **pooled** connection string (obsahuje `-pooler`, např. `postgresql://user:pass@ep-xxx-pooler.<region>.neon.tech/neondb?sslmode=require`).
-3. **Deploy (Netlify):** [netlify.com](https://app.netlify.com) → **Add new site → Import an existing project** → vyber repo. Build command **prázdný**, **Publish directory = `.`** (je v `netlify.toml`), funkce se najdou v `netlify/functions`.
-4. **Env:** Netlify → Site configuration → Environment variables → přidej `NETLIFY_DATABASE_URL` (= Neon string) a volitelně `MAPY_API_KEY`. Pak **Deploys → Trigger deploy**.
-5. **Tabulka + data:**
-   - *prázdný start:* v Neon SQL editoru spusť `db/schema.sql`;
-   - *nebo s ukázkovými daty:* otevři jednou `https://<tvuj-web>.netlify.app/.netlify/functions/seed` (vytvoří tabulku i naimportuje ukázkový shortlist, který pak smažeš/upravíš).
-
-Hotovo — appka jede na `https://<tvuj-web>.netlify.app`. 🎉
-
----
-
-### 🔁 Chci to jinde (Vercel / Cloudflare / vlastní server / jiná DB)
-Jádro je přenositelné, jen je potřeba pár úprav:
-- **DB:** jakýkoli Postgres — nastav `DATABASE_URL`. (Driver `@neondatabase/serverless` mluví běžným Postgres protokolem; pro lokální/jiný Postgres lze přepsat na `pg` v `_lib/db.js`.)
-- **Funkce:** jsou psané v **Netlify formátu** `export async function handler(event)` (čtou `event.httpMethod`, `event.queryStringParameters`, `event.body`). Na Vercelu/Cloudflare je přepíšeš na jejich signaturu (`(req, res)` resp. `fetch` handler) — logika SQL uvnitř zůstává stejná.
-- **Cesty:** frontend volá `/.netlify/functions/<name>`. Na jiném hostingu buď nastav redirect/rewrite na svoje endpointy, nebo uprav konstantu `API` v `index.html`, `bydleni.html`, `auta.html`.
-
----
-
-## 🔧 Přizpůsobení sobě
-
-| Co změnit | Kde |
-|---|---|
-| **Cíl dojezdu** (teď Arkády Pankrác, Praha) | `netlify/functions/commute.js` a `recompute-commute.js` → konstanta `DEST` (lon/lat). V `bydleni.html` text „na Pankrác". |
-| **Výchozí hypotéka** (úrok 3,95 %, doba 30, akontace 10 %) | `bydleni.html` → pole `m-rate`, `m-years`, `m-down` + proměnné `mRate/mYears/mDown`. |
-| **Barvy sekcí** (zelená / azurová) | `styles.css` → `:root` a `.theme-auto`. |
-| **Kurz EUR→CZK** (u aut) | `auta.html` → konstanta `RATE`. |
-
----
-
-## 💻 Lokální vývoj
-```bash
+```powershell
 npm install
-npx netlify dev    # spustí statiku + funkce; potřebuje netlify login + nastavené env
+npx netlify dev
 ```
-Bez připojené DB appka jen ukáže hlášku „nepodařilo se načíst" — to je v pořádku.
 
----
+Pro lokalni beh nastav `.env` nebo env promenne stejne jako na Netlify.
 
-## 🔎 Hledání podobných nemovitostí (volitelné, pokročilé)
-Profil hledání (charakteristika shortlistu + sreality filtr + skórování podobnosti 0–100) je popsán v souboru `nase-reality-filter` (Claude skill). Vyhledávání běží jako lokální skript (čte veřejná sreality data) a nahrává kandidáty do DB se `status:"candidate"` → objeví se v záložce „K roztřídění". Není součástí nasazené appky.
+## Deploy
 
----
+Projekt je pripraveny na Netlify. Build command zustava prazdny a publish directory je `.`.
 
-## 🔐 Bezpečnost / pozn.
-- Appka **nemá heslo** — kdokoli s URL ji vidí i edituje. Pro soukromá data dej repo **Private** a/nebo dopiš jednoduché přihlášení (cookie + heslo přes funkci).
-- `.env`, `.apify_token`, `node_modules` jsou v `.gitignore` — necommituj tajné klíče.
-- Po změně env proměnných v Netlify je nutný **redeploy**.
-- Ceny i dojezdy jsou orientační — ověř u zdroje.
+Rucni deploy:
 
----
+```powershell
+npx netlify deploy --prod --dir .
+```
 
-## 📄 Licence
+## Poznamky k importu fotek
 
-**© 2026 foxpen.** Tento projekt je licencován pod **GNU Affero General Public License v3.0 (AGPL-3.0)** — viz [`LICENSE`](LICENSE).
+Fotky se ukladaji jako puvodni URL z inzeratu, ale aplikace je zobrazuje pres `image-proxy`. Tim se snizi zavislost UI na hotlinku, obrazky se cacheuji na Netlify/CDN a duplicity z galerie se filtrují podle URL bez velikostnich parametru.
 
-Stručně co to znamená:
-- ✅ Můžeš to používat, studovat, upravovat i sdílet.
-- 🔁 **Pokud to ale dál šíříš nebo provozuješ jako službu (web), musíš zveřejnit zdrojový kód** svojí verze pod stejnou licencí a **uvést autora**.
-- 🚫 Nelze z toho udělat uzavřený/proprietární produkt ani si to „přivlastnit".
+Neni to plnohodnotne trvale uloziste souboru. Pokud ma byt kazda fotka fyzicky ulozena a mazana spolu s nemovitosti, dalsi krok je pridat objektove uloziste typu Cloudinary, Uploadcare, S3/R2 nebo Supabase Storage.
 
+## Co je dobre vedet
+
+- Vyhledavac realit pouziva verejne stranky Srealit, ne oficialni stabilni partnerske API.
+- MHD cas je dnes kombinace dostupnych dat a fallbacku na Google Maps odkaz; pro presne zive MHD by davalo smysl pridat placene Google Routes API.
+- Mapy.com API se pouziva pro geokodovani a auto trasu, odkazy pro uzivatele vedou do Google Maps.

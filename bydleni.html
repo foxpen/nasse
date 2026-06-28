@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Naše Bydleníčko · nemovitosti</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -34,6 +36,7 @@
       <span class="t">Naše</span>
     </a>
     <div class="spacer"></div>
+    <button class="top-map-btn" type="button" id="map-open">Mapa</button>
     <nav class="switch" aria-label="Sekce">
       <a href="bydleni.html" class="active" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
       <a href="auta.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
@@ -44,7 +47,7 @@
 <main>
   <div class="tabs">
     <button class="tab on" id="tab-kept" type="button">Naše <span class="cnt" id="cnt-kept"></span></button>
-    <button class="tab" id="tab-cand" type="button">K roztřídění <span class="cnt" id="cnt-cand"></span></button>
+    <button class="tab" id="tab-cand" type="button">Vyhledávač realit <span class="cnt" id="cnt-cand"></span></button>
   </div>
 
   <section class="hero" id="hero">
@@ -56,6 +59,39 @@
       <div class="kpi"><div class="l">Medián cena/m²</div><div class="v" id="kpi-ppm">·</div></div>
     </div>
   </section>
+
+  <div class="settings-panel">
+    <div class="mortgage" id="mortgage">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></svg>Hypotéka</div>
+      <label>Fixace <select id="m-fix"><option value="5.14">1 rok</option><option value="4.94" selected>3 roky</option><option value="5.14">5 let</option><option value="5.54">10 let</option></select></label>
+      <label>Úrok <input id="m-rate" type="number" value="4.94" step="0.05" min="0" inputmode="decimal"> %</label>
+      <label>Doba <input id="m-years" type="number" value="30" min="5" max="40" step="1"> let</label>
+      <label class="loan-slider">Půjčit <input id="m-loan" type="range" value="90" min="10" max="100" step="5"><b id="m-loan-out">90 %</b></label>
+      <label>Pojištění <input id="m-ins" type="number" value="0" min="0" step="100"> Kč/měs</label>
+</div>
+
+    <div class="commute-settings" id="commute-settings">
+      <div class="box-title">Dojezd</div>
+      <div class="dest-grid">
+        <label>Nová adresa <input id="dest-input" list="dest-options" placeholder="Začni psát a vyber adresu"><datalist id="dest-options"></datalist></label>
+        <label>Uložená lokalita <select id="dest-select"></select></label>
+        <button class="btn-ghost" type="button" id="dest-save">Uložit adresu</button>
+        <button class="btn-add" type="button" id="dest-recalc">Přepočítat</button>
+      </div>
+      <div class="saved-dests" id="saved-dests"></div>
+    </div>
+
+    <div class="recalc-panel">
+      <div class="box-title">Porovnání</div>
+      <button class="btn-ghost" type="button" id="compare-mode">Porovnat</button>
+      <div class="compare-inline" id="compare-inline" hidden>
+        <strong id="compare-count">0/3 vybráno</strong>
+        <button class="btn-add" type="button" id="compare-open" hidden>Otevřít porovnání</button>
+        <button class="btn-ghost" type="button" id="compare-clear">Zrušit</button>
+      </div>
+      <span class="mnote" id="dest-msg"></span>
+    </div>
+  </div>
 
   <div class="controls">
     <div class="seg" id="filters" role="group" aria-label="Filtr typu">
@@ -72,30 +108,60 @@
       <option value="car">Nejblíž autem</option>
       <option value="pt">Nejblíž MHD</option>
     </select>
+    <button class="btn-ghost" id="refresh-all" type="button">Aktualizovat inzeráty</button>
     <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
   </div>
 
-  <div class="mortgage" id="mortgage">
-    <span class="mlabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></svg>Hypotéka</span>
-    <label>Úrok <input id="m-rate" type="number" value="3.95" step="0.05" min="0" inputmode="decimal"> %</label>
-    <label>Doba <input id="m-years" type="number" value="30" min="5" max="40" step="1"> let</label>
-    <label>Akontace <input id="m-down" type="number" value="10" min="0" max="90" step="5"> %</label>
-    <label>Pojištění <input id="m-ins" type="number" value="0" min="0" step="100"> Kč/měs</label>
-    <span class="mnote">orientační měsíční splátka u každé nemovitosti</span>
-  </div>
+  <section class="search-panel" id="search-panel" hidden>
+    <div class="box-title">Vyhledávač realit</div>
+    <div class="search-grid">
+      <label>Lokalita <input id="s-locality" list="s-locality-options" value="Praha" placeholder="Praha, Nymburk, Kolín..."><datalist id="s-locality-options"></datalist></label>
+      <fieldset class="search-types"><legend>Typ</legend><label><input type="checkbox" id="s-type-byt" checked> Byty</label><label><input type="checkbox" id="s-type-dum"> Domy</label></fieldset>
+      <label>Dispozice <input id="s-disp" placeholder="3+kk, 4+kk"></label>
+      <label>Cena od <input id="s-price-from" type="number" inputmode="numeric" placeholder="6000000"></label>
+      <label>Cena do <input id="s-price-to" type="number" inputmode="numeric" placeholder="9000000"></label>
+      <label>Plocha od <input id="s-area-from" type="number" inputmode="numeric" placeholder="60"></label>
+      <label>Plocha do <input id="s-area-to" type="number" inputmode="numeric" placeholder="140"></label>
+      <label>Limit <input id="s-limit" type="number" min="1" max="12" value="8"></label>
+      <button class="btn-add" type="button" id="s-run">Vyhledat</button>
+    </div>
+    <div class="msg" id="s-msg"></div>
+  </section>
 
   <div class="sec-head">
     <h3>Nabídky</h3>
     <span class="count" id="count"></span>
-    <span class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do Arkád Pankrác (mimo špičku)</span>
+    <span class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do Jankovcovy 1522/53</span>
   </div>
   <div class="grid" id="cards"></div>
+  <div class="below-grid-actions">
+    <button class="btn-ghost table-toggle" type="button" id="table-toggle">Tabulka</button>
+  </div>
+  <section class="empty" id="empty" hidden>
+    <div class="eic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg></div>
+    <h3>Nepodařilo se načíst data</h3>
+    <p>Appka funguje nasazená na Netlify s připojenou Neon DB.</p>
+  </section>
 
   <section class="tablewrap" id="tablewrap">
     <div class="th">Srovnávací tabulka</div>
     <div class="scroll">
       <table>
-        <thead><tr><th>Nemovitost</th><th>Typ</th><th>Cena</th><th>Plocha</th><th>Cena/m²</th><th>Pankrác · auto</th><th>Pankrác · MHD</th><th>Stav</th><th>PENB</th></tr></thead>
+        <thead><tr>
+          <th><button class="th-sort" data-table-sort="n">Nemovitost</button></th>
+          <th><button class="th-sort" data-table-sort="t">Typ</button></th>
+          <th><button class="th-sort" data-table-sort="price">Cena</button></th>
+          <th><button class="th-sort" data-table-sort="area">Plocha</button></th>
+          <th><button class="th-sort" data-table-sort="plotArea">Pozemek</button></th>
+          <th><button class="th-sort" data-table-sort="gardenArea">Zahrada</button></th>
+          <th><button class="th-sort" data-table-sort="terrace">Terasa</button></th>
+          <th><button class="th-sort" data-table-sort="ppm">Cena/m²</button></th>
+          <th><button class="th-sort" data-table-sort="score">Skóre</button></th>
+          <th><button class="th-sort" data-table-sort="car">Auto</button></th>
+          <th><button class="th-sort" data-table-sort="pt">MHD</button></th>
+          <th><button class="th-sort" data-table-sort="ready">Stav</button></th>
+          <th><button class="th-sort" data-table-sort="en">PENB</button></th>
+        </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -103,11 +169,14 @@
 
   <footer>
     Lokální přehled · zdroj dat sreality.cz · ceny i dojezdy orientační, ověřit u makléře a v mapách<br>
-    Dojezdové časy jsou odhad mimo špičku do OC Arkády Pankrác (Praha 4). Klikni na štítek dojezdu pro živou trasu v Mapách Google.<br>
+    Dojezdové časy jsou orientační podle zvoleného cíle. Klikni na štítek dojezdu pro živou trasu v mapách.<br>
     Energetická třída „G*" u rozestavěných staveb je nejspíš jen nevyhotovený PENB, ne reálná spotřeba.
   </footer>
 </main>
 
+<script src="app-utils.js"></script>
+<script src="auth.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const I = {
   house:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>',
@@ -127,59 +196,210 @@ const I = {
 const API = "/.netlify/functions";
 let DATA = [];
 let MINPPM = 0, MAXPPM = 1;
-const DEST = "Arkády Pankrác, Praha";
+let MINMORT = 0, MAXMORT = 1, MINAREA = 0, MAXAREA = 1;
+const DEFAULT_DEST = "Jankovcova 1522/53, Praha 7";
+const DEST_JANKOVCOVA = "Jankovcova 1522/53, Praha 7";
+const DEST_KOZOMIN = "Kozomín 509, Kozomín";
+let commuteDest = localStorage.getItem("nase.commuteDest") || DEFAULT_DEST;
+let savedDestinations = JSON.parse(localStorage.getItem("nase.savedDestinations") || "[]");
+let suggestedDestinations = [];
+const BUILTIN_DESTS = [
+  {name:"Kanceláře Hall", address:DEST_JANKOVCOVA},
+  {name:"Sklad Kozomín", address:DEST_KOZOMIN}
+];
+const selectedCompare = new Set();
+let compareMode = false;
+let tableOpen = false;
+let tableSort = { key: "score", dir: "desc" };
+let destTimer = null;
+let commuteRunning = false;
+let map, markersLayer, mapWrap;
+let activeMapSet = 'kept';
 
 function computeExtents(){
   DATA.forEach(d => d.ppm = (d.area>0 && (d.dealPrice||d.price)) ? Math.round((d.dealPrice||d.price)/d.area) : 0);
   const vals = kept().map(d=>d.ppm).filter(v=>v>0);
   MINPPM = vals.length ? Math.min(...vals) : 0;
   MAXPPM = vals.length ? Math.max(...vals) : 1;
+  const areas = kept().map(d=>d.area).filter(v=>v>0);
+  MINAREA = areas.length ? Math.min(...areas) : 0;
+  MAXAREA = areas.length ? Math.max(...areas) : 1;
+  const morts = kept().map(d=>totalPay(d.dealPrice||d.price)).filter(v=>v>0);
+  MINMORT = morts.length ? Math.min(...morts) : 0;
+  MAXMORT = morts.length ? Math.max(...morts) : 1;
 }
 
 async function loadData(){
   const grid = document.getElementById("cards");
   grid.innerHTML = '<div class="state">Načítám…</div>';
+  document.getElementById("empty").hidden = true;
+  grid.hidden = false;
   try{
     const res = await fetch(API+"/list?section=byd");
     if(!res.ok) throw new Error("HTTP "+res.status);
     DATA = await res.json();
-    DATA.forEach(d=>{ if(d.n) d.n=d.n.replace(/—/g,'·'); });
+    DATA.forEach(d=>{ if(d.n) d.n=d.n.replace(/—/g,'·'); normalizeProperty(d); });
   }catch(e){
-    grid.innerHTML = '<div class="state">Nepodařilo se načíst data z databáze.<br>Appka funguje nasazená na Netlify s připojenou Neon DB.<br><small>'+e.message+'</small></div>';
+    ["hero","mortgage","commute-settings","tablewrap"].forEach(id=>document.getElementById(id).hidden=true);
+    const sp=document.querySelector(".settings-panel"); if(sp) sp.hidden=true;
+    grid.hidden = true;
+    document.getElementById("empty").hidden = false;
+    document.querySelector("#empty h3").textContent = "Nepodařilo se načíst data z databáze";
+    document.querySelector("#empty p").innerHTML = "Appka funguje nasazená na Netlify s připojenou Neon DB.<br><small>"+esc(e.message)+"</small>";
     return;
   }
+  ["hero","mortgage","commute-settings"].forEach(id=>document.getElementById(id).hidden=false);
+  const sp=document.querySelector(".settings-panel"); if(sp) sp.hidden=false;
   computeExtents();
   updateTabs(); applyView();
   renderPick(); renderKpis(); renderAll();
 }
 
 const czk = n => (n==null ? "?" : n.toLocaleString('cs-CZ'));
-const esc = s => String(s==null?'':s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+function loanAmount(price){ return price ? Math.round((price*(mLoan/100))/100)*100 : 0; }
+function fmtDuration(min){
+  min=Number(min)||0;
+  if(!min) return '?';
+  if(min < 60) return min + ' min';
+  const h=Math.floor(min/60), m=min%60;
+  return h + ' h' + (m ? ' ' + m + ' min' : '');
+}
+function durationClass(min){ min=Number(min)||0; return !min ? 'unknown' : (min<=60 ? 'good' : (min<=120 ? 'mid' : 'bad')); }
+const { esc, jsstr, safeUrl } = window.Nase;
 const FLAGS = {favorit:{l:'Favorit',c:'fav',i:'⭐'}, prohlidka:{l:'Prohlídka domluvená',c:'prohlidka',i:'📅'}, po:{l:'Po prohlídce',c:'po',i:'✓'}, zamitnuto:{l:'Zamítnuto',c:'no',i:'✕'}};
 const flagChips = d => (d.flags||[]).map(f=>FLAGS[f]?`<span class="flagchip ${FLAGS[f].c}">${FLAGS[f].i} ${FLAGS[f].l}</span>`:'').join('');
 const enStyle = e => e.startsWith("A") ? "background:#E2F2D6;color:#3B6D11;"
   : e.startsWith("B") ? "background:var(--ok-bg);color:var(--ok);"
   : "background:var(--warn-bg);color:var(--warn);";
-function openUrl(u){ if(u && u!=='undefined') window.open(u,"_blank","noopener"); }
+const openUrl = window.Nase.openUrl;
+function imgSrc(url){
+  const clean=safeUrl(url);
+  return clean ? API + "/image-proxy?url=" + encodeURIComponent(clean) : "";
+}
 function mapUrl(origin, mode){
-  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(DEST)}&travelmode=${mode}`;
+  const travelmode = mode === 'transit' ? 'transit' : 'driving';
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin||'')}&destination=${encodeURIComponent(commuteDest)}&travelmode=${travelmode}`;
+}
+function mapyPlaceUrl(origin){
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(origin||'')}`;
+}
+function nnum(v){ const n=Number(v); return Number.isFinite(n)&&n>0?n:0; }
+function parseM2(text, words){
+  const s=String(text||'').toLowerCase();
+  for(const w of words){
+    const re=new RegExp(w+"[^0-9]{0,16}([0-9][0-9\\s]*)\\s*m", "i");
+    const m=s.match(re);
+    if(m) return Number(m[1].replace(/\s/g,''))||0;
+  }
+  return 0;
+}
+function hasAny(text, words){
+  const s=String(text||'').toLowerCase();
+  return words.some(w=>s.includes(w));
+}
+function normalizeProperty(d){
+  const landText = [d.land, ...(d.feats||[])].join(' ');
+  d.imgs = uniqueImageList(Array.isArray(d.imgs) ? d.imgs.filter(Boolean) : (d.img ? [d.img] : []));
+  d.plotArea = nnum(d.plotArea) || parseM2(landText, ['pozemek']);
+  d.gardenArea = nnum(d.gardenArea) || parseM2(landText, ['zahrada','zahr\\.']);
+  d.terrace = Boolean(d.terrace) || hasAny(landText, ['terasa','terasy']);
+  d.balcony = Boolean(d.balcony) || hasAny(landText, ['balkon','balkón','lodžie']);
+  d.garage = Boolean(d.garage) || hasAny(landText, ['garáž']);
+  d.parking = Boolean(d.parking) || hasAny(landText, ['parkování','parkovací']);
+  return d;
+}
+function imageListKey(url){
+  try{
+    const u=new URL(url);
+    return u.hostname.replace(/^www\./,'') + u.pathname.replace(/\/media\/cache\/[^/]+\//, '/media/cache/');
+  }catch(e){ return String(url||'').split('?')[0]; }
+}
+function uniqueImageList(urls){
+  const seen=new Set();
+  return (urls||[]).filter(Boolean).filter(u=>{
+    const key=imageListKey(u);
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function yesNo(value, yes, no){ return value ? yes : no; }
+function attrs(d){
+  return [
+    `${I.ruler}${d.area||0} m² užitná plocha`,
+    `${I.tree}${d.plotArea?d.plotArea+' m² pozemek':'bez pozemku'}`,
+    `${I.tree}${d.gardenArea?d.gardenArea+' m² zahrada':'bez zahrady'}`,
+    yesNo(d.terrace, 'terasa', 'bez terasy'),
+    yesNo(d.balcony, 'balkon/lodžie', 'bez balkonu'),
+    yesNo(d.garage, 'garáž', d.parking?'parkování':'bez garáže')
+  ];
 }
 
 let filter="all", sort="ppm", view="kept";
 const kept = ()=> DATA.filter(d=> (d.status||'kept')!=='candidate');
 const cand = ()=> DATA.filter(d=> d.status==='candidate');
-let mRate=3.95, mYears=30, mDown=10, mIns=0;
+let mRate=4.94, mYears=30, mLoan=90, mIns=0;
 function monthly(price){
   if(!price) return 0;
-  const P=price*(1-mDown/100), r=mRate/100/12, n=mYears*12;
+  const P=price*(mLoan/100), r=mRate/100/12, n=mYears*12;
   const m = r===0 ? P/n : P*r/(1-Math.pow(1+r,-n));
   return Math.round(m/100)*100;
 }
 function totalPay(price){ return Math.round((monthly(price)+mIns)/100)*100; }
 const bankIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></svg>';
+function normHigh(v,min,max){ return max===min ? 0.6 : Math.max(0, Math.min(1, (v-min)/(max-min))); }
+function normLow(v,min,max){ return 1 - normHigh(v,min,max); }
+function spread(v){ return Math.pow(Math.max(0, Math.min(1, v)), 0.72); }
+function rankInfo(value, values, higher=true){
+  const sorted=values.filter(v=>Number.isFinite(v)&&v>0).sort((a,b)=>higher?b-a:a-b);
+  const rank=sorted.findIndex(v=>v===value)+1;
+  const med=sorted.length ? sorted[Math.floor(sorted.length/2)] : 0;
+  return {rank:rank||0,total:sorted.length,median:med};
+}
+function scoreDetails(d){
+  const K=kept();
+  const priceScore = d.ppm ? spread(normLow(d.ppm, MINPPM, MAXPPM)) : 0.35;
+  const areaScore = d.area ? spread(normHigh(d.area, MINAREA, MAXAREA)) : 0.35;
+  const outdoorScore = Math.min(1, (d.gardenArea?0.45:0) + (d.plotArea?0.25:0) + (d.terrace?0.2:0) + (d.balcony?0.1:0));
+  const carScore = d.car ? spread(Math.max(0, 1 - d.car/80)) : 0.35;
+  const ptScore = d.pt ? spread(Math.max(0, 1 - d.pt/100)) : 0.35;
+  const commuteScore = (carScore*0.58) + (ptScore*0.42);
+  const readyScore = d.ready ? 1 : 0.45;
+  const mortScore = totalPay(d.dealPrice||d.price) ? spread(normLow(totalPay(d.dealPrice||d.price), MINMORT, MAXMORT)) : 0.35;
+  const priceRank=rankInfo(d.ppm, K.map(x=>x.ppm), false);
+  const areaRank=rankInfo(d.area, K.map(x=>x.area), true);
+  const carRank=rankInfo(d.car, K.map(x=>x.car), false);
+  const mortRank=rankInfo(totalPay(d.dealPrice||d.price), K.map(x=>totalPay(x.dealPrice||x.price)), false);
+  const gardens=K.filter(x=>x.gardenArea>0).length;
+  const plots=K.filter(x=>x.plotArea>0).length;
+  const parts = [
+    {key:'price', label:'Cena za m²', value:priceScore, max:24, got:Math.round(priceScore*24), note:d.ppm ? `Tahle nabídka je ${priceRank.rank}. z ${priceRank.total} podle ceny za m². Má ${czk(d.ppm)} Kč/m², medián je ${czk(priceRank.median)} Kč/m².` : 'Chybí cena nebo plocha.'},
+    {key:'area', label:'Užitná plocha domu/bytu', value:areaScore, max:14, got:Math.round(areaScore*14), note:d.area ? `Užitná plocha ${d.area} m² je ${areaRank.rank}. z ${areaRank.total}. Medián uložených nabídek je ${areaRank.median} m².` : 'Chybí užitná plocha.'},
+    {key:'outdoor', label:'Pozemek / zahrada / terasa', value:outdoorScore, max:16, got:Math.round(outdoorScore*16), note:`Pozemek má ${d.plotArea?d.plotArea+' m²':'0 m²'}, zahradu ${d.gardenArea?d.gardenArea+' m²':'nemá'}. Z ${K.length} nabídek má zahradu ${gardens} a pozemek ${plots}.`},
+    {key:'commute', label:'Dojezd', value:commuteScore, max:20, got:Math.round(commuteScore*20), note:`Auto ${d.car?'~'+d.car+' min':'neznámé'} (${carRank.rank||'?'} z ${carRank.total||'?'}), MHD ${d.pt?'~'+d.pt+' min':'nepočítané / ruční'}. Kratší cesta zvedá skóre.`},
+    {key:'ready', label:'Stav', value:readyScore, max:10, got:Math.round(readyScore*10), note:d.ready ? 'K nastěhování dostává plný počet.' : 'Výstavba má nižší skóre kvůli čekání a riziku termínu.'},
+    {key:'mort', label:'Měsíční splátka', value:mortScore, max:16, got:Math.round(mortScore*16), note:`Splátka je ~${czk(totalPay(d.dealPrice||d.price))} Kč/měs, pořadí ${mortRank.rank}. z ${mortRank.total}. Změnou úroku nebo procenta půjčky se přepočítá i skóre.`}
+  ];
+  return { parts, total: parts.reduce((sum,p)=>sum+p.got,0) };
+}
+function scoreProperty(d){
+  return Math.max(0, Math.min(100, scoreDetails(d).total));
+}
+function scoreClass(score){ return score>=75?'good':score>=50?'mid':'bad'; }
+function scoreText(score){ return score>=75?'výborné':score>=50?'solidní':'slabší'; }
+function outdoorMetric(d){ return Math.max(Number(d.gardenArea)||0, Number(d.plotArea)||0, d.terrace?12:0, d.balcony?6:0); }
+function metricRank(id, getter, higher=true){
+  const rows=kept().map(d=>({id:d.id, v:Number(getter(d))||0})).filter(x=>x.v>0)
+    .sort((a,b)=>higher ? (b.v-a.v || a.id-b.id) : (a.v-b.v || a.id-b.id));
+  const idx=rows.findIndex(x=>x.id===id);
+  return idx>=0 && idx<3 ? idx+1 : 0;
+}
+function topBadge(rank){ return rank ? `<em class="top-rank">TOP ${rank}</em>` : ''; }
 
+function readyLabel(d){ return d.ready ? 'k nastěhování' : 've výstavbě'; }
+function penbTag(d){ return d.en ? `<span class="tag" style="${enStyle(d.en)}">${I.bolt}${esc(d.en)}</span>` : `<span class="tag penb-unknown" title="Energetický štítek není specifikováno">${I.bolt}?</span>`; }
 function readyTag(d){return d.ready
-  ? `<span class="tag" style="background:var(--ok-bg);color:var(--ok);">${I.check}hotové</span>`
+  ? `<span class="tag" style="background:var(--ok-bg);color:var(--ok);">${I.check}k nastěhování</span>`
   : `<span class="tag" style="background:var(--warn-bg);color:var(--warn);">${I.clock}ve výstavbě</span>`;}
 
 function sortRows(rows){
@@ -194,16 +414,18 @@ function sortRows(rows){
 }
 
 function renderPick(){
+  DATA.forEach(d=>d.score=scoreProperty(d));
   const el = document.getElementById("pick");
-  const d = kept().filter(x=>x.ppm>0).sort((a,b)=>a.ppm-b.ppm)[0];
+  const d = kept().slice().sort((a,b)=>(b.score-a.score)||((a.dealPrice||a.price)-(b.dealPrice||b.price))||(a.id-b.id))[0];
   if(!d){ el.style.display="none"; return; }
   el.style.display="";
-  el.href = d.url || "#"; el.target = "_blank"; el.rel = "noopener";
+  el.href = "#";
+  el.onclick = e => { e.preventDefault(); openDetail(d.id); };
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
-    <span class="badge">${I.star} Tip · nejlepší cena/m²</span>
+    <span class="badge">${I.star} Tip · nejlepší skóre</span>
     <div>
-      <h2>${d.n}</h2>
-      <div class="pmeta">${d.disp} · ${d.land} · ${d.when}<br>🏦 splátka ~${czk(totalPay(d.price))} Kč/měs · 🚗 ~${d.car} / 🚆 ~${d.pt} min na Pankrác</div>
+      <h2>${esc(d.n)}</h2>
+      <div class="pmeta">${esc(d.disp)} · skóre ${d.score}/100 · ${esc(d.land)} · ${esc(d.when)}<br>🏦 splátka ~${czk(totalPay(d.price))} Kč/měs · 🚗 ~${d.car} / 🚆 ~${d.pt} min do cíle</div>
       <div class="prow">
         <span class="big">${czk(d.price)} Kč</span>
         <span class="ppm"><b style="font-size:18px;">${czk(d.ppm)}</b> Kč/m²<br>${d.area} m²</span>
@@ -226,6 +448,7 @@ function renderKpis(){
 }
 
 function renderCards(){
+  DATA.forEach(d=>d.score=scoreProperty(d));
   const set = view==='cand' ? cand() : kept();
   let rows = sortRows(set.filter(d=> filter==="all"||d.t===filter));
   const noun = view==='cand'
@@ -236,62 +459,327 @@ function renderCards(){
     const isHouse = d.t==="dum";
     const isCand = d.status==='candidate';
     const ep = d.dealPrice || d.price;
-    const pct = (MAXPPM>MINPPM && d.ppm) ? Math.round(((MAXPPM - d.ppm)/(MAXPPM - MINPPM))*82 + 18) : 60;
-    const best = !isCand && d.ppm===MINPPM;
-    const carLink = d.car?`<a href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Trasa autem">${I.car}<span><b>~${d.car} min</b><small>autem</small></span></a>`:'';
-    const ptLink = d.pt?`<a href="${mapUrl(d.origin,'transit')}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Trasa MHD">${I.transit}<span><b>~${d.pt} min</b><small>MHD</small></span></a>`:'';
-    return `<article class="card${(d.flags||[]).includes('zamitnuto')?' zamitnuto':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(ep)} korun"
-        onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
+    const url = safeUrl(d.url);
+    const img = imgSrc(d.img);
+    const imgs = d.imgs.length;
+    const selected = selectedCompare.has(d.id);
+    const outdoorValue = d.gardenArea ? `${d.gardenArea} m²` : (d.plotArea ? `${d.plotArea} m²` : 'bez');
+    const outdoorLabel = d.gardenArea ? 'zahrada' : (d.plotArea ? 'pozemek' : 'zahrada');
+    return `<article class="card${(d.flags||[]).includes('zamitnuto')?' zamitnuto':''}${compareMode?' compare-select':''}${selected?' selected':''}" tabindex="0" role="button" aria-label="${esc(d.n)}, ${czk(ep)} korun"
+        onclick="${compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`}}">
       <div class="media ${isHouse?'house':'byt'}">
         <div class="corner">
           ${readyTag(d)}
-          ${d.en?`<span class="tag" style="${enStyle(d.en)}">${I.bolt}${d.en}</span>`:''}
+          ${penbTag(d)}
         </div>
         ${isCand&&d.score?`<span class="scorebadge ${d.score>=80?'':'mid'}">${d.score}% shoda</span>`:`<div class="del"><button class="btn-stav" type="button" onclick="event.stopPropagation();editStav(${d.id})">✎ Stav</button><button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝</button><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button></div>`}
+        <button class="score-pill ${scoreClass(d.score)}" type="button" onclick="event.stopPropagation();openScore(${d.id})" title="Rozkliknout skóre">${d.score}</button>
+        ${compareMode?`<span class="select-pill">${selected?'Vybráno':'Vybrat'}</span>`:''}
+        ${commuteRunning?`<span class="recalc-chip">přepočítávám…</span>`:''}
         <span class="glyph" aria-hidden="true">${isHouse?I.house:I.building}</span>
-        ${d.img?`<img src="${d.img}" alt="Foto · ${d.n}" loading="lazy" onerror="this.remove()">`:''}
+        ${img?`<img src="${esc(img)}" alt="Foto · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:''}
+        ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openGallery(${d.id})">${imgs} fotek</button>`:''}
         <span class="pricechip">${d.dealPrice?`<span class="deal"><span class="old">${czk(d.price)}</span>${czk(d.dealPrice)} Kč</span>`:`${czk(d.price)} Kč`}</span>
       </div>
       <div class="body">
-        <div class="ctitle">${d.n}</div>
-        <div class="csub">${d.disp||''}</div>
+        <div class="ctitle">${esc(d.n)}</div>
+        <div class="csub">${esc(d.disp||'')} · ${readyLabel(d)}</div>
         ${(d.flags&&d.flags.length)?`<div class="flagchips">${flagChips(d)}</div>`:''}
-        <div class="chips">
-          <span class="chip">${I.ruler}${d.area} m²</span>
-          ${d.land?`<span class="chip">${I.tree}${d.land}</span>`:''}
+        <div class="card-metrics">
+          <span>${topBadge(metricRank(d.id, x=>x.area, true))}<b>${d.area||0} m²</b><small>užitná</small></span>
+          <span>${topBadge(metricRank(d.id, outdoorMetric, true))}<b>${esc(outdoorValue)}</b><small>${esc(outdoorLabel)}</small></span>
+          <span class="dur-mini ${durationClass(d.car)}">${topBadge(metricRank(d.id, x=>x.car, false))}<b>${d.car?fmtDuration(d.car):'?'}</b><small>dojezd</small></span>
         </div>
-        <div class="ppmwrap">
-          <div class="ppmtop"><span>Cena za m²${best?' · nejlepší':''}</span><b>${czk(d.ppm)} Kč</b></div>
-          <div class="bar"><i class="${best?'lo':''}" style="width:${pct}%"></i></div>
+        <div class="mort">${bankIcon}Splátka <b>~${czk(totalPay(ep))} Kč</b>/měs <span class="loan-amount">půjčka ~${czk(loanAmount(ep))} Kč</span>${mIns>0?' <span style="font-weight:600">(vč. poj.)</span>':''}</div>
+        <div class="route-line">
+          <a class="route-time ${durationClass(d.car)}" href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${I.car}<span>${d.car?fmtDuration(d.car):'trasa'}</span><small>auto</small></a>
+          <a class="route-time ${durationClass(d.pt)}" href="${mapUrl(d.origin,'transit')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${I.transit}<span>${d.pt?fmtDuration(d.pt):'trasa'}</span><small>MHD</small></a>
         </div>
-        <div class="mort">${bankIcon}Splátka <b>~${czk(totalPay(ep))} Kč</b>/měs${mIns>0?' <span style="font-weight:600">(vč. poj.)</span>':''}</div>
-        ${carLink||ptLink?`<div class="commute">${carLink}${ptLink}</div>`:''}
-        <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${f}</span></li>`).join("")}</ul>
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
-        <a class="cta" href="${d.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>
+        <div class="card-actions">
+          <button class="btn-add" type="button" onclick="event.stopPropagation();openDetail(${d.id})">Detail</button>
+          <a class="btn-ghost maplink" href="${mapyPlaceUrl(d.origin||d.n)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Mapa</a>
+          ${url?`<a class="btn-ghost maplink" href="${esc(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Inzerát</a>`:''}
+        </div>
         ${isCand?`<div class="cand-actions"><button class="cand-take" type="button" onclick="event.stopPropagation();take(${d.id})">✓ Vzít do Naše</button><button class="cand-drop" type="button" onclick="event.stopPropagation();discard(${d.id})">✕ Zahodit</button></div>`:''}
       </div>
     </article>`;
   }).join("");
 }
 
-function renderTable(){
-  let rows = sortRows([...kept()]);
-  document.getElementById("tbody").innerHTML = rows.map(d=>`
-    <tr onclick="openUrl('${d.url}')">
-      <td class="name">${d.n}</td>
-      <td>${d.t==="dum"?"dům":"byt"}</td>
-      <td class="num">${czk(d.price)} Kč</td>
-      <td class="num">${d.area} m²</td>
-      <td class="num">${czk(d.ppm)}${d.ppm===MINPPM?' ★':''}</td>
-      <td class="num">~${d.car} min</td>
-      <td class="num">~${d.pt} min</td>
-      <td><span class="mini" style="${d.ready?'background:var(--ok-bg);color:var(--ok);':'background:var(--warn-bg);color:var(--warn);'}">${d.ready?"hotové":"výstavba"}</span></td>
-      <td><span class="mini" style="${enStyle(d.en)}">${d.en}</span></td>
-    </tr>`).join("");
+function showRecalcModal(text='Pracuji…', progress=0, note='Chvilku strpení, dávám dohromady aktuální data.'){
+  let wrap=document.getElementById("recalc-modal");
+  if(!wrap){
+    wrap=document.createElement("div");
+    wrap.id="recalc-modal";
+    wrap.className="modal-bg recalc-bg";
+    wrap.innerHTML=`<div class="recalc-modal"><div class="spinner"></div><strong id="recalc-text"></strong><div class="progress"><i id="recalc-bar"></i></div><b id="recalc-pct">0 %</b><span id="recalc-note"></span></div>`;
+    document.body.appendChild(wrap);
+  }
+  wrap.querySelector("#recalc-text").textContent=text;
+  wrap.querySelector("#recalc-note").textContent=note;
+  const pct=Math.max(0, Math.min(100, Math.round(progress)));
+  const bar=wrap.querySelector("#recalc-bar"); if(bar) bar.style.width=pct+"%";
+  const p=wrap.querySelector("#recalc-pct"); if(p) p.textContent=pct+" %";
+}
+function hideRecalcModal(){
+  const wrap=document.getElementById("recalc-modal");
+  if(wrap) wrap.remove();
 }
 
-function renderAll(){ renderCards(); renderTable(); }
+function tableValue(d,key){
+  if(key==='price') return d.dealPrice||d.price||0;
+  if(key==='n'||key==='t'||key==='en') return String(d[key]||'').toLowerCase();
+  if(key==='terrace') return d.terrace?1:0;
+  return Number(d[key])||0;
+}
+function renderTable(){
+  let rows = [...kept()].sort((a,b)=>{
+    const av=tableValue(a, tableSort.key), bv=tableValue(b, tableSort.key);
+    const cmp=typeof av==='string' ? av.localeCompare(bv, 'cs') : av-bv;
+    return tableSort.dir==='asc' ? cmp : -cmp;
+  });
+  document.querySelectorAll('[data-table-sort]').forEach(b=>{
+    b.classList.toggle('on', b.dataset.tableSort===tableSort.key);
+    b.dataset.dir = b.dataset.tableSort===tableSort.key ? tableSort.dir : '';
+  });
+  document.getElementById("tbody").innerHTML = rows.map(d=>{
+    const url = safeUrl(d.url);
+    return `
+    <tr onclick="openUrl(${jsstr(url)})">
+      <td class="name">${esc(d.n)}</td>
+      <td>${d.t==="dum"?"dům":"byt"}</td>
+      <td class="num">${czk(d.price)} Kč</td>
+      <td class="num">${d.area} m² užitná</td>
+      <td class="num">${d.plotArea?d.plotArea+' m²':'bez'}</td>
+      <td class="num">${d.gardenArea?d.gardenArea+' m²':'bez'}</td>
+      <td>${d.terrace?'ano':'bez'}</td>
+      <td class="num">${czk(d.ppm)}${d.ppm===MINPPM?' ★':''}</td>
+      <td><span class="mini score-mini ${scoreClass(d.score)}">${d.score}/100</span></td>
+      <td class="num">~${d.car} min</td>
+      <td class="num">~${d.pt} min</td>
+      <td><span class="mini" style="${d.ready?'background:var(--ok-bg);color:var(--ok);':'background:var(--warn-bg);color:var(--warn);'}">${readyLabel(d)}</span></td>
+      <td><span class="mini" title="${d.en?'':'Energetický štítek není specifikováno'}" style="${d.en?enStyle(d.en):''}">${esc(d.en||'?')}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function updateCompareBar(){
+  const n = selectedCompare.size;
+  document.getElementById("compare-inline").hidden = !compareMode;
+  document.getElementById("compare-count").textContent = compareMode ? `${n}/3 vybráno` : "0 vybráno";
+  const openBtn=document.getElementById("compare-open");
+  if(openBtn) openBtn.hidden = !compareMode || n < 2;
+}
+function toggleCompare(id, on){
+  const shouldSelect = on == null ? !selectedCompare.has(id) : Boolean(on);
+  if(shouldSelect){
+    if(selectedCompare.size >= 3 && !selectedCompare.has(id)){
+      document.getElementById("dest-msg").textContent = "Porovnat jde najednou maximálně 3 nemovitosti.";
+      return;
+    }
+    selectedCompare.add(id);
+  } else selectedCompare.delete(id);
+  updateCompareBar();
+  renderCards();
+}
+function startCompare(){
+  compareMode = true;
+  selectedCompare.clear();
+  document.getElementById("compare-mode").textContent = "Vybírám...";
+  updateCompareBar();
+  renderCards();
+}
+function clearCompare(){
+  selectedCompare.clear();
+  compareMode = false;
+  document.getElementById("compare-mode").textContent = "Porovnat";
+  updateCompareBar();
+  renderCards();
+}
+function renderCompare(){
+  const items = [...selectedCompare].map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
+  if(items.length < 2){ document.getElementById("dest-msg").textContent = "Vyber aspoň 2 nemovitosti pro porovnání."; return; }
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  const metric = (label, getter, fmt, higher=true) => {
+    const vals=items.map(getter);
+    const valid=vals.filter(v=>Number.isFinite(v)&&v>0);
+    const best=valid.length ? (higher ? Math.max(...valid) : Math.min(...valid)) : null;
+    return `<tr><th>${label}</th>${items.map((d,i)=>{
+      const v=vals[i];
+      if(!Number.isFinite(v)||v<=0) return `<td class="cmp-muted">?</td>`;
+      const isBest = best===v;
+      const shownDelta = best==null || isBest ? 0 : (higher ? v - best : v - best);
+      const pct = best && shownDelta ? Math.round((Math.abs(shownDelta)/best)*100) : 0;
+      const sign = shownDelta > 0 ? '+' : (shownDelta < 0 ? '-' : '');
+      const diff = shownDelta ? `<small class="cmp-diff bad">${sign}${fmt(shownDelta)} (${sign}${pct}%)</small>` : `<small class="cmp-diff good">nejlepší</small>`;
+      return `<td class="${isBest?'cmp-best':''}"><b>${fmt(v)}</b>${diff}</td>`;
+    }).join("")}</tr>`;
+  };
+  const boolRow = (label, getter) => `<tr><th>${label}</th>${items.map(d=>getter(d)?`<td class="cmp-best"><b>ano</b><small class="cmp-diff good">má navíc</small></td>`:`<td class="cmp-muted">ne</td>`).join("")}</tr>`;
+  const textRow = (label, fn) => `<tr><th>${label}</th>${items.map(d=>`<td>${fn(d)}</td>`).join("")}</tr>`;
+  const rows = [
+    metric("Cena", d=>d.dealPrice||d.price, v=>czk(Math.abs(v))+" Kč", false),
+    metric("Užitná plocha", d=>d.area||0, v=>Math.abs(v)+" m²", true),
+    metric("Cena/m²", d=>d.ppm||0, v=>czk(Math.abs(v))+" Kč", false),
+    metric("Pozemek", d=>d.plotArea||0, v=>Math.abs(v)+" m²", true),
+    metric("Zahrada", d=>d.gardenArea||0, v=>Math.abs(v)+" m²", true),
+    boolRow("Terasa", d=>d.terrace),
+    boolRow("Balkon/lodžie", d=>d.balcony),
+    boolRow("Garáž", d=>d.garage),
+    boolRow("Parkování", d=>d.parking),
+    metric("Auto", d=>d.car||0, v=>fmtDuration(Math.abs(v)), false),
+    metric("MHD", d=>d.pt||0, v=>fmtDuration(Math.abs(v)), false),
+    metric("Splátka", d=>totalPay(d.dealPrice||d.price)||0, v=>czk(Math.abs(v))+" Kč/měs", false),
+    metric("Půjčka", d=>loanAmount(d.dealPrice||d.price)||0, v=>czk(Math.abs(v))+" Kč", false),
+    metric("Skóre", d=>d.score||0, v=>Math.abs(v)+"/100", true),
+    textRow("Stav", d=>readyLabel(d)),
+    textRow("PENB", d=>d.en ? esc(d.en) : '<span title="Energetický štítek není specifikováno">?</span>'),
+    textRow("Odkazy", d=>`${safeUrl(d.url)?`<a href="${esc(safeUrl(d.url))}" target="_blank" rel="noopener">inzerát</a> · `:''}<a href="${mapyPlaceUrl(d.origin||d.n)}" target="_blank" rel="noopener">mapa</a> · <button class="inline-link" type="button" onclick="openDetail(${d.id})">detail</button>`)
+  ].join("");
+  wrap.innerHTML = `<div class="modal compare-modal">
+    <button class="modal-x" type="button" id="cmp-x" aria-label="Zavřít">×</button>
+    <h3>Porovnání nemovitostí</h3>
+    <p class="hint">Zeleně je nejlepší hodnota. Červeně je rozdíl proti nejlepší vybrané nabídce. Kliknutím na název otevřeš detail.</p>
+    <div class="scroll compare-scroll"><table>
+      <thead><tr><th>Parametr</th>${items.map(d=>`<th><button class="cmp-title" type="button" onclick="openDetail(${d.id})">${esc(d.n)}</button></th>`).join("")}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="cmp-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#cmp-x").onclick=close;
+  wrap.querySelector("#cmp-close").onclick=close;
+}
+
+function openScore(id){
+  const d=DATA.find(x=>x.id===id); if(!d) return;
+  const details=scoreDetails(d);
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal score-modal">
+    <button class="modal-x" type="button" id="score-x" aria-label="Zavřít">×</button>
+    <div class="detail-top">
+      <div>
+        <h3>Skóre ${esc(d.n)}</h3>
+        <p class="hint">Maximum je 100 bodů. Skóre je relativní vůči ostatním uloženým nemovitostem a aktuálnímu nastavení hypotéky/dojezdu.</p>
+      </div>
+      <div class="map-score ${scoreClass(details.total)}">${details.total}</div>
+    </div>
+    <div class="score-breakdown">
+      ${details.parts.map(p=>`<div class="score-row">
+        <div class="score-row-head"><b>${esc(p.label)}</b><span>${p.got}/${p.max} bodů</span></div>
+        <div class="score-bar"><i style="width:${Math.round((p.got/p.max)*100)}%"></i></div>
+        <p>${esc(p.note)}</p>
+      </div>`).join("")}
+    </div>
+    <div class="score-help">Skóre obvykle zvedne nižší cena za m², větší užitná plocha, zahrada/pozemek/terasa, kratší dojezd, stav k nastěhování a nižší měsíční splátka. Sníží ho dražší metr, chybějící venkovní prostor, delší dojezd nebo vyšší splátka.</div>
+    <div class="actions"><button class="btn-ghost" type="button" id="score-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#score-x").onclick=close;
+  wrap.querySelector("#score-close").onclick=close;
+}
+function initMap(targetId='map-modal-map'){
+  if(map || !window.L) return;
+  map = L.map(targetId, { scrollWheelZoom:false }).setView([50.0755,14.4378], 9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+}
+function markerColor(score){ return score>=75?'#16a34a':score>=50?'#d97706':'#dc2626'; }
+function renderMap(){
+  initMap();
+  if(!map || !markersLayer) return;
+  markersLayer.clearLayers();
+  const source = activeMapSet === 'cand' ? cand() : kept();
+  const rows = source.filter(d=>d.lat&&d.lon);
+  const bounds=[];
+  rows.forEach(d=>{
+    const color=markerColor(d.score);
+    const marker=L.circleMarker([d.lat,d.lon], {radius:9, color:'#fff', weight:2, fillColor:color, fillOpacity:.95});
+    marker.on('click',()=>showMapSide(d));
+    marker.bindTooltip(`${d.score}/100 · ${d.n}`, {direction:'top'});
+    marker.addTo(markersLayer);
+    bounds.push([d.lat,d.lon]);
+  });
+  if(bounds.length) map.fitBounds(bounds, {padding:[32,32], maxZoom:12});
+  setTimeout(()=>map && map.invalidateSize(), 80);
+}
+function showMapSide(d){
+  const url=safeUrl(d.url);
+  const side = document.getElementById("map-modal-side");
+  if(!side) return;
+  side.innerHTML = `
+    <div class="map-card">
+      <button class="map-score ${scoreClass(d.score)} score-detail-btn" type="button" onclick="openScore(${d.id})">${d.score}</button>
+      ${d.img?`<img src="${esc(imgSrc(d.img))}" alt="Foto · ${esc(d.n)}">`:''}
+      <h4>${esc(d.n)}</h4>
+      <p>${esc(d.disp||'')} · ${czk(d.dealPrice||d.price)} Kč</p>
+      <div class="chips">${attrs(d).map(a=>`<span class="chip">${a}</span>`).join('')}</div>
+      <div class="commute">
+        <a href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener">${I.car}<span><b>${d.car?'~'+d.car+' min':'trasa'}</b><small>autem</small></span></a>
+        <a href="${mapUrl(d.origin,'transit')}" target="_blank" rel="noopener">${I.transit}<span><b>${d.pt?'~'+d.pt+' min':'trasa'}</b><small>MHD</small></span></a>
+      </div>
+      <div class="map-actions">
+        ${url?`<a class="cta" href="${esc(url)}" target="_blank" rel="noopener">Inzerát ${I.arrow}</a>`:''}
+        <a class="btn-ghost" href="${mapyPlaceUrl(d.origin||d.n)}" target="_blank" rel="noopener">Mapa</a>
+        <button class="btn-ghost" type="button" onclick="openDetail(${d.id})">Detail</button>
+      </div>
+    </div>`;
+  if(matchMedia('(max-width: 860px)').matches) side.scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+function openMapModal(){
+  mapWrap=document.createElement("div"); mapWrap.className="modal-bg map-modal-bg";
+  mapWrap.innerHTML=`<div class="modal map-modal">
+    <button class="modal-x" type="button" id="map-x" aria-label="Zavřít">×</button>
+    <div class="map-head">
+      <div>
+        <h3>Mapa bydlení</h3>
+        <span>Barva bodu ukazuje skóre 0-100 podle ceny, plochy, zahrady/terasy, dojezdu, stavu a splátky.</span>
+      </div>
+      <div class="map-head-actions">
+        <div class="seg map-tabs" role="group" aria-label="Mapa">
+          <button type="button" data-map-set="kept" aria-pressed="true">Naše</button>
+          <button type="button" data-map-set="cand" aria-pressed="false">Vyhledávač</button>
+        </div>
+        <button class="btn-ghost" type="button" id="map-geocode">Dopočítat body na mapě</button>
+      </div>
+    </div>
+    <div class="map-layout">
+      <div id="map-modal-map"></div>
+      <aside class="map-side" id="map-modal-side"><div class="state">Klikni na bod v mapě.</div></aside>
+    </div>
+    <div class="actions"><button class="btn-ghost" type="button" id="map-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(mapWrap);
+  const close=()=>{ if(map){ map.remove(); map=null; markersLayer=null; } mapWrap.remove(); mapWrap=null; };
+  mapWrap.querySelector("#map-x").onclick=close;
+  mapWrap.querySelector("#map-close").onclick=close;
+  mapWrap.querySelector("#map-geocode").onclick=()=>recomputeCommutes(activeMapSet === 'cand' ? cand() : kept());
+  mapWrap.querySelector(".map-tabs").addEventListener("click", e=>{
+    const b=e.target.closest("button[data-map-set]"); if(!b) return;
+    activeMapSet=b.dataset.mapSet;
+    mapWrap.querySelectorAll("[data-map-set]").forEach(x=>x.setAttribute("aria-pressed", x===b ? "true" : "false"));
+    const side=document.getElementById("map-modal-side"); if(side) side.innerHTML='<div class="state">Klikni na bod v mapě.</div>';
+    renderMap();
+  });
+  renderMap();
+}
+function renderAll(){ renderCards(); renderTable(); updateCompareBar(); updateTableVisibility(); }
+function updateTableVisibility(){
+  const table=document.getElementById("tablewrap");
+  const btn=document.getElementById("table-toggle");
+  if(!table || !btn) return;
+  const candidates = view === 'cand';
+  table.hidden = candidates || !tableOpen;
+  btn.hidden = candidates;
+  btn.textContent = tableOpen ? "Skrýt tabulku" : "Tabulka";
+  btn.setAttribute("aria-pressed", tableOpen ? "true" : "false");
+}
 
 document.getElementById("filters").addEventListener("click", e=>{
   const b=e.target.closest("button"); if(!b) return;
@@ -309,13 +797,211 @@ function applyView(){
   const cv = view==='cand';
   document.getElementById("hero").style.display = cv?'none':'';
   document.getElementById("tablewrap").style.display = cv?'none':'';
+  const searchPanel=document.getElementById("search-panel"); if(searchPanel) searchPanel.hidden=!cv;
   const note=document.querySelector(".sec-head .note"); if(note) note.style.display = cv?'none':'';
-  const h=document.querySelector(".sec-head h3"); if(h) h.textContent = cv?'Kandidáti k roztřídění':'Nabídky';
+  const h=document.querySelector(".sec-head h3"); if(h) h.textContent = cv?'Výsledky vyhledávání':'Nabídky';
   document.getElementById("tab-kept").classList.toggle("on", !cv);
   document.getElementById("tab-cand").classList.toggle("on", cv);
 }
 document.getElementById("tab-kept").addEventListener("click", ()=>{ view='kept'; applyView(); renderAll(); });
 document.getElementById("tab-cand").addEventListener("click", ()=>{ view='cand'; applyView(); renderAll(); });
+document.getElementById("dest-input").value = commuteDest;
+document.querySelector(".sec-head .note").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do ${esc(commuteDest)}`;
+function allDestinations(){
+  const custom = savedDestinations.filter(x=>x && x.name && x.address);
+  return [...BUILTIN_DESTS, ...custom];
+}
+function setDestination(value){
+  document.getElementById("dest-input").value = value;
+  commuteDest = value;
+  localStorage.setItem("nase.commuteDest", value);
+  document.querySelector(".sec-head .note").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do ${esc(commuteDest)}`;
+  renderAll();
+}
+function stageDestination(value){
+  document.getElementById("dest-input").value = value || "";
+}
+function saveDestinations(){
+  localStorage.setItem("nase.savedDestinations", JSON.stringify(savedDestinations.slice(0, 12)));
+}
+function renderSavedDestinations(){
+  const select=document.getElementById("dest-select"); if(!select) return;
+  const options=allDestinations();
+  select.innerHTML = options.map((d,i)=>`<option value="${i}">${esc(d.name)} - ${esc(d.address)}</option>`).join("");
+  const idx=options.findIndex(d=>d.address===commuteDest);
+  select.value = String(idx>=0?idx:0);
+  const list=document.getElementById("saved-dests");
+  if(list) list.innerHTML = savedDestinations.length ? savedDestinations.map((d,i)=>`<button class="btn-ghost saved-dest" type="button" data-del="${i}" title="Smazat uloženou lokalitu">${esc(d.name)} <small>×</small></button>`).join("") : "";
+}
+async function suggestDestinations(value){
+  const list=document.getElementById("dest-options"); if(!list) return;
+  if(!value || value.length<3){ suggestedDestinations=[]; list.innerHTML=""; return; }
+  try{
+    const r=await fetch(API+"/address-suggest?q="+encodeURIComponent(value));
+    const j=await r.json();
+    suggestedDestinations=j.items||[];
+    list.innerHTML=suggestedDestinations.map(x=>`<option value="${esc(x.value)}"></option>`).join("");
+  }catch(e){ suggestedDestinations=[]; }
+}
+async function suggestToList(value, listId){
+  const list=document.getElementById(listId); if(!list) return;
+  if(!value || value.length<3){ list.innerHTML=""; return; }
+  try{
+    const r=await fetch(API+"/address-suggest?q="+encodeURIComponent(value));
+    const j=await r.json();
+    list.innerHTML=(j.items||[]).slice(0,8).map(x=>`<option value="${esc(x.value)}"></option>`).join("");
+  }catch(e){ list.innerHTML=""; }
+}
+function selectedTypedAddress(){
+  const value=document.getElementById("dest-input").value.trim();
+  if(!value) return "";
+  const known=[...allDestinations().map(x=>x.address), ...suggestedDestinations.map(x=>x.value)];
+  return known.includes(value) ? value : "";
+}
+document.getElementById("dest-select").addEventListener("change", e=>{
+  const d=allDestinations()[Number(e.target.value)];
+  if(d) stageDestination(d.address);
+});
+document.getElementById("dest-save").addEventListener("click", ()=>{
+  const v=selectedTypedAddress();
+  if(!v){ document.getElementById("dest-msg").textContent="Nejdřív vyber konkrétní adresu z našeptávače."; return; }
+  const name=prompt("Název lokality", v.split(",")[0] || "Cíl");
+  if(!name) return;
+  savedDestinations = [{name:name.trim(), address:v}, ...savedDestinations.filter(x=>x.address!==v)].slice(0, 12);
+  saveDestinations(); renderSavedDestinations(); stageDestination(v);
+  document.getElementById("dest-msg").textContent="Adresa uložená.";
+});
+document.getElementById("dest-input").addEventListener("input", e=>{ suggestDestinations(e.target.value.trim()); });
+document.getElementById("s-locality").addEventListener("input", e=>{ suggestToList(e.target.value.trim(), "s-locality-options"); });
+document.getElementById("saved-dests").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-del]"); if(!b) return;
+  savedDestinations.splice(Number(b.dataset.del),1); saveDestinations(); renderSavedDestinations();
+});
+document.getElementById("dest-recalc").addEventListener("click", ()=>{
+  const typed=selectedTypedAddress();
+  if(document.getElementById("dest-input").value.trim() && !typed){ document.getElementById("dest-msg").textContent="Vyber adresu z našeptávače, potom přepočítej."; return; }
+  if(typed) setDestination(typed);
+  recomputeCommutes();
+});
+renderSavedDestinations();
+document.getElementById("map-open").addEventListener("click", openMapModal);
+document.getElementById("compare-mode").addEventListener("click", startCompare);
+document.getElementById("table-toggle").addEventListener("click", ()=>{ tableOpen=!tableOpen; updateTableVisibility(); });
+document.getElementById("tablewrap").addEventListener("click", e=>{
+  const b=e.target.closest("[data-table-sort]"); if(!b) return;
+  const key=b.dataset.tableSort;
+  if(tableSort.key===key) tableSort.dir = tableSort.dir === "asc" ? "desc" : "asc";
+  else tableSort = {key, dir:"desc"};
+  renderTable();
+});
+document.getElementById("compare-open").addEventListener("click", renderCompare);
+document.getElementById("compare-clear").addEventListener("click", clearCompare);
+document.getElementById("refresh-all").addEventListener("click", refreshAllListings);
+
+document.getElementById("s-run").addEventListener("click", async()=>{
+  const msg=document.getElementById("s-msg");
+  const val=id=>document.getElementById(id).value.trim();
+  msg.className="msg"; msg.textContent="Vyhledávám na Srealitách a přidávám kandidáty…";
+  showRecalcModal("Vyhledávám nemovitosti…", 8, "Stahuji výsledky ze Srealit a připravuji kandidáty.");
+  try{
+    const body={
+      locality:val("s-locality"),
+      types:[document.getElementById("s-type-byt").checked?'byt':'', document.getElementById("s-type-dum").checked?'dum':''].filter(Boolean),
+      disp:val("s-disp"), priceFrom:val("s-price-from"), priceTo:val("s-price-to"),
+      areaFrom:val("s-area-from"), areaTo:val("s-area-to"), limit:val("s-limit"), commuteDest
+    };
+    const r=await fetch(API+"/search-listings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+    const j=await r.json();
+    if(!r.ok) throw new Error(j.message||j.error||"vyhledávání selhalo");
+    msg.className="msg ok";
+    msg.textContent=`Přidáno ${j.added.length} kandidátů. Nalezeno ${j.found}, přeskočeno ${j.skipped||0}, chyby ${j.errors.length}.`;
+    await loadData();
+    view='cand'; applyView(); renderAll();
+  }catch(e){
+    msg.className="msg err"; msg.textContent="Vyhledávání selhalo: "+e.message;
+  }finally{
+    hideRecalcModal();
+  }
+});
+
+async function refreshAllListings(){
+  showRecalcModal("Aktualizuji inzeráty…", 8, "Kontroluji původní inzeráty a změny dat.");
+  try{
+    const r=await fetch(API+"/refresh-listings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({section:"byd"})});
+    const j=await r.json();
+    showRecalcModal("Hotovo", 100, "Aktualizace doběhla.");
+    hideRecalcModal();
+    if(!r.ok) throw new Error(j.error||"refresh selhal");
+    const s=j.summary||{};
+    const wrap=document.createElement("div"); wrap.className="modal-bg";
+    const problem=(j.items||[]).filter(x=>x.status==="error"||x.status==="not_found");
+    wrap.innerHTML=`<div class="modal">
+      <button class="modal-x" type="button" id="refresh-close" aria-label="Zavřít">×</button>
+      <h3>Aktualizace inzerátů</h3>
+      <p class="hint">Aktualizováno ${s.updated||0} z ${s.total||0}. Beze změny ${s.unchanged||0}. Chyby ${s.errors||0}. Nenalezeno ${s.notFound||0}.</p>
+      ${problem.length?`<div class="score-breakdown">${problem.map(x=>`<div class="score-row"><b>${esc(x.n||'Inzerát')}</b><p>${esc(x.status)} · ${esc(x.message||'')}</p></div>`).join("")}</div>`:''}
+      <div class="actions">
+        ${problem.some(x=>x.status==='not_found')?`<button class="btn-del" type="button" id="delete-not-found">Smazat nenalezené</button>`:''}
+        <button class="btn-ghost" type="button" id="refresh-close-2">Zavřít</button>
+      </div>
+    </div>`;
+    document.body.appendChild(wrap);
+    const closeRefresh=()=>wrap.remove();
+    wrap.querySelector("#refresh-close").onclick=closeRefresh;
+    wrap.querySelector("#refresh-close-2").onclick=closeRefresh;
+    const delMissing=wrap.querySelector("#delete-not-found");
+    if(delMissing) delMissing.onclick=async()=>{
+      const missing=problem.filter(x=>x.status==='not_found');
+      for(const item of missing){ await fetch(API+"/delete?id="+item.id,{method:"DELETE"}); }
+      closeRefresh();
+      await loadData();
+    };
+    await loadData();
+  }catch(e){
+    hideRecalcModal();
+    alert("Aktualizace selhala: "+e.message);
+  }
+}
+
+async function recomputeCommutes(rowsOverride=null){
+  const msg=document.getElementById("dest-msg");
+  if(commuteRunning) return;
+  commuteRunning = true;
+  const rows=rowsOverride || kept();
+  if(!rows.length){ commuteRunning=false; return; }
+  msg.textContent="";
+  showRecalcModal("Přepočítávám dojezdy…", 2, "Aktualizuji časy na kartách podle zadaného cíle.");
+  renderCards();
+  let ok=0, failed=0, firstError="";
+  try{
+    for(let i=0;i<rows.length;i++){
+      const d=rows[i];
+      showRecalcModal(`Přepočítávám ${i+1}/${rows.length}`, (i/rows.length)*92 + 3, "Aktualizuji časy na kartách podle zadaného cíle.");
+      try{
+        const r=await fetch(API+"/commute?q="+encodeURIComponent(d.origin||d.n)+"&dest="+encodeURIComponent(commuteDest));
+        const j=await r.json();
+        if(j.error){ failed++; firstError=firstError||j.message||j.error; continue; }
+        const patch={commuteDest};
+        if(j.car) patch.car=j.car;
+        if(j.pt) patch.pt=j.pt;
+        else if(j.car) patch.pt=Math.max(j.car+15, Math.round(j.car*1.65));
+        if(j.lat) patch.lat=j.lat;
+        if(j.lon) patch.lon=j.lon;
+        if(j.car||j.pt){
+          await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:d.id,patch})});
+          ok++;
+        }
+      }catch(e){ failed++; firstError=firstError||e.message; }
+      showRecalcModal(`Přepočítávám ${i+1}/${rows.length}`, ((i+1)/rows.length)*96, "Aktualizuji časy na kartách podle zadaného cíle.");
+    }
+    showRecalcModal("Hotovo", 100, "Dojezdy jsou přepočítané.");
+    msg.textContent = failed && !ok ? `Nepřepočítáno: ${firstError||"chybí API klíč"}` : "";
+  } finally {
+    commuteRunning = false;
+    hideRecalcModal();
+    loadData();
+  }
+}
 
 async function take(id){
   try{ const r=await fetch(API+"/status",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,status:'kept'})}); if(!r.ok) throw 0; }
@@ -331,6 +1017,7 @@ function editStav(id){
   const wrap=document.createElement("div"); wrap.className="modal-bg";
   const checks=Object.entries(FLAGS).map(([k,v])=>`<label><input type="checkbox" id="fl_${k}" ${f.has(k)?'checked':''}> ${v.i} ${v.l}</label>`).join("");
   wrap.innerHTML=`<div class="modal" style="max-width:440px">
+    <button class="modal-x" type="button" id="sv_x" aria-label="Zavřít">×</button>
     <h3>Stav nemovitosti</h3>
     <p class="hint">${esc(item.n)}</p>
     <div class="checks">${checks}</div>
@@ -341,7 +1028,7 @@ function editStav(id){
   </div>`;
   document.body.appendChild(wrap);
   const close=()=>wrap.remove();
-  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#sv_x").onclick=close;
   wrap.querySelector("#sv_cancel").onclick=close;
   wrap.querySelector("#sv_save").onclick=async()=>{
     const flags=Object.keys(FLAGS).filter(k=>wrap.querySelector("#fl_"+k).checked);
@@ -360,11 +1047,17 @@ function editStav(id){
 function recalcMortgage(){
   mRate = parseFloat(document.getElementById("m-rate").value) || 0;
   mYears = Math.min(40, Math.max(1, parseInt(document.getElementById("m-years").value) || 30));
-  mDown = Math.min(95, Math.max(0, parseFloat(document.getElementById("m-down").value) || 0));
+  mLoan = Math.min(100, Math.max(10, parseFloat(document.getElementById("m-loan").value) || 90));
   mIns = Math.max(0, parseFloat(document.getElementById("m-ins").value) || 0);
-  renderPick(); renderCards();
+  document.getElementById("m-loan-out").textContent = mLoan + " %";
+  computeExtents();
+  renderPick(); renderAll();
 }
-["m-rate","m-years","m-down","m-ins"].forEach(id=>document.getElementById(id).addEventListener("input", recalcMortgage));
+document.getElementById("m-fix").addEventListener("change", e=>{
+  document.getElementById("m-rate").value = e.target.value;
+  recalcMortgage();
+});
+["m-rate","m-years","m-loan","m-ins"].forEach(id=>document.getElementById(id).addEventListener("input", recalcMortgage));
 
 async function delById(id){
   if(!confirm("Smazat tuto nabídku?")) return;
@@ -378,6 +1071,7 @@ function editNote(id){
   const item=DATA.find(x=>x.id===id); if(!item) return;
   const wrap=document.createElement("div"); wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal" style="max-width:460px">
+    <button class="modal-x" type="button" id="nm_x" aria-label="Zavřít">×</button>
     <h3>Poznámka</h3>
     <p class="hint">${esc(item.n)}</p>
     <textarea id="nm_txt" rows="5" placeholder="Napiš si poznámku k téhle nemovitosti…">${esc(item.note)}</textarea>
@@ -386,7 +1080,7 @@ function editNote(id){
   </div>`;
   document.body.appendChild(wrap);
   const close=()=>wrap.remove();
-  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#nm_x").onclick=close;
   wrap.querySelector("#nm_cancel").onclick=close;
   wrap.querySelector("#nm_txt").focus();
   wrap.querySelector("#nm_save").onclick=async()=>{
@@ -401,26 +1095,201 @@ function editNote(id){
   };
 }
 
-function fld(label,id,ph){ return `<label>${label}</label><input id="m_${id}" placeholder="${ph||''}">`; }
+function fld(label,id,ph){ return `<div class="field-wrap" data-field="${id}"><label>${label}</label><input id="m_${id}" placeholder="${ph||''}"><small class="missing-note" hidden>Nebylo detekováno</small></div>`; }
+function editFld(label,id,value,type='text'){ return `<label>${label}</label><input id="e_${id}" type="${type}" value="${esc(value??'')}">`; }
+function niceTitleFromImport(d){
+  const type = d.t === "byt" ? "Byt" : "Dům";
+  const rawAddress = String(d.origin || d.address || d.n || "").trim();
+  const parts = rawAddress.split(",").map(x=>x.trim()).filter(Boolean);
+  const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+  const street = cap(parts[0] || "");
+  const city = cap(parts.find((x,i)=>i>0 && !/\d{3}\s?\d{2}/.test(x)) || parts[1] || "");
+  const disp = String(d.disp || "").replace(/^(dům|dum|byt)\s*/i, "").trim();
+  return `${type} - ${[street, city, disp].filter(Boolean).join(", ")}`;
+}
+function isDetectedAddress(value){
+  const s=String(value||"").trim();
+  return s.length >= 6 && s.includes(",");
+}
+function openEditProperty(id){
+  const item=DATA.find(x=>x.id===id); if(!item) return;
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal edit-modal">
+    <button class="modal-x" type="button" id="e_x" aria-label="Zavřít">×</button>
+    <h3>Upravit nemovitost</h3>
+    <p class="hint">${esc(item.n)}</p>
+    ${editFld("Název / lokalita","n",item.n)}
+    <div class="grid2"><div>${editFld("Cena (Kč)","price",item.price,'number')}</div><div>${editFld("Užitná plocha m²","area",item.area,'number')}</div></div>
+    <div class="grid2"><div>${editFld("Pozemek m²","plotArea",item.plotArea||0,'number')}</div><div>${editFld("Zahrada m²","gardenArea",item.gardenArea||0,'number')}</div></div>
+    ${editFld("Adresa / origin pro mapy","origin",item.origin||item.n)}
+    <div class="grid2"><div>${editFld("Dojezd autem min","car",item.car||0,'number')}</div><div>${editFld("Dojezd MHD min","pt",item.pt||0,'number')}</div></div>
+    <div class="grid2"><div>${editFld("PENB","en",item.en||'')}</div><div><label>Stav</label><select id="e_ready" style="width:100%"><option value="1" ${item.ready?'selected':''}>k nastěhování</option><option value="0" ${!item.ready?'selected':''}>ve výstavbě</option></select></div></div>
+    ${editFld("Stav / kdy text","when",item.when||'')}
+    <div class="checks compact">
+      <label><input type="checkbox" id="e_terrace" ${item.terrace?'checked':''}> terasa</label>
+      <label><input type="checkbox" id="e_balcony" ${item.balcony?'checked':''}> balkon/lodžie</label>
+      <label><input type="checkbox" id="e_garage" ${item.garage?'checked':''}> garáž</label>
+      <label><input type="checkbox" id="e_parking" ${item.parking?'checked':''}> parkování</label>
+    </div>
+    <label>Poznámka</label><textarea id="e_note" rows="4">${esc(item.note||'')}</textarea>
+    <div class="msg" id="e_msg"></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="e_cancel">Zrušit</button><button class="btn-add" type="button" id="e_save">Uložit</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  const g=k=>wrap.querySelector("#e_"+k).value.trim();
+  wrap.querySelector("#e_x").onclick=close;
+  wrap.querySelector("#e_cancel").onclick=close;
+  wrap.querySelector("#e_save").onclick=async()=>{
+    const patch={
+      n:g("n"), price:Number(g("price"))||null, area:Number(g("area"))||0,
+      plotArea:Number(g("plotArea"))||0, gardenArea:Number(g("gardenArea"))||0,
+      origin:g("origin"), car:Number(g("car"))||0, pt:Number(g("pt"))||0,
+      en:g("en"), ready:Number(wrap.querySelector("#e_ready").value), when:g("when"),
+      terrace:wrap.querySelector("#e_terrace").checked, balcony:wrap.querySelector("#e_balcony").checked,
+      garage:wrap.querySelector("#e_garage").checked, parking:wrap.querySelector("#e_parking").checked,
+      note:wrap.querySelector("#e_note").value
+    };
+    const msg=wrap.querySelector("#e_msg"); msg.className="msg"; msg.textContent="Ukládám...";
+    try{
+      const r=await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch})});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      close(); loadData();
+    }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
+  };
+}
+function openGallery(id){
+  const item=DATA.find(x=>x.id===id); if(!item) return;
+  const imgs=(item.imgs&&item.imgs.length?item.imgs:[item.img]).filter(Boolean).map(safeUrl).filter(Boolean);
+  const viewImgs=imgs.map(imgSrc);
+  if(!imgs.length) return;
+  const wrap=document.createElement("div"); wrap.className="modal-bg gallery-bg";
+  wrap.innerHTML=`<div class="modal gallery-modal">
+    <button class="modal-x" type="button" id="gal-x" aria-label="Zavřít">×</button>
+    <h3>${esc(item.n)}</h3>
+    <div class="gallery-main"><img id="gal-main" src="${esc(viewImgs[0])}" alt="Foto · ${esc(item.n)}"></div>
+    <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-img="${esc(u)}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>
+    <div class="actions"><button class="btn-ghost" type="button" id="gal-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#gal-x").onclick=close;
+  wrap.querySelector("#gal-close").onclick=close;
+  wrap.querySelector(".gallery-thumbs").addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    wrap.querySelector("#gal-main").src=b.dataset.img;
+    wrap.querySelectorAll(".gallery-thumbs button").forEach(x=>x.classList.toggle("on", x===b));
+  });
+}
+
+function openDetail(id){
+  const d=DATA.find(x=>x.id===id); if(!d) return;
+  const ep=d.dealPrice||d.price;
+  const imgs=uniqueImageList((d.imgs&&d.imgs.length?d.imgs:[d.img]).filter(Boolean).map(safeUrl).filter(Boolean));
+  const viewImgs=imgs.map(imgSrc);
+  const url=safeUrl(d.url);
+  const wrap=document.createElement("div"); wrap.className="modal-bg detail-bg";
+  wrap.innerHTML=`<div class="modal detail-modal">
+    <button class="modal-x" type="button" id="detail-close-x" aria-label="Zavřít">×</button>
+    <div class="detail-top">
+      <div>
+        <h3>${esc(d.n)}</h3>
+        <p class="hint">${esc(d.disp||'')} · ${czk(ep)} Kč · ${d.area||0} m² užitná plocha</p>
+      </div>
+    </div>
+    <div class="detail-layout">
+      <div>
+        ${viewImgs.length?`<div class="gallery-main detail-gallery"><img id="detail-main" src="${esc(viewImgs[0])}" alt="Foto · ${esc(d.n)}"><button class="map-score ${scoreClass(d.score)} score-detail-btn detail-photo-score" type="button" onclick="openScore(${d.id})">${d.score}</button>${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="detail-prev" aria-label="Předchozí fotka">‹</button><button class="gallery-nav next" type="button" id="detail-next" aria-label="Další fotka">›</button>`:''}</div>
+        <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-img="${esc(u)}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>`:''}
+        <div class="detail-map-actions">
+          <a class="btn-ghost" href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener">Trasa autem</a>
+          <a class="btn-ghost" href="${mapUrl(d.origin,'transit')}" target="_blank" rel="noopener">Trasa MHD</a>
+          <button class="btn-add" type="button" onclick="openMapModal()">Mapa v appce</button>
+        </div>
+        <div class="detail-map" id="detail-map-${d.id}">${d.lat&&d.lon?'':'Souřadnice zatím nejsou dopočítané.'}</div>
+      </div>
+      <div class="detail-info">
+        <div class="chips">${attrs(d).map(a=>`<span class="chip">${a}</span>`).join('')}</div>
+        <dl class="detail-dl">
+          <div><dt>Cena/m²</dt><dd>${czk(d.ppm)} Kč</dd></div>
+          <div><dt>Splátka</dt><dd>~${czk(totalPay(ep))} Kč/měs</dd></div>
+          <div><dt>Auto</dt><dd>${d.car?'~'+d.car+' min':'nepočítáno'}</dd></div>
+          <div><dt>MHD</dt><dd>${d.pt?'~'+d.pt+' min':'ručně / otevřít trasu'}</dd></div>
+          <div><dt>Stav</dt><dd>${esc(d.when||readyLabel(d))}</dd></div>
+          <div><dt>PENB</dt><dd title="${d.en?'':'Energetický štítek není specifikováno'}">${esc(d.en||'?')}</dd></div>
+        </dl>
+        ${d.contact?`<div class="cardnote"><b>Kontakt</b><br>${esc(d.contact)}</div>`:''}
+        ${(d.listedAt||d.updatedAt)?`<div class="cardnote"><b>Inzerát</b><br>${d.listedAt?`Vytvořeno: ${esc(d.listedAt)}<br>`:''}${d.updatedAt?`Poslední úprava: ${esc(d.updatedAt)}`:''}</div>`:''}
+        ${(d.feats||[]).length?`<h4>Zajímavosti z inzerátu</h4><ul class="feats detail-feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${esc(f)}</span></li>`).join("")}</ul>`:''}
+        ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
+        <div class="detail-actions">
+          <button class="btn-ghost" type="button" onclick="openEditProperty(${d.id})">Upravit</button>
+        <a class="btn-ghost" href="${mapyPlaceUrl(d.origin||d.n)}" target="_blank" rel="noopener">Mapa</a>
+        </div>
+        ${url?`<a class="cta detail-listing" href="${esc(url)}" target="_blank" rel="noopener">Otevřít inzerát ${I.arrow}</a>`:''}
+      </div>
+    </div>
+    <div class="actions"><button class="btn-ghost" type="button" id="detail-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#detail-close").onclick=close;
+  const detailX=wrap.querySelector("#detail-close-x"); if(detailX) detailX.onclick=close;
+  const thumbs=wrap.querySelector(".gallery-thumbs");
+  let photoIndex=0;
+  function setPhoto(i){
+    if(!imgs.length) return;
+    photoIndex=(i+imgs.length)%imgs.length;
+    const main=wrap.querySelector("#detail-main"); if(main) main.src=viewImgs[photoIndex];
+    const btns=[...wrap.querySelectorAll(".gallery-thumbs button")];
+    btns.forEach((x,idx)=>x.classList.toggle("on", idx===photoIndex));
+    btns[photoIndex]?.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"});
+  }
+  if(thumbs) thumbs.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    setPhoto(Number(b.dataset.i)||0);
+  });
+  const prev=wrap.querySelector("#detail-prev"), next=wrap.querySelector("#detail-next");
+  if(prev) prev.onclick=()=>setPhoto(photoIndex-1);
+  if(next) next.onclick=()=>setPhoto(photoIndex+1);
+  if(d.lat&&d.lon&&window.L){
+    setTimeout(()=>{
+      const dm=L.map(`detail-map-${d.id}`, {scrollWheelZoom:false, zoomControl:true}).setView([d.lat,d.lon], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(dm);
+      L.circleMarker([d.lat,d.lon], {radius:9, color:'#fff', weight:2, fillColor:markerColor(d.score), fillOpacity:.95}).addTo(dm);
+      setTimeout(()=>dm.invalidateSize(), 80);
+    }, 40);
+  }
+}
 
 function openAdd(){
   const wrap=document.createElement("div");
   wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal">
+    <button class="modal-x" type="button" id="m_x" aria-label="Zavřít">×</button>
     <h3>Přidat nemovitost</h3>
     <p class="hint">Vlož odkaz ze sreality.cz nebo bezrealitky.cz a dej Načíst · pole se vyplní sama. Co nevyplní, doplň ručně.</p>
     <label>Odkaz (sreality.cz / bezrealitky.cz)</label>
     <div class="urlrow"><input id="m_url" placeholder="https://www.sreality.cz/detail/..."><button class="btn-ghost" type="button" id="m_fetch">Načíst</button></div>
     <div class="msg" id="m_msg"></div>
     ${fld("Název / lokalita","n")}
+    ${fld("Adresa","origin")}
     <div class="grid2"><div><label>Typ</label><select id="m_t" style="width:100%"><option value="dum">dům</option><option value="byt">byt</option></select></div><div>${fld("Dispozice (popis)","disp","dům 4+kk · řadový")}</div></div>
     <div class="grid2"><div>${fld("Cena (Kč)","price")}</div><div>${fld("Plocha (m²)","area")}</div></div>
-    ${fld("Pozemek / zahrada","land")}
-    <div class="grid2"><div>${fld("Energ. třída","en","B")}</div><div><label>Stav</label><select id="m_ready" style="width:100%"><option value="1">hotové</option><option value="0">ve výstavbě</option></select></div></div>
-    ${fld("Stav / kdy (text)","when","novostavba · hotové")}
+    ${fld("Pozemek / zahrada (text)","land")}
+    <div class="grid2"><div>${fld("Pozemek m²","plotArea")}</div><div>${fld("Zahrada m²","gardenArea")}</div></div>
+    <div class="checks compact">
+      <label><input type="checkbox" id="m_terrace"> terasa</label>
+      <label><input type="checkbox" id="m_balcony"> balkon/lodžie</label>
+      <label><input type="checkbox" id="m_garage"> garáž</label>
+      <label><input type="checkbox" id="m_parking"> parkování</label>
+    </div>
+    <div class="grid2"><div>${fld("Energ. třída","en","B")}</div><div><label>Stav</label><select id="m_ready" style="width:100%"><option value="1">k nastěhování</option><option value="0">ve výstavbě</option></select></div></div>
+    ${fld("Stav / kdy (text)","when","novostavba · k nastěhování")}
     <div class="grid2"><div>${fld("Dojezd autem (min)","car")}</div><div>${fld("Dojezd MHD (min)","pt")}</div></div>
-    <button class="btn-ghost" type="button" id="m_commute" style="margin-top:6px;font-size:13px;padding:7px 12px;min-height:36px">Spočítat dojezd autem (Mapy.com)</button>
+    <button class="btn-ghost" type="button" id="m_commute" style="margin-top:6px;font-size:13px;padding:7px 12px;min-height:36px">Spočítat dojezd autem</button>
     ${fld("Foto (URL)","img")}
+    <label>Fotky galerie (jedna URL na řádek)</label><textarea id="m_imgs" rows="3" placeholder="https://...jpg"></textarea>
     ${fld("Vlastnosti (oddělené čárkou)","feats")}
     <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
   </div>`;
@@ -428,16 +1297,58 @@ function openAdd(){
   const close=()=>wrap.remove();
   const msg=wrap.querySelector("#m_msg");
   const g=id=>wrap.querySelector("#m_"+id).value.trim();
-  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  let importedExtra = {};
   wrap.querySelector("#m_cancel").onclick=close;
+  wrap.querySelector("#m_x").onclick=close;
+  function markMissing(fields){
+    wrap.querySelectorAll(".field-wrap").forEach(w=>{
+      const input=w.querySelector("input");
+      const missing=fields.includes(w.dataset.field);
+      w.classList.toggle("field-missing", missing);
+      const note=w.querySelector(".missing-note");
+      if(note) note.hidden=!missing;
+      if(missing && input && !input.placeholder) input.placeholder="Nebylo detekováno";
+    });
+  }
+  function clearMissing(...fields){
+    fields.forEach(k=>{
+      const w=wrap.querySelector(`.field-wrap[data-field="${k}"]`);
+      if(!w) return;
+      w.classList.remove("field-missing");
+      const note=w.querySelector(".missing-note");
+      if(note) note.hidden=true;
+    });
+  }
+  function isMissingImportField(k, d){
+    const v=g(k);
+    if(k==="origin") return !isDetectedAddress(v);
+    if(["price","area"].includes(k)) return !Number(v.replace(/\s/g,''));
+    if(["plotArea","gardenArea"].includes(k)) return (wrap.querySelector("#m_t")?.value === "dum") && !Number(v) && !g("land");
+    if(["pt","car"].includes(k)) return false;
+    if(k==="en") return !v;
+    return !v;
+  }
+  wrap.addEventListener("input", e=>{
+    const field=e.target.closest(".field-wrap");
+    if(field && e.target.value.trim()){
+      field.classList.remove("field-missing");
+      const note=field.querySelector(".missing-note");
+      if(note) note.hidden=true;
+    }
+  });
   async function computeCommute(){
-    const q = g("n") || g("origin"); if(!q) return;
+    const q = g("origin") || g("n"); if(!q) return;
     msg.className="msg"; msg.textContent="Počítám dojezd…";
     try{
-      const r=await fetch(API+"/commute?q="+encodeURIComponent(q));
+      const r=await fetch(API+"/commute?q="+encodeURIComponent(q)+"&dest="+encodeURIComponent(commuteDest));
       const j=await r.json();
       if(j.error){ msg.className="msg err"; msg.textContent="Dojezd: "+(j.message||j.error); return; }
-      if(j.car){ wrap.querySelector("#m_car").value=j.car; msg.className="msg ok"; msg.textContent="Dojezd autem ~"+j.car+" min"+(j.km?" ("+j.km+" km)":"")+" doplněn. MHD doplň ručně."; }
+      if(j.car){
+        wrap.querySelector("#m_car").value=j.car;
+        if(!wrap.querySelector("#m_pt").value) wrap.querySelector("#m_pt").value=Math.max(j.car+15, Math.round(j.car*1.65));
+        clearMissing("car","pt");
+        msg.className="msg ok"; msg.textContent="Dojezd autem ~"+j.car+" min"+(j.km?" ("+j.km+" km)":"")+" doplněn. MHD je orientační odhad.";
+      }
     }catch(e){ msg.className="msg err"; msg.textContent="Dojezd: "+e.message; }
   }
   wrap.querySelector("#m_commute").onclick=computeCommute;
@@ -449,11 +1360,25 @@ function openAdd(){
       const j=await r.json();
       if(!r.ok||j.error){ msg.className="msg err"; msg.textContent=j.error||"Nepovedlo se."; return; }
       const d=j.data||{};
+      importedExtra = {
+        contact: d.contact || "",
+        listedAt: d.listedAt || "",
+        updatedAt: d.updatedAt || ""
+      };
       const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!=="") el.value=v; };
-      set("n",d.n); set("disp",d.disp); set("price",d.price); set("area",d.area); set("land",d.land);
-      set("when",d.when); set("img",d.img); set("feats",(d.feats||[]).join(", "));
+      set("origin",d.origin || d.address);
+      set("n",niceTitleFromImport(d)); set("disp",d.disp); set("price",d.price); set("area",d.area); set("land",d.land);
+      set("when",d.when); set("en",d.en); set("img",d.img); set("imgs",(d.imgs||[]).join("\n")); set("feats",(d.feats||[]).join(", "));
+      set("plotArea",d.plotArea); set("gardenArea",d.gardenArea);
+      if(d.terrace) wrap.querySelector("#m_terrace").checked=true;
+      if(d.balcony) wrap.querySelector("#m_balcony").checked=true;
+      if(d.garage) wrap.querySelector("#m_garage").checked=true;
+      if(d.parking) wrap.querySelector("#m_parking").checked=true;
       if(d.t) wrap.querySelector("#m_t").value=d.t;
       wrap.querySelector("#m_ready").value=String(d.ready==null?1:d.ready);
+      const required=["n","origin","disp","price","area","land","plotArea","gardenArea","en"];
+      const missing=required.filter(k=>isMissingImportField(k, d));
+      markMissing(missing);
       msg.className="msg ok"; msg.textContent="Vyplněno · počítám dojezd…";
       computeCommute();
     }catch(e){ msg.className="msg err"; msg.textContent="Chyba: "+e.message; }
@@ -462,8 +1387,13 @@ function openAdd(){
     const data={ n:g("n"), t:wrap.querySelector("#m_t").value, disp:g("disp"),
       price:Number(g("price").replace(/\s/g,''))||null, area:Number(g("area").replace(/\s/g,''))||0,
       land:g("land"), ready:Number(wrap.querySelector("#m_ready").value), en:g("en"), when:g("when"),
-      car:Number(g("car"))||0, pt:Number(g("pt"))||0, origin:(g("n").split(/[-–,]/)[0]||"").trim(),
-      img:g("img"), feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url") };
+      plotArea:Number(g("plotArea"))||0, gardenArea:Number(g("gardenArea"))||0,
+      terrace:wrap.querySelector("#m_terrace").checked, balcony:wrap.querySelector("#m_balcony").checked,
+      garage:wrap.querySelector("#m_garage").checked, parking:wrap.querySelector("#m_parking").checked,
+      car:Number(g("car"))||0, pt:Number(g("pt"))||0, origin:g("origin") || (g("n").split(/[-–,]/)[0]||"").trim(),
+      img:g("img"), imgs:wrap.querySelector("#m_imgs").value.split(/\n+/).map(s=>s.trim()).filter(Boolean),
+      feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url"),
+      ...importedExtra };
     if(!data.n){ msg.className="msg err"; msg.textContent="Vyplň aspoň název."; return; }
     msg.className="msg"; msg.textContent="Ukládám…";
     try{
@@ -476,7 +1406,7 @@ function openAdd(){
 }
 document.getElementById("btn-add").addEventListener("click", openAdd);
 
-loadData();
+window.naseAuthReady.then(loadData);
 </script>
 </body>
 </html>

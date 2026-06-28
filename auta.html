@@ -64,7 +64,13 @@
   </section>
 
   <div class="controls" id="controls" hidden>
-    <div class="seg" id="filters" role="group" aria-label="Filtr značky"></div>
+    <div class="seg" id="filters" role="group" aria-label="Filtr značky">
+      <button data-f="all" aria-pressed="true">Vše</button>
+      <button data-f="mazda" aria-pressed="false">Mazda</button>
+      <button data-f="kia" aria-pressed="false">Kia</button>
+      <button data-f="hyundai" aria-pressed="false">Hyundai</button>
+      <button data-f="jeep" aria-pressed="false">Jeep</button>
+    </div>
     <div class="spacer"></div>
     <select id="sort" aria-label="Řazení">
       <option value="price">Nejnižší cena</option>
@@ -103,6 +109,8 @@
   </footer>
 </main>
 
+<script src="app-utils.js"></script>
+<script src="auth.js"></script>
 <script>
 const I = {
   car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M7 17v1.5M17 17v1.5"/><circle cx="7.5" cy="14" r=".6"/><circle cx="16.5" cy="14" r=".6"/></svg>',
@@ -125,20 +133,9 @@ const pCzk = d => d.czk!=null ? d.czk : (d.price!=null ? Math.round(d.price*RATE
 const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE) : null);
 const czk = v => (v==null ? "?" : km(v)+" Kč");
 const eur = v => (v==null ? "?" : km(v)+" €");
-const eCzk = d => d.dealPrice!=null ? d.dealPrice : pCzk(d);
-const FLAGS = {favorit:{l:'Favorit',c:'fav',i:'⭐'}, prohlidka:{l:'Prohlídka domluvená',c:'prohlidka',i:'📅'}, po:{l:'Po prohlídce',c:'po',i:'✓'}, zamitnuto:{l:'Zamítnuto',c:'no',i:'✕'}};
-const flagChips = d => (d.flags||[]).map(f=>FLAGS[f]?`<span class="flagchip ${FLAGS[f].c}">${FLAGS[f].i} ${FLAGS[f].l}</span>`:'').join('');
-const esc = s => String(s==null?'':s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-const BRANDS = {mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep",volkswagen:"Volkswagen",skoda:"Škoda",["škoda"]:"Škoda",toyota:"Toyota",ford:"Ford",bmw:"BMW",audi:"Audi",seat:"Seat",renault:"Renault",peugeot:"Peugeot",hyundaii:"Hyundai"};
-const brandLabel = b => BRANDS[b] || (b ? b.charAt(0).toUpperCase()+b.slice(1) : "—");
-function renderFilters(){
-  const counts={}; CARS.forEach(c=>{ const b=(c.brand||'').toLowerCase(); if(b) counts[b]=(counts[b]||0)+1; });
-  const brands=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||brandLabel(a).localeCompare(brandLabel(b)));
-  const seg=document.getElementById("filters");
-  seg.innerHTML = `<button data-f="all" aria-pressed="${filter==='all'}">Vše</button>` +
-    brands.map(b=>`<button data-f="${b}" aria-pressed="${filter===b}">${brandLabel(b)}</button>`).join("");
-}
-function openUrl(u){ if(u && u!=='undefined') window.open(u,"_blank","noopener"); }
+const { esc, jsstr, safeUrl } = window.Nase;
+const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
+const openUrl = window.Nase.openUrl;
 
 let filter="all", sort="price";
 let MINPRICE=0, MAXKM=0, MINKM=0;
@@ -146,7 +143,7 @@ let MINPRICE=0, MAXKM=0, MINKM=0;
 function priceKey(v){ return v==null ? Infinity : v; }
 function sortRows(rows){
   return rows.sort((a,b)=>{
-    if(sort==="price") return priceKey(eCzk(a))-priceKey(eCzk(b));
+    if(sort==="price") return priceKey(pCzk(a))-priceKey(pCzk(b));
     if(sort==="year")  return b.year-a.year;
     if(sort==="km")    return a.km-b.km;
     if(sort==="power") return b.kw-a.kw;
@@ -154,25 +151,25 @@ function sortRows(rows){
 }
 
 function renderPick(){
-  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>eCzk(c)!=null).sort((a,b)=>eCzk(a)-eCzk(b))[0] || CARS[0];
-  if(!d) return;
+  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>c.price!=null).sort((a,b)=>a.price-b.price)[0];
   const el = document.getElementById("pick");
-  el.href = d.url || "#"; if(d.url){el.target="_blank"; el.rel="noopener";}
+  const url = safeUrl(d.url);
+  el.href = url || "#"; if(url){el.target="_blank"; el.rel="noopener";}
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
     <span class="badge">${I.star} Tip · vítěz výběru</span>
     <div>
-      <h2>${d.n}</h2>
-      <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
+      <h2>${esc(d.n)}</h2>
+      <div class="pmeta">${esc(d.variant)} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
       <div class="prow">
-        <span class="big">${d.dealPrice?`<span class="deal"><span class="old">${czk(pCzk(d))}</span>${czk(d.dealPrice)}</span>`:czk(eCzk(d))}</span>
-        <span class="ppm">≈ ${eur(pEur(d))}<br>${d.stav} · ${km(d.km)} km</span>
+        <span class="big">${czk(pCzk(d))}</span>
+        <span class="ppm">≈ ${eur(pEur(d))}<br>${esc(d.stav)} · ${km(d.km)} km</span>
       </div>
     </div>`;
 }
 
 function renderKpis(){
   document.getElementById("kpi-count").textContent = CARS.length;
-  const prices = CARS.map(eCzk).filter(p=>p!=null);
+  const prices = CARS.map(pCzk).filter(p=>p!=null);
   const lo=Math.round(Math.min(...prices)/1000), hi=Math.round(Math.max(...prices)/1000);
   document.getElementById("kpi-range").innerHTML = km(lo)+'–'+km(hi)+' <span class="u">tis. Kč</span>';
   document.getElementById("kpi-km").innerHTML = km(Math.min(...CARS.map(c=>c.km)))+' <span class="u">km</span>';
@@ -188,27 +185,28 @@ function renderCards(){
   let rows = sortRows(CARS.filter(d=> filter==="all"||d.brand===filter));
   document.getElementById("count").textContent = rows.length + (rows.length===1?" auto":(rows.length<5?" auta":" aut"));
   document.getElementById("cards").innerHTML = rows.map(d=>{
+    const known = d.price!=null;
     const pct = MAXKM===MINKM ? 100 : Math.round(((MAXKM - d.km)/(MAXKM - MINKM))*82 + 18);
-    return `<article class="card${d.win?' best':''}${(d.flags||[]).includes('zamitnuto')?' zamitnuto':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(eCzk(d))}"
-        onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
+    const url = safeUrl(d.url);
+    const img = safeUrl(d.img);
+    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${esc(d.n)}, ${czk(pCzk(d))}"
+        onclick="openUrl(${jsstr(url)})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl(${jsstr(url)})}">
       <div class="media byt">
         <div class="corner">
           ${stavTag(d)}
           <span class="tag" style="background:var(--bg);color:var(--fg);">${I.cal}${d.year}</span>
         </div>
         <div class="del">
-          <button class="btn-stav" type="button" onclick="event.stopPropagation();editStav(${d.id})">✎ Stav</button>
-          <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝</button>
+          <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝 Poznámka</button>
           <button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button>
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
-        ${d.img?`<img src="${d.img}" alt="Foto auta · ${d.n}" loading="lazy" onerror="this.remove()">`:""}
-        <span class="pricechip">${d.dealPrice?`<span class="deal"><span class="old">${czk(pCzk(d))}</span>${czk(d.dealPrice)}</span>`:czk(pCzk(d))}</span>
+        ${img?`<img src="${esc(img)}" alt="Foto auta · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:""}
+        <span class="pricechip">${czk(pCzk(d))}</span>
       </div>
       <div class="body">
-        <div class="ctitle">${d.n}</div>
-        <div class="csub">${d.variant}</div>
-        ${(d.flags&&d.flags.length)?`<div class="flagchips">${flagChips(d)}</div>`:''}
+        <div class="ctitle">${esc(d.n)}</div>
+        <div class="csub">${esc(d.variant)}</div>
         <div class="chips">
           <span class="chip">${I.gauge}${km(d.km)} km</span>
           <span class="chip">${I.bolt}${d.ps} PS</span>
@@ -218,9 +216,9 @@ function renderCards(){
           <div class="ppmtop"><span>Najeto${d.km===MINKM?' · nejméně':''}</span><b>${km(d.km)} km</b></div>
           <div class="bar"><i class="${d.win?'lo':''}" style="width:${pct}%"></i></div>
         </div>
-        <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${f}</span></li>`).join("")}</ul>
+        <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${esc(f)}</span></li>`).join("")}</ul>
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
-        ${d.url?`<a class="cta aut" href="${d.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>`:`<span class="cta aut" style="background:var(--line);color:var(--muted-fg);cursor:default;">Bez odkazu</span>`}
+        ${url?`<a class="cta aut" href="${esc(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>`:`<span class="cta aut" style="background:var(--line);color:var(--muted-fg);cursor:default;">Bez odkazu</span>`}
       </div>
     </article>`;
   }).join("");
@@ -228,17 +226,20 @@ function renderCards(){
 
 function renderTable(){
   let rows = sortRows([...CARS]);
-  document.getElementById("tbody").innerHTML = rows.map(d=>`
-    <tr onclick="openUrl('${d.url}')">
-      <td class="name">${d.n}</td>
-      <td>${d.stav}</td>
+  document.getElementById("tbody").innerHTML = rows.map(d=>{
+    const url = safeUrl(d.url);
+    return `
+    <tr onclick="openUrl(${jsstr(url)})">
+      <td class="name">${esc(d.n)}</td>
+      <td>${esc(d.stav)}</td>
       <td class="num">${d.year}</td>
       <td class="num">${km(d.km)} km</td>
       <td>${d.awd?"4×4":"FWD"}</td>
       <td class="num">${d.ps} PS</td>
       <td class="num">${czk(pCzk(d))}${d.win?' ★':''}</td>
       <td class="num">${eur(pEur(d))}</td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 }
 
 function computeExtents(){
@@ -254,9 +255,7 @@ function refresh(){
   ["hero","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=!has);
   document.getElementById("controls").hidden = false;
   if(!has) return;
-  if(filter!=='all' && !CARS.some(c=>(c.brand||'').toLowerCase()===filter)) filter='all';
   computeExtents();
-  renderFilters();
   renderPick(); renderKpis(); renderCards(); renderTable();
 }
 async function loadData(){
@@ -309,46 +308,14 @@ function editNote(id){
   };
 }
 
-function editStav(id){
-  const item=CARS.find(x=>x.id===id); if(!item) return;
-  const f=new Set(item.flags||[]);
-  const wrap=document.createElement("div"); wrap.className="modal-bg";
-  const checks=Object.entries(FLAGS).map(([k,v])=>`<label><input type="checkbox" id="fl_${k}" ${f.has(k)?'checked':''}> ${v.i} ${v.l}</label>`).join("");
-  wrap.innerHTML=`<div class="modal" style="max-width:440px">
-    <h3>Stav auta</h3>
-    <p class="hint">${esc(item.n)}</p>
-    <div class="checks">${checks}</div>
-    <label>Domluvená / dovozní cena (Kč)</label>
-    <input id="dealp" type="number" inputmode="numeric" placeholder="napiš cenu po smlouvání / vč. dovozu" value="${item.dealPrice||''}">
-    <div class="msg" id="sv_msg"></div>
-    <div class="actions"><button class="btn-ghost" type="button" id="sv_cancel">Zrušit</button><button class="btn-add" type="button" id="sv_save">Uložit</button></div>
-  </div>`;
-  document.body.appendChild(wrap);
-  const close=()=>wrap.remove();
-  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
-  wrap.querySelector("#sv_cancel").onclick=close;
-  wrap.querySelector("#sv_save").onclick=async()=>{
-    const flags=Object.keys(FLAGS).filter(k=>wrap.querySelector("#fl_"+k).checked);
-    const dpRaw=wrap.querySelector("#dealp").value.replace(/\s/g,'');
-    const dealPrice=dpRaw?Number(dpRaw):null;
-    const msg=wrap.querySelector("#sv_msg"); msg.className="msg"; msg.textContent="Ukládám…";
-    try{
-      const r=await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch:{flags,dealPrice}})});
-      if(!r.ok) throw new Error("HTTP "+r.status);
-      window.dispatchEvent(new CustomEvent('nase:react',{detail:'note'}));
-      close(); loadData();
-    }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
-  };
-}
-
 function fld(label,id,ph){ return `<label>${label}</label><input id="m_${id}" placeholder="${ph||''}">`; }
 function openAdd(){
   const wrap=document.createElement("div");
   wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal">
     <h3>Přidat auto</h3>
-    <p class="hint">Vlož odkaz ze sauto.cz, bazos.cz nebo mobile.de a dej Načíst · pole se vyplní sama. U bazoše ověř rok/najeto/palivo.</p>
-    <label>Odkaz (sauto.cz / bazos.cz / mobile.de)</label>
+    <p class="hint">Vlož odkaz ze sauto.cz nebo bazos.cz a dej Načíst · pole se vyplní sama. Zahraniční (mobile.de…) vyplň ručně.</p>
+    <label>Odkaz (sauto.cz / bazos.cz)</label>
     <div class="urlrow"><input id="m_url" placeholder="https://www.sauto.cz/osobni/detail/..."><button class="btn-ghost" type="button" id="m_fetch">Načíst</button></div>
     <div class="msg" id="m_msg"></div>
     ${fld("Název (značka + model)","n","Mazda CX-5 ...")}
@@ -411,7 +378,7 @@ document.getElementById("filters").addEventListener("click", e=>{
 });
 document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderCards(); renderTable(); });
 document.getElementById("btn-add").addEventListener("click", openAdd);
-loadData();
+window.naseAuthReady.then(loadData);
 </script>
 </body>
 </html>

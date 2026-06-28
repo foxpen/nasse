@@ -1,8 +1,9 @@
 import { sql } from './_lib/db.js';
+import { requireAuth } from './_lib/auth.js';
 import { json } from './_lib/http.js';
 
 const KEY = process.env.MAPY_API_KEY;
-const DEST = { lon: 14.4430, lat: 50.0598 }; // Arkády Pankrác, Praha 4
+const DEST = { lon: 14.4529, lat: 50.1090 }; // Jankovcova 1522/53, Praha 7
 
 async function carCommute(q) {
   const gr = await fetch(`https://api.mapy.com/v1/geocode?lang=cs&limit=1&apikey=${KEY}&query=${encodeURIComponent(q)}`);
@@ -16,7 +17,9 @@ async function carCommute(q) {
   return { car: dur != null ? Math.round(dur / 60) : null, km: len != null ? Math.round(len / 1000) : null };
 }
 
-export async function handler() {
+export async function handler(event) {
+  const unauthorized = requireAuth(event);
+  if (unauthorized) return unauthorized;
   if (!KEY) return json(200, { error: 'no_key' });
   try {
     const rows = await sql`SELECT id, data FROM listings WHERE section = 'byd' ORDER BY id`;

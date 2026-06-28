@@ -58,8 +58,10 @@
   </div>
 </main>
 
+<script src="auth.js"></script>
 <script>(async function(){
   try{
+    await window.naseAuthReady;
     const r=await fetch('/.netlify/functions/list'); if(!r.ok) return;
     const all=await r.json();
     const byd=all.filter(x=>x.section==='byd'), aut=all.filter(x=>x.section==='auto');
