@@ -166,6 +166,28 @@ function parseBazos(url, html) {
   } };
 }
 
+function parseMobile(url, html) {
+  const titleM = html.match(/<title>([^<]+?)\s+pro\s+([\d\s.]+)\s*€/i);
+  const name = (titleM ? titleM[1] : (html.match(/<title>([^<|]+)/) || [])[1] || 'Vozidlo').trim();
+  const eur = titleM ? num(titleM[2]) : null;
+  const brand = (name.split(/\s+/)[0] || '').toLowerCase();
+  const dd = (label) => {
+    const re = new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s\\S]{0,25}?<dd[^>]*>([^<]{0,60})', 'i');
+    const m = html.match(re); return m ? m[1].trim() : '';
+  };
+  const km = num(dd('Počet najetých km')) || 0;
+  const kw = num((dd('Výkon').match(/(\d{2,3})\s*kW/) || [])[1]) || 0;
+  const ps = kw ? Math.round(kw * 1.35962) : 0;
+  const fuelRaw = dd('Palivo').toLowerCase();
+  const fuel = /hybrid/.test(fuelRaw) ? 'hybrid' : /elektr/.test(fuelRaw) ? 'elektro' : /(nafta|diesel)/.test(fuelRaw) ? 'diesel' : 'benzin';
+  const year = num((dd('Datum první registrace').match(/\/(\d{4})/) || dd('Rok výroby').match(/(\d{4})/) || [])[1]) || 0;
+  let img = (html.match(/https:\/\/img\.classistatic\.de\/[^"\\ ]+rule=mo-1024/) || [])[0] || '';
+  return { section: 'auto', data: {
+    brand, n: name, variant: 'DE · ojeté', stav: 'ojeté', year, km, fuel, awd: false, kw, ps,
+    czk: null, price: eur, img, feats: [], url
+  } };
+}
+
 export async function handler(event) {
   try {
     const url = event.queryStringParameters?.url;
@@ -180,7 +202,8 @@ export async function handler(event) {
     if (/sauto\.cz/.test(host)) return json(200, parseSauto(url, html));
     if (/bezrealitky\.cz/.test(host)) return json(200, parseBezrealitky(url, html));
     if (/bazos\.cz/.test(host)) return json(200, parseBazos(url, html));
-    return json(422, { error: 'tento web extraktor neumí (zkus sreality.cz / sauto.cz / bezrealitky.cz / bazos.cz, jinak vyplň ručně)', source: host });
+    if (/mobile\.de/.test(host)) return json(200, parseMobile(url, html));
+    return json(422, { error: 'tento web extraktor neumí (zkus sreality.cz / sauto.cz / bezrealitky.cz / bazos.cz / mobile.de, jinak vyplň ručně)', source: host });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }
