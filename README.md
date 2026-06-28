@@ -119,4 +119,3 @@ Stručně co to znamená:
 - 🔁 **Pokud to ale dál šíříš nebo provozuješ jako službu (web), musíš zveřejnit zdrojový kód** svojí verze pod stejnou licencí a **uvést autora**.
 - 🚫 Nelze z toho udělat uzavřený/proprietární produkt ani si to „přivlastnit".
 
-(Jméno v copyrightu klidně změň na své celé jméno.)
