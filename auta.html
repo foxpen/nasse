@@ -64,13 +64,7 @@
   </section>
 
   <div class="controls" id="controls" hidden>
-    <div class="seg" id="filters" role="group" aria-label="Filtr značky">
-      <button data-f="all" aria-pressed="true">Vše</button>
-      <button data-f="mazda" aria-pressed="false">Mazda</button>
-      <button data-f="kia" aria-pressed="false">Kia</button>
-      <button data-f="hyundai" aria-pressed="false">Hyundai</button>
-      <button data-f="jeep" aria-pressed="false">Jeep</button>
-    </div>
+    <div class="seg" id="filters" role="group" aria-label="Filtr značky"></div>
     <div class="spacer"></div>
     <select id="sort" aria-label="Řazení">
       <option value="price">Nejnižší cena</option>
@@ -132,7 +126,15 @@ const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE
 const czk = v => (v==null ? "?" : km(v)+" Kč");
 const eur = v => (v==null ? "?" : km(v)+" €");
 const esc = s => String(s==null?'':s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
+const BRANDS = {mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep",volkswagen:"Volkswagen",skoda:"Škoda",["škoda"]:"Škoda",toyota:"Toyota",ford:"Ford",bmw:"BMW",audi:"Audi",seat:"Seat",renault:"Renault",peugeot:"Peugeot",hyundaii:"Hyundai"};
+const brandLabel = b => BRANDS[b] || (b ? b.charAt(0).toUpperCase()+b.slice(1) : "—");
+function renderFilters(){
+  const counts={}; CARS.forEach(c=>{ const b=(c.brand||'').toLowerCase(); if(b) counts[b]=(counts[b]||0)+1; });
+  const brands=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||brandLabel(a).localeCompare(brandLabel(b)));
+  const seg=document.getElementById("filters");
+  seg.innerHTML = `<button data-f="all" aria-pressed="${filter==='all'}">Vše</button>` +
+    brands.map(b=>`<button data-f="${b}" aria-pressed="${filter===b}">${brandLabel(b)}</button>`).join("");
+}
 function openUrl(u){ if(u && u!=='undefined') window.open(u,"_blank","noopener"); }
 
 let filter="all", sort="price";
@@ -247,7 +249,9 @@ function refresh(){
   ["hero","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=!has);
   document.getElementById("controls").hidden = false;
   if(!has) return;
+  if(filter!=='all' && !CARS.some(c=>(c.brand||'').toLowerCase()===filter)) filter='all';
   computeExtents();
+  renderFilters();
   renderPick(); renderKpis(); renderCards(); renderTable();
 }
 async function loadData(){
