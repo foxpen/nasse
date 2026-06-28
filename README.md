@@ -11,7 +11,7 @@ Statický frontend (HTML/CSS/JS, bez build kroku) + **Netlify Functions** (serve
 ---
 
 ## Co appka umí
-- Přidávání přes **odkaz** s auto-extraktorem (sreality.cz, bezrealitky.cz, sauto.cz, bazoš) + ruční fallback.
+- Přidávání přes **odkaz** s auto-extraktorem (sreality.cz, bezrealitky.cz, sauto.cz, bazoš, mobil.de) + ruční fallback.
 - **Hypoteční kalkulačka** (úrok / doba / akontace / pojištění) — splátka u každé nemovitosti, živě.
 - **Dojezd autem** na zvolené místo přes **Mapy.com API** (volitelné).
 - **Mazání**, **poznámky**, **stavové štítky** (⭐ favorit, 📅 prohlídka, ✓ po prohlídce, ✕ zamítnuto) a **domluvená cena** (přepočítá splátku i cenu/m²).
