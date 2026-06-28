@@ -107,3 +107,16 @@ Profil hledání (charakteristika shortlistu + sreality filtr + skórování pod
 - `.env`, `.apify_token`, `node_modules` jsou v `.gitignore` — necommituj tajné klíče.
 - Po změně env proměnných v Netlify je nutný **redeploy**.
 - Ceny i dojezdy jsou orientační — ověř u zdroje.
+
+---
+
+## 📄 Licence
+
+**© 2026 foxpen.** Tento projekt je licencován pod **GNU Affero General Public License v3.0 (AGPL-3.0)** — viz [`LICENSE`](LICENSE).
+
+Stručně co to znamená:
+- ✅ Můžeš to používat, studovat, upravovat i sdílet.
+- 🔁 **Pokud to ale dál šíříš nebo provozuješ jako službu (web), musíš zveřejnit zdrojový kód** svojí verze pod stejnou licencí a **uvést autora**.
+- 🚫 Nelze z toho udělat uzavřený/proprietární produkt ani si to „přivlastnit".
+
+(Jméno v copyrightu klidně změň na své celé jméno.)
