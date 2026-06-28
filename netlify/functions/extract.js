@@ -139,6 +139,33 @@ function parseBezrealitky(url, html) {
   } };
 }
 
+function parseBazos(url, html) {
+  const t = meta(html, 'og:title') || '';
+  const desc = meta(html, 'og:description') || '';
+  let img = meta(html, 'og:image') || '';
+  if (img.startsWith('//')) img = 'https:' + img;
+  const title = t.replace(/\s*-\s*[^-]+$/, '').trim() || t;
+  const brand = (title.split(/\s+/)[0] || '').toLowerCase();
+  const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  const priceM = desc.match(/Cena:\s*([\d\s .]+)\s*K[čc]/i) || text.match(/Cena:\s*([\d\s .]+)\s*K[čc]/i);
+  const czk = priceM ? num(priceM[1]) : null;
+  const kmM = text.match(/(?:najeto|nájezd|tachometr)[^0-9]{0,12}([\d][\d\s. ]{2,})\s*km/i) || text.match(/([\d][\d\s. ]{3,})\s*km\b/i);
+  const km = kmM ? num(kmM[1]) : 0;
+  const yM = text.match(/(?:rok|r\.?\s?v\.?|výrob[ay])[^\d]{0,10}((?:19[789]|20[012])\d)/i) || text.match(/\b(20[0-2]\d)\b/);
+  const year = yM ? num(yM[1]) : 0;
+  const fM = text.match(/\b(benz[ií]n|nafta|diesel|hybrid|plug[- ]?in|elektro|lpg|cng)\b/i);
+  let fuel = fM ? fM[1].toLowerCase() : 'benzin';
+  fuel = fuel.replace('nafta', 'diesel').replace('benzín', 'benzin').replace(/plug.?in/, 'hybrid');
+  const kwM = text.match(/(\d{2,3})\s*kW\b/i);
+  const kw = kwM ? num(kwM[1]) : 0;
+  const ps = kw ? Math.round(kw * 1.35962) : 0;
+  const awd = /\b(4x4|4motion|quattro|awd|xdrive|4wd)\b/i.test(t + ' ' + text);
+  return { section: 'auto', data: {
+    brand, n: title, variant: '', stav: 'ojeté', year, km, fuel, awd, kw, ps,
+    czk: czk || null, price: null, img, feats: [], url
+  } };
+}
+
 export async function handler(event) {
   try {
     const url = event.queryStringParameters?.url;
@@ -152,7 +179,8 @@ export async function handler(event) {
     if (/sreality\.cz/.test(host)) return json(200, parseSreality(url, html));
     if (/sauto\.cz/.test(host)) return json(200, parseSauto(url, html));
     if (/bezrealitky\.cz/.test(host)) return json(200, parseBezrealitky(url, html));
-    return json(422, { error: 'tento web extraktor neumí (zkus sreality.cz / sauto.cz / bezrealitky.cz, jinak vyplň ručně)', source: host });
+    if (/bazos\.cz/.test(host)) return json(200, parseBazos(url, html));
+    return json(422, { error: 'tento web extraktor neumí (zkus sreality.cz / sauto.cz / bezrealitky.cz / bazos.cz, jinak vyplň ručně)', source: host });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }
