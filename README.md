@@ -35,36 +35,45 @@ Vše je v jedné tabulce `listings`. Typ řeší `section` (`byd` / `auto`), zby
 
 ---
 
-## 🚀 Zprovoznění pro sebe (krok za krokem)
+## 🚀 Zprovoznění pro sebe
 
-Budeš potřebovat účet na **GitHubu**, **Netlify** a **Neon** (všechny mají free tier).
+### Co to obecně potřebuje (nezávisle na konkrétní službě)
+1. **Postgres databáze** — kdekoli (Neon, Supabase, Railway, Render, vlastní Postgres…). Její connection string dáš do proměnné prostředí (`DATABASE_URL`, případně `NETLIFY_DATABASE_URL`).
+2. **Hosting, který servíruje statické soubory + umí serverless funkce** (Netlify, Vercel, Cloudflare Pages…), nebo vlastní malý Node server.
+3. **Vytvořit tabulku** `listings` z `db/schema.sql` — funguje na jakémkoli Postgresu.
+4. *(volitelně)* **API klíč na mapy** pro auto-výpočet dojezdu (Mapy.com).
 
-### 1) Vlastní kopie repa
-Forkni nebo naklonuj tenhle repozitář na svůj GitHub.
-
-### 2) Neon databáze
-1. Na [neon.tech](https://neon.tech) vytvoř projekt.
-2. Zkopíruj **connection string** — ten **pooled** (obsahuje `-pooler`, vypadá jako `postgresql://user:pass@ep-xxx-pooler.<region>.neon.tech/neondb?sslmode=require`).
-
-### 3) Nasazení na Netlify
-1. Na [netlify.com](https://app.netlify.com) → **Add new site → Import an existing project** → vyber svůj repo.
-2. Build command nech **prázdný**, **Publish directory = `.`** (už je v `netlify.toml`), funkce se najdou samy v `netlify/functions`.
-3. Deploy.
-
-### 4) Proměnné prostředí (Netlify → Site configuration → Environment variables)
+Proměnné prostředí:
 
 | Proměnná | Povinná? | K čemu |
 |---|---|---|
-| `NETLIFY_DATABASE_URL` | **ano** | Neon pooled connection string |
-| `MAPY_API_KEY` | volitelná | Auto-výpočet dojezdu autem ([api.mapy.com](https://api.mapy.com) → REST API klíč, free) |
+| `DATABASE_URL` *(nebo `NETLIFY_DATABASE_URL`)* | **ano** | připojení k Postgresu |
+| `MAPY_API_KEY` | volitelná | dojezd autem ([api.mapy.com](https://api.mapy.com), free) |
 
-Po přidání proměnných dej **Deploys → Trigger deploy** (env se načte do funkcí).
+> Funkce čtou DB z `process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL` (viz `netlify/functions/_lib/db.js`).
 
-### 5) Vytvoření tabulky a (volitelně) dat
-- **Prázdný start (doporučeno pro vlastní data):** v Neon SQL editoru spusť obsah **`db/schema.sql`** (vytvoří tabulku `listings`). Pak přidávej přes appku.
-- **S ukázkovými daty:** otevři jednou `https://<tvuj-web>.netlify.app/.netlify/functions/seed` — vytvoří tabulku **i** naimportuje ukázkový shortlist, který si pak smažeš/upravíš.
+---
+
+### 📦 Příklad: Netlify + Neon (nejjednodušší, doporučeno)
+Tohle je konkrétní postup pro nejrychlejší rozjezd. Klidně použij jinou DB/hosting (viz níže).
+
+1. **Repo:** forkni / naklonuj tenhle repozitář na svůj GitHub.
+2. **DB (Neon):** na [neon.tech](https://neon.tech) vytvoř projekt a zkopíruj **pooled** connection string (obsahuje `-pooler`, např. `postgresql://user:pass@ep-xxx-pooler.<region>.neon.tech/neondb?sslmode=require`).
+3. **Deploy (Netlify):** [netlify.com](https://app.netlify.com) → **Add new site → Import an existing project** → vyber repo. Build command **prázdný**, **Publish directory = `.`** (je v `netlify.toml`), funkce se najdou v `netlify/functions`.
+4. **Env:** Netlify → Site configuration → Environment variables → přidej `NETLIFY_DATABASE_URL` (= Neon string) a volitelně `MAPY_API_KEY`. Pak **Deploys → Trigger deploy**.
+5. **Tabulka + data:**
+   - *prázdný start:* v Neon SQL editoru spusť `db/schema.sql`;
+   - *nebo s ukázkovými daty:* otevři jednou `https://<tvuj-web>.netlify.app/.netlify/functions/seed` (vytvoří tabulku i naimportuje ukázkový shortlist, který pak smažeš/upravíš).
 
 Hotovo — appka jede na `https://<tvuj-web>.netlify.app`. 🎉
+
+---
+
+### 🔁 Chci to jinde (Vercel / Cloudflare / vlastní server / jiná DB)
+Jádro je přenositelné, jen je potřeba pár úprav:
+- **DB:** jakýkoli Postgres — nastav `DATABASE_URL`. (Driver `@neondatabase/serverless` mluví běžným Postgres protokolem; pro lokální/jiný Postgres lze přepsat na `pg` v `_lib/db.js`.)
+- **Funkce:** jsou psané v **Netlify formátu** `export async function handler(event)` (čtou `event.httpMethod`, `event.queryStringParameters`, `event.body`). Na Vercelu/Cloudflare je přepíšeš na jejich signaturu (`(req, res)` resp. `fetch` handler) — logika SQL uvnitř zůstává stejná.
+- **Cesty:** frontend volá `/.netlify/functions/<name>`. Na jiném hostingu buď nastav redirect/rewrite na svoje endpointy, nebo uprav konstantu `API` v `index.html`, `bydleni.html`, `auta.html`.
 
 ---
 
