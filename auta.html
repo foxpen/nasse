@@ -151,7 +151,8 @@ function sortRows(rows){
 }
 
 function renderPick(){
-  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>c.price!=null).sort((a,b)=>a.price-b.price)[0];
+  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>pCzk(c)!=null).sort((a,b)=>pCzk(a)-pCzk(b))[0] || CARS[0];
+  if(!d) return;
   const el = document.getElementById("pick");
   el.href = d.url || "#"; if(d.url){el.target="_blank"; el.rel="noopener";}
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
