@@ -125,6 +125,9 @@ const pCzk = d => d.czk!=null ? d.czk : (d.price!=null ? Math.round(d.price*RATE
 const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE) : null);
 const czk = v => (v==null ? "?" : km(v)+" Kč");
 const eur = v => (v==null ? "?" : km(v)+" €");
+const eCzk = d => d.dealPrice!=null ? d.dealPrice : pCzk(d);
+const FLAGS = {favorit:{l:'Favorit',c:'fav',i:'⭐'}, prohlidka:{l:'Prohlídka domluvená',c:'prohlidka',i:'📅'}, po:{l:'Po prohlídce',c:'po',i:'✓'}, zamitnuto:{l:'Zamítnuto',c:'no',i:'✕'}};
+const flagChips = d => (d.flags||[]).map(f=>FLAGS[f]?`<span class="flagchip ${FLAGS[f].c}">${FLAGS[f].i} ${FLAGS[f].l}</span>`:'').join('');
 const esc = s => String(s==null?'':s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 const BRANDS = {mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep",volkswagen:"Volkswagen",skoda:"Škoda",["škoda"]:"Škoda",toyota:"Toyota",ford:"Ford",bmw:"BMW",audi:"Audi",seat:"Seat",renault:"Renault",peugeot:"Peugeot",hyundaii:"Hyundai"};
 const brandLabel = b => BRANDS[b] || (b ? b.charAt(0).toUpperCase()+b.slice(1) : "—");
@@ -143,7 +146,7 @@ let MINPRICE=0, MAXKM=0, MINKM=0;
 function priceKey(v){ return v==null ? Infinity : v; }
 function sortRows(rows){
   return rows.sort((a,b)=>{
-    if(sort==="price") return priceKey(pCzk(a))-priceKey(pCzk(b));
+    if(sort==="price") return priceKey(eCzk(a))-priceKey(eCzk(b));
     if(sort==="year")  return b.year-a.year;
     if(sort==="km")    return a.km-b.km;
     if(sort==="power") return b.kw-a.kw;
@@ -151,7 +154,7 @@ function sortRows(rows){
 }
 
 function renderPick(){
-  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>pCzk(c)!=null).sort((a,b)=>pCzk(a)-pCzk(b))[0] || CARS[0];
+  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>eCzk(c)!=null).sort((a,b)=>eCzk(a)-eCzk(b))[0] || CARS[0];
   if(!d) return;
   const el = document.getElementById("pick");
   el.href = d.url || "#"; if(d.url){el.target="_blank"; el.rel="noopener";}
@@ -161,7 +164,7 @@ function renderPick(){
       <h2>${d.n}</h2>
       <div class="pmeta">${d.variant} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
       <div class="prow">
-        <span class="big">${czk(pCzk(d))}</span>
+        <span class="big">${d.dealPrice?`<span class="deal"><span class="old">${czk(pCzk(d))}</span>${czk(d.dealPrice)}</span>`:czk(eCzk(d))}</span>
         <span class="ppm">≈ ${eur(pEur(d))}<br>${d.stav} · ${km(d.km)} km</span>
       </div>
     </div>`;
@@ -169,7 +172,7 @@ function renderPick(){
 
 function renderKpis(){
   document.getElementById("kpi-count").textContent = CARS.length;
-  const prices = CARS.map(pCzk).filter(p=>p!=null);
+  const prices = CARS.map(eCzk).filter(p=>p!=null);
   const lo=Math.round(Math.min(...prices)/1000), hi=Math.round(Math.max(...prices)/1000);
   document.getElementById("kpi-range").innerHTML = km(lo)+'–'+km(hi)+' <span class="u">tis. Kč</span>';
   document.getElementById("kpi-km").innerHTML = km(Math.min(...CARS.map(c=>c.km)))+' <span class="u">km</span>';
@@ -185,9 +188,8 @@ function renderCards(){
   let rows = sortRows(CARS.filter(d=> filter==="all"||d.brand===filter));
   document.getElementById("count").textContent = rows.length + (rows.length===1?" auto":(rows.length<5?" auta":" aut"));
   document.getElementById("cards").innerHTML = rows.map(d=>{
-    const known = d.price!=null;
     const pct = MAXKM===MINKM ? 100 : Math.round(((MAXKM - d.km)/(MAXKM - MINKM))*82 + 18);
-    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(pCzk(d))}"
+    return `<article class="card${d.win?' best':''}${(d.flags||[]).includes('zamitnuto')?' zamitnuto':''}" tabindex="0" role="link" aria-label="${d.n}, ${czk(eCzk(d))}"
         onclick="openUrl('${d.url}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl('${d.url}')}">
       <div class="media byt">
         <div class="corner">
@@ -195,16 +197,18 @@ function renderCards(){
           <span class="tag" style="background:var(--bg);color:var(--fg);">${I.cal}${d.year}</span>
         </div>
         <div class="del">
-          <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝 Poznámka</button>
+          <button class="btn-stav" type="button" onclick="event.stopPropagation();editStav(${d.id})">✎ Stav</button>
+          <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝</button>
           <button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button>
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
         ${d.img?`<img src="${d.img}" alt="Foto auta · ${d.n}" loading="lazy" onerror="this.remove()">`:""}
-        <span class="pricechip">${czk(pCzk(d))}</span>
+        <span class="pricechip">${d.dealPrice?`<span class="deal"><span class="old">${czk(pCzk(d))}</span>${czk(d.dealPrice)}</span>`:czk(pCzk(d))}</span>
       </div>
       <div class="body">
         <div class="ctitle">${d.n}</div>
         <div class="csub">${d.variant}</div>
+        ${(d.flags&&d.flags.length)?`<div class="flagchips">${flagChips(d)}</div>`:''}
         <div class="chips">
           <span class="chip">${I.gauge}${km(d.km)} km</span>
           <span class="chip">${I.bolt}${d.ps} PS</span>
@@ -298,6 +302,38 @@ function editNote(id){
     const msg=wrap.querySelector("#nm_msg"); msg.className="msg"; msg.textContent="Ukládám…";
     try{
       const r=await fetch(API+"/note",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,note})});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      window.dispatchEvent(new CustomEvent('nase:react',{detail:'note'}));
+      close(); loadData();
+    }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
+  };
+}
+
+function editStav(id){
+  const item=CARS.find(x=>x.id===id); if(!item) return;
+  const f=new Set(item.flags||[]);
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  const checks=Object.entries(FLAGS).map(([k,v])=>`<label><input type="checkbox" id="fl_${k}" ${f.has(k)?'checked':''}> ${v.i} ${v.l}</label>`).join("");
+  wrap.innerHTML=`<div class="modal" style="max-width:440px">
+    <h3>Stav auta</h3>
+    <p class="hint">${esc(item.n)}</p>
+    <div class="checks">${checks}</div>
+    <label>Domluvená / dovozní cena (Kč)</label>
+    <input id="dealp" type="number" inputmode="numeric" placeholder="napiš cenu po smlouvání / vč. dovozu" value="${item.dealPrice||''}">
+    <div class="msg" id="sv_msg"></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="sv_cancel">Zrušit</button><button class="btn-add" type="button" id="sv_save">Uložit</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#sv_cancel").onclick=close;
+  wrap.querySelector("#sv_save").onclick=async()=>{
+    const flags=Object.keys(FLAGS).filter(k=>wrap.querySelector("#fl_"+k).checked);
+    const dpRaw=wrap.querySelector("#dealp").value.replace(/\s/g,'');
+    const dealPrice=dpRaw?Number(dpRaw):null;
+    const msg=wrap.querySelector("#sv_msg"); msg.className="msg"; msg.textContent="Ukládám…";
+    try{
+      const r=await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch:{flags,dealPrice}})});
       if(!r.ok) throw new Error("HTTP "+r.status);
       window.dispatchEvent(new CustomEvent('nase:react',{detail:'note'}));
       close(); loadData();
