@@ -609,14 +609,14 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .score-help{margin-top:14px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:12px;}
 .detail-modal{max-width:1120px;}
 .detail-top{display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:14px;}
-.detail-layout{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr); gap:18px;}
+.detail-layout{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr); gap:18px; min-width:0;}
 .detail-gallery{aspect-ratio:16/10;}
 .detail-photo-score{position:absolute; top:12px; right:12px; width:58px; height:58px; border-radius:17px; font-size:26px; z-index:4; box-shadow:var(--sh);}
 .detail-map{min-height:280px; margin-top:12px; border:1px solid var(--line); border-radius:var(--r); background:var(--bg);
   display:flex; align-items:center; justify-content:center; color:var(--muted-fg); font-size:13px; font-weight:700; overflow:hidden;}
 .detail-map-actions{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:12px;}
 .detail-map-actions .btn-ghost,.detail-map-actions .btn-add{min-height:38px; padding:8px 10px; font-size:13px; justify-content:center; text-align:center;}
-.detail-info{display:flex; flex-direction:column; gap:12px;}
+.detail-info{display:flex; flex-direction:column; gap:12px; min-width:0;}
 .detail-dl{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0;}
 .detail-dl div{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:10px 12px;}
 .detail-dl dt{font-size:11px; color:var(--muted-fg); text-transform:uppercase; font-weight:800;}
@@ -646,13 +646,62 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   .modal{padding:16px; border-radius:14px; width:min(100%, calc(100vw - 16px)); max-height:calc(100dvh - 18px); overflow:auto;}
   .detail-modal,.map-modal{padding:14px; max-width:calc(100vw - 16px);}
   .map-modal{padding:0;}
+  .detail-bg,.map-modal-bg{padding:0; align-items:stretch;}
+  .detail-bg .detail-modal,.map-modal-bg .map-modal,.modal-bg .compare-modal{
+    width:100vw;
+    max-width:none;
+    min-height:100dvh;
+    max-height:100dvh;
+    border-radius:0;
+    border:none;
+    overflow:auto;
+  }
+  .detail-layout,.detail-layout>*,.detail-map-actions,.detail-info,.detail-gallery,.gallery-thumbs,.detail-map{
+    min-width:0;
+    max-width:100%;
+  }
+  .detail-bg .modal-x,.map-modal-bg .modal-x,.compare-modal .modal-x{
+    position:fixed;
+    top:10px;
+    right:10px;
+    z-index:20;
+    background:color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow:var(--sh-sm);
+  }
   .map-head,.detail-top{align-items:flex-start; flex-direction:column;}
   .map-head-actions{width:100%; justify-content:stretch;}
   .map-head-actions .seg,.map-head-actions .btn-ghost{flex:1 1 auto;}
   .map-score{width:62px; height:62px; border-radius:17px; font-size:30px;}
   .detail-photo-score{width:52px; height:52px; font-size:23px;}
-  .detail-gallery{aspect-ratio:4/3;}
-  .detail-map{min-height:300px;}
+  .detail-gallery{aspect-ratio:4/3; max-height:34dvh;}
+  .detail-gallery img{object-fit:contain;}
+  .gallery-thumbs{padding-top:8px;}
+  .gallery-thumbs button{width:74px; height:52px;}
+  .detail-map{min-height:220px; max-height:34dvh;}
+  .detail-map-actions{position:sticky; top:0; z-index:5; background:var(--surface); padding:8px 0; margin-top:8px;}
+  .detail-map-actions .btn-ghost,
+  .detail-map-actions .btn-add{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:44px;
+    font-size:14px;
+    font-weight:900;
+    line-height:1.1;
+    white-space:nowrap;
+    text-decoration:none;
+  }
+  .detail-map-actions .btn-ghost{color:var(--fg) !important; background:var(--surface); border-color:var(--line-2);}
+  .detail-map-actions .btn-add{color:#fff !important; background:var(--primary);}
+  .theme-auto .detail-map-actions .btn-add{background:var(--accent);}
+  .detail-info{gap:10px;}
+  .detail-dl div{padding:9px 10px;}
+  .detail-feats{font-size:13px;}
+  .map-layout{height:auto; min-height:0;}
+  #map-modal-map{height:56dvh; min-height:340px;}
+  .map-side{max-height:none;}
+  .compare-modal h3{padding-right:42px;}
+  .compare-scroll{max-height:none;}
   .route-line{grid-template-columns:1fr;}
   .card-metrics{gap:6px;}
   .card-metrics span{padding:6px 5px;}
