@@ -231,6 +231,12 @@ function computeExtents(){
 
 async function loadData(){
   const grid = document.getElementById("cards");
+  const pick=document.getElementById("pick");
+  if(pick){
+    pick.classList.add("is-loading");
+    pick.innerHTML='<span class="badge">Nacitam data</span><h2>Pripravuji prehled</h2><div class="pmeta">Stahuji ulozene nabidky, skore a dojezdy.</div>';
+  }
+  ["kpi-count","kpi-range","kpi-ready","kpi-ppm"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent="."; });
   grid.innerHTML = '<div class="state">Načítám…</div>';
   document.getElementById("empty").hidden = true;
   grid.hidden = false;
@@ -416,6 +422,7 @@ function sortRows(rows){
 function renderPick(){
   DATA.forEach(d=>d.score=scoreProperty(d));
   const el = document.getElementById("pick");
+  el.classList.remove("is-loading");
   const d = kept().slice().sort((a,b)=>(b.score-a.score)||((a.dealPrice||a.price)-(b.dealPrice||b.price))||(a.id-b.id))[0];
   if(!d){ el.style.display="none"; return; }
   el.style.display="";
@@ -862,6 +869,47 @@ document.getElementById("dest-select").addEventListener("change", e=>{
   const d=allDestinations()[Number(e.target.value)];
   if(d) stageDestination(d.address);
 });
+function openSaveDestinationModal(address){
+  const wrap=document.createElement("div");
+  wrap.className="modal-bg";
+  const suggested=(address.split(",")[0] || "Cil").trim();
+  wrap.innerHTML=`<div class="modal save-dest-modal">
+    <button class="modal-x" type="button" id="sd-x" aria-label="Zavrit">x</button>
+    <h3>Ulozit lokalitu</h3>
+    <p class="hint">${esc(address)}</p>
+    <label>Nazev lokality</label>
+    <input id="sd-name" value="${esc(suggested)}" placeholder="Napr. prace, sklad, skolka">
+    <div class="msg err" id="sd-msg"></div>
+    <div class="actions">
+      <button class="btn-ghost" type="button" id="sd-cancel">Zrusit</button>
+      <button class="btn-add" type="button" id="sd-save">Ulozit</button>
+    </div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  const input=wrap.querySelector("#sd-name");
+  const save=()=>{
+    const name=input.value.trim();
+    if(!name){ wrap.querySelector("#sd-msg").textContent="Zadej nazev lokality."; return; }
+    savedDestinations = [{name, address}, ...savedDestinations.filter(x=>x.address!==address)].slice(0, 12);
+    saveDestinations(); renderSavedDestinations(); stageDestination(address);
+    document.getElementById("dest-msg").textContent="Adresa ulozena.";
+    close();
+  };
+  wrap.querySelector("#sd-x").onclick=close;
+  wrap.querySelector("#sd-cancel").onclick=close;
+  wrap.querySelector("#sd-save").onclick=save;
+  input.onkeydown=e=>{ if(e.key==="Enter") save(); };
+  input.focus();
+  input.select();
+}
+document.getElementById("dest-save").addEventListener("click", e=>{
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const v=selectedTypedAddress();
+  if(!v){ document.getElementById("dest-msg").textContent="Nejdriv vyber konkretni adresu z naseptavace."; return; }
+  openSaveDestinationModal(v);
+}, true);
 document.getElementById("dest-save").addEventListener("click", ()=>{
   const v=selectedTypedAddress();
   if(!v){ document.getElementById("dest-msg").textContent="Nejdřív vyber konkrétní adresu z našeptávače."; return; }

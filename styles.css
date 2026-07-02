@@ -82,6 +82,8 @@ main{width:100%; max-width:1900px; margin:0 auto; padding:24px var(--pad) 80px;}
 .pick{position:relative; overflow:hidden; background:var(--primary); color:#fff; border-radius:var(--r-lg); padding:28px 32px;
       display:flex; flex-direction:column; justify-content:space-between; min-height:196px; cursor:pointer; transition:.25s var(--ease); text-decoration:none;}
 .pick.aut{background:var(--accent);}
+.pick.is-loading{cursor:default; transform:none!important;}
+.pick.is-loading .badge{background:rgba(255,255,255,.22);}
 .pick:hover{transform:translateY(-3px); box-shadow:var(--sh-lg);}
 .pick .badge{align-self:flex-start; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
              text-transform:uppercase; letter-spacing:.06em; background:rgba(255,255,255,.18); padding:6px 12px; border-radius:var(--r-pill); color:#fff;}
@@ -355,9 +357,12 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .box-title svg{width:18px; height:18px;}
 .mortgage label{font-size:12px; color:var(--muted-fg); font-weight:700; display:inline-flex; align-items:center; gap:6px;}
 .commute-settings label{font-size:12px; color:var(--muted-fg); font-weight:700; display:inline-flex; align-items:center; gap:8px; flex:1 1 300px;}
-.dest-grid{display:grid; grid-template-columns:minmax(240px,1fr) minmax(240px,1fr) auto auto; gap:8px; align-items:end; width:100%;}
+.dest-grid{display:grid; grid-template-columns:minmax(220px,1fr) minmax(220px,1fr); gap:10px; align-items:end; width:100%;}
 .dest-grid label{display:flex; flex-direction:column; align-items:stretch; gap:4px; flex:none;}
 .dest-grid select{width:100%; border-radius:10px; min-height:36px; padding:7px 10px;}
+.dest-grid button{min-height:38px; justify-content:center;}
+.dest-grid #dest-save{grid-column:1; width:100%;}
+.dest-grid #dest-recalc{grid-column:2; width:100%;}
 .saved-dests{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
 .saved-dest{min-height:30px; padding:5px 9px; font-size:12px;}
 .saved-dest small{margin-left:6px; opacity:.8;}
@@ -539,7 +544,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .card-actions .btn-ghost,.card-actions .btn-add{min-height:38px; padding:8px 12px; font-size:13px;}
 .maplink{display:inline-flex; align-items:center; justify-content:center; text-decoration:none;}
 .inline-link{border:none; background:transparent; color:var(--primary); font:inherit; font-weight:800; padding:0; cursor:pointer;}
-.compare-modal{max-width:1280px;}
+.compare-modal{max-width:1320px; max-height:calc(100dvh - 64px); display:flex; flex-direction:column;}
 .compare-layout{display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:18px;}
 .compare-side{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); padding:14px; display:flex; flex-direction:column; gap:10px;}
 .compare-side h4{font-size:15px; margin-bottom:2px;}
@@ -553,7 +558,9 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .cmp-diff{display:block; margin-top:4px; font-size:11px; font-weight:850;}
 .cmp-diff.good{color:var(--ok);}
 .cmp-diff.bad{color:#ef4444;}
-.compare-scroll{max-height:68vh;}
+.compare-scroll{max-height:none; flex:1 1 auto; overflow:auto; border:1px solid var(--line); border-radius:var(--r);}
+.compare-scroll table{min-width:880px;}
+.compare-scroll thead th{position:sticky; top:0; z-index:1;}
 .cmp-title{font:inherit; font-size:13px; font-weight:950; color:var(--fg); background:transparent; border:none; padding:0; cursor:pointer; text-align:left; text-transform:uppercase;}
 .cmp-title:hover{color:var(--primary); text-decoration:underline;}
 .photo-count{position:absolute; right:14px; bottom:14px; z-index:4; border:none; border-radius:var(--r-pill); background:rgba(15,44,41,.78);
@@ -623,6 +630,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   .search-grid label:first-child{grid-column:1/-1;}
   .search-grid .btn-add{grid-column:1/-1;}
   .dest-grid{grid-template-columns:1fr;}
+  .dest-grid #dest-save,.dest-grid #dest-recalc{grid-column:auto;}
   .map-layout{grid-template-columns:1fr;}
   .map-layout{height:auto; min-height:0;}
   #map-modal-map{height:52dvh; min-height:320px;}
