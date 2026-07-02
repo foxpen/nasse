@@ -77,12 +77,13 @@ export async function handler(event) {
     if (!car && !transitGoogle) {
       return json(200, { error: 'no_key', message: 'Pro automatický výpočet nastav GOOGLE_MAPS_API_KEY, případně MAPY_API_KEY pro auto.' });
     }
+    const transitEstimate = transitGoogle?.minutes ?? (car?.minutes ? Math.max(car.minutes + 15, Math.round(car.minutes * 1.65)) : null);
     return json(200, {
       car: car?.minutes ?? null,
-      pt: transitGoogle?.minutes ?? null,
+      pt: transitEstimate,
       km: car?.km ?? null,
       dest,
-      source: { car: car?.source || null, pt: transitGoogle?.source || null },
+      source: { car: car?.source || null, pt: transitGoogle?.source || (transitEstimate ? 'estimate' : null) },
       lon: car?.lon, lat: car?.lat
     });
   } catch (e) {
