@@ -28,6 +28,7 @@ export async function handler(event) {
   try {
     const body = JSON.parse(event.body || '{}');
     const section = body.section || 'byd';
+    const dryRun = Boolean(body.dryRun);
     const rows = await sql`SELECT id, section, data FROM listings WHERE section = ${section} ORDER BY id`;
     const out = [];
     let updated = 0, unchanged = 0, errors = 0, notFound = 0;
@@ -45,16 +46,16 @@ export async function handler(event) {
           continue;
         }
         merged.history = [{ at: new Date().toISOString(), type: 'refresh', changes }, ...(Array.isArray(before.history) ? before.history : [])].slice(0, 30);
-        await sql`UPDATE listings SET data = ${merged} WHERE id = ${row.id}`;
+        if (!dryRun) await sql`UPDATE listings SET data = ${merged} WHERE id = ${row.id}`;
         updated++;
-        out.push({ id: row.id, n: merged.n || before.n, status: 'updated', changes: changes.length });
+        out.push({ id: row.id, n: merged.n || before.n, status: dryRun ? 'would_update' : 'updated', changes: changes.length });
       } catch (e) {
         const code = Number(e.status || 0);
         if (code === 404 || code === 410) notFound++; else errors++;
         out.push({ id: row.id, n: before.n, status: code === 404 || code === 410 ? 'not_found' : 'error', message: String(e?.message || e) });
       }
     }
-    return json(200, { ok: true, summary: { total: rows.length, updated, unchanged, errors, notFound }, items: out });
+    return json(200, { ok: true, dryRun, summary: { total: rows.length, updated, unchanged, errors, notFound }, items: out });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }

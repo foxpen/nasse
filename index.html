@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t=localStorage.getItem('nase.theme')||'system';if(t!=='system')document.documentElement.dataset.theme=t;})();</script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -23,6 +24,7 @@
 <script>(function(){var s=document.getElementById('splash');if(!s)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){s.remove();return;}setTimeout(function(){s.remove();},2750);})();</script>
 
 <main class="onboard">
+  <button class="theme-toggle onboard-theme" type="button" data-theme-toggle>System</button>
   <div class="ob-inner">
     <div class="ob-head">
       <div class="logo reveal" style="animation-delay:.02s" aria-hidden="true">
@@ -59,6 +61,21 @@
 </main>
 
 <script src="auth.js"></script>
+<script>
+function initThemeToggle(){
+  const labels={system:"System", light:"Svetly", dark:"Tmavy"};
+  const apply=mode=>{
+    if(mode==="system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.dataset.theme=mode;
+    localStorage.setItem("nase.theme", mode);
+    document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.textContent=labels[mode]||"System");
+  };
+  let mode=localStorage.getItem("nase.theme")||"system";
+  apply(mode);
+  document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.addEventListener("click",()=>{ mode=mode==="system"?"light":(mode==="light"?"dark":"system"); apply(mode); }));
+}
+initThemeToggle();
+</script>
 <script>(async function(){
   try{
     await window.naseAuthReady;

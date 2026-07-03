@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t=localStorage.getItem('nase.theme')||'system';if(t!=='system')document.documentElement.dataset.theme=t;})();</script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-auto">
@@ -45,6 +46,7 @@
       <span class="t">Naše</span>
     </a>
     <div class="spacer"></div>
+    <button class="theme-toggle" type="button" data-theme-toggle>System</button>
     <nav class="switch" aria-label="Sekce">
       <a href="bydleni.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
       <a href="auta.html" class="active aut" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
@@ -378,6 +380,19 @@ document.getElementById("filters").addEventListener("click", e=>{
 });
 document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderCards(); renderTable(); });
 document.getElementById("btn-add").addEventListener("click", openAdd);
+function initThemeToggle(){
+  const labels={system:"System", light:"Svetly", dark:"Tmavy"};
+  const apply=mode=>{
+    if(mode==="system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.dataset.theme=mode;
+    localStorage.setItem("nase.theme", mode);
+    document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.textContent=labels[mode]||"System");
+  };
+  let mode=localStorage.getItem("nase.theme")||"system";
+  apply(mode);
+  document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.addEventListener("click",()=>{ mode=mode==="system"?"light":(mode==="light"?"dark":"system"); apply(mode); }));
+}
+initThemeToggle();
 window.naseAuthReady.then(loadData);
 </script>
 </body>

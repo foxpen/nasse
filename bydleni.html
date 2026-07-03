@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script>(function(){var t=localStorage.getItem('nase.theme')||'system';if(t!=='system')document.documentElement.dataset.theme=t;})();</script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -37,6 +38,7 @@
     </a>
     <div class="spacer"></div>
     <button class="top-map-btn" type="button" id="map-open">Mapa</button>
+    <button class="theme-toggle" type="button" data-theme-toggle>System</button>
     <nav class="switch" aria-label="Sekce">
       <a href="bydleni.html" class="active" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
       <a href="auta.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
@@ -115,15 +117,30 @@
   <section class="search-panel" id="search-panel" hidden>
     <div class="box-title">Vyhledávač realit</div>
     <div class="search-grid">
-      <label>Lokalita <input id="s-locality" list="s-locality-options" value="Praha" placeholder="Praha, Nymburk, Kolín..."><datalist id="s-locality-options"></datalist></label>
-      <fieldset class="search-types"><legend>Typ</legend><label><input type="checkbox" id="s-type-byt" checked> Byty</label><label><input type="checkbox" id="s-type-dum"> Domy</label></fieldset>
-      <label>Dispozice <input id="s-disp" placeholder="3+kk, 4+kk"></label>
-      <label>Cena od <input id="s-price-from" type="number" inputmode="numeric" placeholder="6000000"></label>
-      <label>Cena do <input id="s-price-to" type="number" inputmode="numeric" placeholder="9000000"></label>
-      <label>Plocha od <input id="s-area-from" type="number" inputmode="numeric" placeholder="60"></label>
-      <label>Plocha do <input id="s-area-to" type="number" inputmode="numeric" placeholder="140"></label>
-      <label>Limit <input id="s-limit" type="number" min="1" max="12" value="8"></label>
-      <button class="btn-add" type="button" id="s-run">Vyhledat</button>
+      <label class="wide">Lokalita <input id="s-locality" list="s-locality-options" value="Praha" placeholder="Praha, Nymburk, Kolín..."><datalist id="s-locality-options"></datalist></label>
+      <fieldset class="search-types mid"><legend>Typ</legend><label><input type="checkbox" id="s-type-byt" checked> Byty</label><label><input type="checkbox" id="s-type-dum"> Domy</label></fieldset>
+      <label class="mid">Druh domu <select id="s-house-kind"><option value="family" selected>Rodinné / řadové</option><option value="family-villa">Rodinné + vily</option><option value="all">Vše v domech</option></select></label>
+      <label class="mid">Dispozice <input id="s-disp" placeholder="3+kk, 4+kk"></label>
+      <label class="mid">Cena od <input id="s-price-from" type="number" inputmode="numeric" placeholder="6000000"></label>
+      <label class="mid">Cena do <input id="s-price-to" type="number" inputmode="numeric" placeholder="9000000"></label>
+      <label class="mid">Užitná od <input id="s-area-from" type="number" inputmode="numeric" placeholder="60"></label>
+      <label class="mid">Užitná do <input id="s-area-to" type="number" inputmode="numeric" placeholder="140"></label>
+      <label class="mid">Pozemek od <input id="s-plot-from" type="number" inputmode="numeric" placeholder="120"></label>
+      <label class="mid">Zahrada od <input id="s-garden-from" type="number" inputmode="numeric" placeholder="40"></label>
+      <label class="mid">Dojezd autem do <input id="s-car-to" type="number" inputmode="numeric" placeholder="60"></label>
+      <label class="mid">PENB max <select id="s-energy-max"><option value="">neresit</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></label>
+      <label class="mid">Stav <select id="s-ready"><option value="">neresit</option><option value="ready">k nastehovani</option><option value="build">ve vystavbe</option></select></label>
+      <label class="small">Limit <input id="s-limit" type="number" min="1" max="24" value="12"></label>
+      <button class="btn-add search-run" type="button" id="s-run">Vyhledat</button>
+      <div class="search-flags">
+        <span>Vybaveni</span>
+        <label><input type="checkbox" id="s-exclude-recreation" checked> bez chat/chalup</label>
+        <label><input type="checkbox" id="s-terrace"> terasa</label>
+        <label><input type="checkbox" id="s-balcony"> balkon/lodzie</label>
+        <label><input type="checkbox" id="s-garage"> garaz</label>
+        <label><input type="checkbox" id="s-parking"> parkovani</label>
+        <label><input type="checkbox" id="s-photos" checked> jen s fotkami</label>
+      </div>
     </div>
     <div class="msg" id="s-msg"></div>
   </section>
@@ -192,6 +209,24 @@ const I = {
   arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
 };
+
+function initThemeToggle(){
+  const labels={system:"System", light:"Svetly", dark:"Tmavy"};
+  const apply=mode=>{
+    if(mode==="system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.dataset.theme=mode;
+    localStorage.setItem("nase.theme", mode);
+    document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.textContent=labels[mode]||"System");
+  };
+  let mode=localStorage.getItem("nase.theme")||"system";
+  apply(mode);
+  document.querySelectorAll("[data-theme-toggle]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      mode = mode==="system" ? "light" : (mode==="light" ? "dark" : "system");
+      apply(mode);
+    });
+  });
+}
 
 const API = "/.netlify/functions";
 let DATA = [];
@@ -949,6 +984,7 @@ document.getElementById("refresh-all").addEventListener("click", refreshAllListi
 document.getElementById("s-run").addEventListener("click", async()=>{
   const msg=document.getElementById("s-msg");
   const val=id=>document.getElementById(id).value.trim();
+  const checked=id=>document.getElementById(id)?.checked || false;
   msg.className="msg"; msg.textContent="Vyhledávám na Srealitách a přidávám kandidáty…";
   showRecalcModal("Vyhledávám nemovitosti…", 8, "Stahuji výsledky ze Srealit a připravuji kandidáty.");
   try{
@@ -956,13 +992,20 @@ document.getElementById("s-run").addEventListener("click", async()=>{
       locality:val("s-locality"),
       types:[document.getElementById("s-type-byt").checked?'byt':'', document.getElementById("s-type-dum").checked?'dum':''].filter(Boolean),
       disp:val("s-disp"), priceFrom:val("s-price-from"), priceTo:val("s-price-to"),
-      areaFrom:val("s-area-from"), areaTo:val("s-area-to"), limit:val("s-limit"), commuteDest
+      areaFrom:val("s-area-from"), areaTo:val("s-area-to"), limit:val("s-limit"), commuteDest,
+      plotFrom:val("s-plot-from"), gardenFrom:val("s-garden-from"), carTo:val("s-car-to"),
+      energyMax:val("s-energy-max"), ready:val("s-ready"), houseKind:val("s-house-kind"),
+      excludeRecreation:checked("s-exclude-recreation"), photosOnly:checked("s-photos"),
+      features:{
+        terrace:checked("s-terrace"), balcony:checked("s-balcony"),
+        garage:checked("s-garage"), parking:checked("s-parking")
+      }
     };
     const r=await fetch(API+"/search-listings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
     const j=await r.json();
     if(!r.ok) throw new Error(j.message||j.error||"vyhledávání selhalo");
     msg.className="msg ok";
-    msg.textContent=`Přidáno ${j.added.length} kandidátů. Nalezeno ${j.found}, přeskočeno ${j.skipped||0}, chyby ${j.errors.length}.`;
+    msg.textContent=`Přidáno ${j.added.length} kandidátů. Nalezeno ${j.found}, filtrem vyřazeno ${(j.filtered||[]).length}, přeskočeno ${j.skipped||0}, chyby ${j.errors.length}.`;
     await loadData();
     view='cand'; applyView(); renderAll();
   }catch(e){
@@ -1454,6 +1497,7 @@ function openAdd(){
 }
 document.getElementById("btn-add").addEventListener("click", openAdd);
 
+initThemeToggle();
 window.naseAuthReady.then(loadData);
 </script>
 </body>

@@ -24,6 +24,63 @@ function buildUrl(q = {}, typeValue = 'byt') {
   return url.href;
 }
 
+const num = value => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const norm = value => String(value || '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase();
+
+function wantedDispositions(value) {
+  return norm(value)
+    .split(/[,\s;]+/)
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+
+function allowedByUrl(url, type, q = {}) {
+  const u = norm(url);
+  if (type === 'byt') return /\/detail\/prodej\/byt\//.test(u);
+  if (type !== 'dum') return true;
+  if (q.excludeRecreation !== false && /\/(chata|chalupa|rekreacni-objekt)\//.test(u)) return false;
+  if (q.houseKind === 'all') return /\/detail\/prodej\//.test(u);
+  if (q.houseKind === 'family-villa') return /\/detail\/prodej\/dum\/(rodinny|vila|radovy|dvojdum)/.test(u);
+  return /\/detail\/prodej\/dum\/(rodinny|radovy|dvojdum)/.test(u);
+}
+
+function energyRank(value) {
+  const letter = String(value || '').trim().toUpperCase()[0];
+  return 'ABCDEFG'.indexOf(letter);
+}
+
+function matchesFilters(data = {}, q = {}) {
+  if (!data || !data.n) return { ok: false, reason: 'bez dat' };
+  if (q.photosOnly && !(data.img || (Array.isArray(data.imgs) && data.imgs.length))) return { ok: false, reason: 'bez fotek' };
+  if (q.priceFrom && num(data.price) < num(q.priceFrom)) return { ok: false, reason: 'cena pod limitem' };
+  if (q.priceTo && num(data.price) > num(q.priceTo)) return { ok: false, reason: 'cena nad limitem' };
+  if (q.areaFrom && num(data.area) < num(q.areaFrom)) return { ok: false, reason: 'mala plocha' };
+  if (q.areaTo && num(data.area) > num(q.areaTo)) return { ok: false, reason: 'velka plocha' };
+  if (q.plotFrom && num(data.plotArea) < num(q.plotFrom)) return { ok: false, reason: 'maly pozemek' };
+  if (q.gardenFrom && num(data.gardenArea) < num(q.gardenFrom)) return { ok: false, reason: 'mala zahrada' };
+  if (q.carTo && num(data.car) && num(data.car) > num(q.carTo)) return { ok: false, reason: 'dojezd nad limitem' };
+  if (q.ready === 'ready' && !data.ready) return { ok: false, reason: 'neni k nastehovani' };
+  if (q.ready === 'build' && data.ready) return { ok: false, reason: 'neni ve vystavbe' };
+  if (q.energyMax) {
+    const actual = energyRank(data.en);
+    const max = energyRank(q.energyMax);
+    if (actual >= 0 && max >= 0 && actual > max) return { ok: false, reason: 'PENB mimo limit' };
+  }
+  const disp = wantedDispositions(q.disp);
+  if (disp.length && !disp.some(d => norm(data.disp).includes(d))) return { ok: false, reason: 'dispozice nesedi' };
+  const f = q.features && typeof q.features === 'object' ? q.features : {};
+  for (const key of ['terrace', 'balcony', 'garage', 'parking']) {
+    if (f[key] && !data[key]) return { ok: false, reason: `chybi ${key}` };
+  }
+  return { ok: true };
+}
+
 async function mapyGeocode(q) {
   if (!MAPY_KEY || !q) return null;
   const r = await fetch(`https://api.mapy.com/v1/geocode?lang=cs&limit=1&apikey=${MAPY_KEY}&query=${encodeURIComponent(q)}`);
@@ -67,7 +124,8 @@ export async function handler(event) {
 
   try {
     const q = JSON.parse(event.body || '{}');
-    const limit = Math.max(1, Math.min(12, Number(q.limit) || 8));
+    const dryRun = Boolean(q.dryRun);
+    const limit = Math.max(1, Math.min(24, Number(q.limit) || 12));
     const types = Array.isArray(q.types) && q.types.length ? q.types.filter(t => ['byt', 'dum'].includes(t)) : [q.type === 'dum' ? 'dum' : 'byt'];
     const perType = Math.max(1, Math.ceil(limit / Math.max(1, types.length)));
     const links = [];
@@ -78,31 +136,42 @@ export async function handler(event) {
       const res = await fetch(searchUrl, { headers: { 'user-agent': UA, accept: 'text/html' } });
       if (!res.ok) continue;
       const html = await res.text();
-      links.push(...detailLinks(html, perType));
+      links.push(...detailLinks(html, perType * 3).filter(url => allowedByUrl(url, type, q)));
     }
-    const limitedLinks = [...new Set(links)].slice(0, limit);
-    const existingRows = await sql`SELECT data FROM listings WHERE section = 'byd'`;
+    const limitedLinks = [...new Set(links)].slice(0, limit * 2);
+    const existingRows = dryRun ? [] : await sql`SELECT data FROM listings WHERE section = 'byd'`;
     const existing = new Set(existingRows.map(r => r.data?.url).filter(Boolean));
     const added = [];
     const errors = [];
+    const filtered = [];
 
     for (const url of limitedLinks) {
+      if (added.length >= limit) break;
       if (existing.has(url)) continue;
       try {
         const extracted = await extractUrl(url);
         const commutePatch = q.commuteDest ? await commute(extracted.data?.origin || extracted.data?.n, q.commuteDest) : {};
         const data = { ...(extracted.data || {}), ...commutePatch, status: 'candidate', sourceSearch: searchUrls.join('\n') };
+        const verdict = matchesFilters(data, q);
+        if (!verdict.ok) {
+          filtered.push({ url, reason: verdict.reason });
+          continue;
+        }
         const clean = cleanListing('byd', data);
         if (!clean) throw new Error('neplatná data');
-        const rows = await sql`INSERT INTO listings (section, data) VALUES ('byd', ${clean}) RETURNING id`;
-        existing.add(url);
-        added.push({ id: rows[0].id, n: clean.n, url });
+        let id = null;
+        if (!dryRun) {
+          const rows = await sql`INSERT INTO listings (section, data) VALUES ('byd', ${clean}) RETURNING id`;
+          id = rows[0].id;
+          existing.add(url);
+        }
+        added.push({ id, n: clean.n, url });
       } catch (e) {
         errors.push({ url, message: String(e?.message || e) });
       }
     }
 
-    return json(200, { searchUrl: searchUrls[0] || '', searchUrls, found: limitedLinks.length, added, skipped: limitedLinks.length - added.length - errors.length, errors });
+    return json(200, { dryRun, searchUrl: searchUrls[0] || '', searchUrls, found: limitedLinks.length, added, skipped: limitedLinks.length - added.length - errors.length - filtered.length, filtered, errors });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }
