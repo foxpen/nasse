@@ -2,7 +2,7 @@
 
 Soukroma webova aplikace pro vyber a porovnavani nemovitosti. Bezi jako staticky frontend na Netlify, data drzi v Neon Postgres a prakticke veci kolem importu, dojezdu, vyhledavani a refreshu resi Netlify Functions.
 
-Aktualni verze: `1.1.0`.
+Aktualni verze: `1.2.0`.
 
 ## Co umi
 
@@ -10,15 +10,18 @@ Aktualni verze: `1.1.0`.
 - import z `sreality.cz` a `bezrealitky.cz`,
 - samostatne pole pro adresu, nazev, uzitnou plochu, pozemek, zahradu, terasu, balkon/lodzii, garaz, parkovani, PENB, stav a kontakt,
 - galerie fotek v detailu, sipky mezi fotkami a proxy cache obrazku pres Netlify funkci,
+- deduplikace fotek z importu a klientska cache `image-proxy` odpovedi pres service worker,
 - detail nemovitosti s mapou, trasou autem, trasou MHD a odkazem na puvodni inzerat,
+- detail nemovitosti jako rozhodovaci panel s plusy, riziky, financemi, dojezdem a mapou,
 - hypotecni kalkulacka s fixaci, urokem, dobou, procentem pujcky a pojistenim,
 - automaticky prepocet mesicni splatky na kartach,
+- nastavitelne vahy score pro cenu, plochu, venkovni prostor, dojezd, stav, splatku a PENB,
 - ulozene cile dojezdu, naseptavac adres pres Mapy API a rucni prepocet po kliknuti,
 - Google Maps odkazy na trasu autem i MHD,
 - mapa nemovitosti s body podle score,
 - porovnavaci rezim az pro 3 nemovitosti,
 - tabulka s razenim podle sloupcu,
-- vyhledavac realit jako kandidatni pohled, vcetne hromadneho pridavani kandidatu,
+- vyhledavac realit jako kandidatni pohled, vcetne hromadneho pridavani kandidatu, preset filtru a ukladani vlastnich hledani,
 - refresh inzeratu a mazani nenalezenych nabidek,
 - jednoduche heslo pred vstupem do aplikace.
 
@@ -40,6 +43,7 @@ Frontend je bez build kroku. Hlavni soubory:
 - `bydleni.html` - hlavni aplikace pro nemovitosti,
 - `auta.html` - starsi sekce pro auta,
 - `styles.css` - sdilene styly,
+- `sw.js` - klientska cache fotek z `image-proxy`,
 - `netlify/functions/*` - API funkce,
 - `db/schema.sql` - zakladni DB schema.
 
@@ -90,7 +94,7 @@ npx netlify deploy --prod --dir .
 
 ## Poznamky k importu fotek
 
-Fotky se ukladaji jako puvodni URL z inzeratu, ale aplikace je zobrazuje pres `image-proxy`. Tim se snizi zavislost UI na hotlinku, obrazky se cacheuji na Netlify/CDN a duplicity z galerie se filtrují podle URL bez velikostnich parametru.
+Fotky se ukladaji jako puvodni URL z inzeratu, ale aplikace je zobrazuje pres `image-proxy`. Tim se snizi zavislost UI na hotlinku, obrazky se cacheuji na Netlify/CDN i v prohlizeci pres `sw.js` a duplicity z galerie se filtruji podle URL bez velikostnich parametru. Import navic zahazuje typicka loga, avatary, placeholdery a staticke obrazky webu.
 
 Neni to plnohodnotne trvale uloziste souboru. Pokud ma byt kazda fotka fyzicky ulozena a mazana spolu s nemovitosti, dalsi krok je pridat objektove uloziste typu Cloudinary, Uploadcare, S3/R2 nebo Supabase Storage.
 

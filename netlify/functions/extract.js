@@ -38,10 +38,23 @@ function cleanImageUrl(url) {
   return /^https?:\/\//i.test(out) ? out : '';
 }
 
+function isBadImageUrl(url) {
+  const s = String(url || '').toLowerCase();
+  return !s
+    || /logo|avatar|icon|sprite|map|marker|agency|reality-logo|watermark/.test(s)
+    || /\/_next\/static\//.test(s)
+    || /favicon|placeholder|default-image|no-photo/.test(s);
+}
+
 function imageKey(url) {
   try {
     const u = new URL(url);
-    return u.hostname.replace(/^www\./, '') + u.pathname.replace(/\/media\/cache\/[^/]+\//, '/media/cache/');
+    let path = u.pathname
+      .replace(/\/media\/cache\/[^/]+\//, '/media/cache/')
+      .replace(/\/data\/images\/advert\/[^/]+\/\d+\/(\d+)-[^/]+$/i, '/data/images/advert/$1')
+      .replace(/\/d_18\/c_img_[^/]+\/([^/?]+)$/i, '/d_18/$1')
+      .replace(/\.(?:jpg|jpeg|png|webp)$/i, '');
+    return u.hostname.replace(/^www\./, '') + path;
   } catch {
     return url.split('?')[0];
   }
@@ -52,7 +65,7 @@ function uniqueImages(urls, limit = 30) {
   const out = [];
   for (const raw of urls) {
     const url = cleanImageUrl(raw);
-    if (!url || /logo|avatar|icon|map|sprite/i.test(url)) continue;
+    if (!url || isBadImageUrl(url)) continue;
     const key = imageKey(url);
     if (seen.has(key)) continue;
     seen.add(key);
@@ -73,7 +86,7 @@ function imagesFrom(html, primary = '', limit = 30) {
   const found = [];
   const add = value => {
     const url = cleanImageUrl(value);
-    if (!url || /logo|avatar|icon|map|sprite/i.test(url)) return;
+    if (!url || isBadImageUrl(url)) return;
     found.push(url);
   };
   add(primary);
@@ -170,15 +183,34 @@ function refValue(cache, value) {
   return value;
 }
 
+function imageUrlFromObject(img) {
+  if (!img || typeof img !== 'object') return '';
+  const direct = getAny(img, [
+    'url({"filter":"RECORD_MAIN"})',
+    'url({"filter":"RECORD_DETAIL"})',
+    'url({"filter":"RECORD_THUMB"})',
+    'url',
+    'path'
+  ]);
+  if (direct) return direct;
+  for (const value of Object.values(img)) {
+    if (typeof value === 'string' && /^https?:\/\//i.test(value)) return value;
+  }
+  return '';
+}
+
 function bezImages(adv, cache, html) {
   const urls = [];
   const main = refValue(cache, adv.mainImage);
-  if (main) urls.push(getAny(main, ['url', 'url({"filter":"RECORD_MAIN"})', 'url({"filter":"RECORD_THUMB"})']));
+  if (main) urls.push(imageUrlFromObject(main));
   for (const item of (adv.publicImages || [])) {
     const img = refValue(cache, item);
-    if (img) urls.push(getAny(img, ['url', 'url({"filter":"RECORD_MAIN"})', 'url({"filter":"RECORD_THUMB"})']));
+    if (img) urls.push(imageUrlFromObject(img));
   }
-  return uniqueImages(urls.length ? urls : imagesFrom(html, '', 30), 30);
+  const cleaned = uniqueImages(urls, 36);
+  if (cleaned.length) return cleaned;
+  return imagesFrom(html, '', 30)
+    .filter(u => /\/media\/cache\/record_|\/data\/images\/advert\//i.test(u));
 }
 
 function firstM2(source, prefix = '') {
