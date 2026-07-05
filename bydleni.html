@@ -119,9 +119,17 @@
     <div class="search-presets" id="search-presets"></div>
     <div class="search-grid">
       <label class="wide">Lokalita <input id="s-locality" list="s-locality-options" value="Praha" placeholder="Praha, Nymburk, Kolín..."><datalist id="s-locality-options"></datalist></label>
-      <fieldset class="search-types mid"><legend>Typ</legend><label><input type="checkbox" id="s-type-byt" checked> Byty</label><label><input type="checkbox" id="s-type-dum"> Domy</label></fieldset>
-      <label class="mid">Druh domu <select id="s-house-kind"><option value="family" selected>Rodinné / řadové</option><option value="family-villa">Rodinné + vily</option><option value="all">Vše v domech</option></select></label>
-      <label class="mid">Dispozice <input id="s-disp" placeholder="3+kk, 4+kk"></label>
+      <fieldset class="search-types wide"><legend>Kategorie</legend><label><input type="checkbox" id="s-type-byt" checked> Byty</label><label><input type="checkbox" id="s-type-dum"> Domy</label></fieldset>
+      <label class="mid" id="s-house-kind-wrap">Druh domu <select id="s-house-kind"><option value="family" selected>Rodinné / řadové</option><option value="family-villa">Rodinné + vily</option></select></label>
+      <fieldset class="search-types disp-options wide"><legend>Dispozice</legend>
+        <label><input type="checkbox" name="s-disp" value="1+kk"> 1+kk</label>
+        <label><input type="checkbox" name="s-disp" value="2+kk"> 2+kk</label>
+        <label><input type="checkbox" name="s-disp" value="3+kk"> 3+kk</label>
+        <label><input type="checkbox" name="s-disp" value="3+1"> 3+1</label>
+        <label><input type="checkbox" name="s-disp" value="4+kk"> 4+kk</label>
+        <label><input type="checkbox" name="s-disp" value="4+1"> 4+1</label>
+        <label><input type="checkbox" name="s-disp" value="5+kk"> 5+kk</label>
+      </fieldset>
       <label class="mid">Cena od <input id="s-price-from" type="number" inputmode="numeric" placeholder="6000000"></label>
       <label class="mid">Cena do <input id="s-price-to" type="number" inputmode="numeric" placeholder="9000000"></label>
       <label class="mid">Užitná od <input id="s-area-from" type="number" inputmode="numeric" placeholder="60"></label>
@@ -129,17 +137,16 @@
       <label class="mid">Pozemek od <input id="s-plot-from" type="number" inputmode="numeric" placeholder="120"></label>
       <label class="mid">Zahrada od <input id="s-garden-from" type="number" inputmode="numeric" placeholder="40"></label>
       <label class="mid">Dojezd autem do <input id="s-car-to" type="number" inputmode="numeric" placeholder="60"></label>
-      <label class="mid">PENB max <select id="s-energy-max"><option value="">neresit</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></label>
-      <label class="mid">Stav <select id="s-ready"><option value="">neresit</option><option value="ready">k nastehovani</option><option value="build">ve vystavbe</option></select></label>
+      <label class="mid">PENB max <select id="s-energy-max"><option value="">Neřešit</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></label>
+      <label class="mid">Stav <select id="s-ready"><option value="">Neřešit</option><option value="ready">k nastěhování</option><option value="build">ve výstavbě</option></select></label>
       <label class="small">Limit <input id="s-limit" type="number" min="1" max="24" value="12"></label>
       <button class="btn-add search-run" type="button" id="s-run">Vyhledat</button>
       <div class="search-flags">
-        <span>Vybaveni</span>
-        <label><input type="checkbox" id="s-exclude-recreation" checked> bez chat/chalup</label>
+        <span>Vybavení</span>
         <label><input type="checkbox" id="s-terrace"> terasa</label>
-        <label><input type="checkbox" id="s-balcony"> balkon/lodzie</label>
-        <label><input type="checkbox" id="s-garage"> garaz</label>
-        <label><input type="checkbox" id="s-parking"> parkovani</label>
+        <label><input type="checkbox" id="s-balcony"> balkon/lodžie</label>
+        <label><input type="checkbox" id="s-garage"> garáž</label>
+        <label><input type="checkbox" id="s-parking"> parkování</label>
         <label><input type="checkbox" id="s-photos" checked> jen s fotkami</label>
       </div>
     </div>
@@ -151,22 +158,10 @@
     <div class="msg" id="s-msg"></div>
   </section>
 
-  <section class="score-settings" id="score-settings">
-    <div class="box-title">Váhy skóre</div>
-    <div class="score-weight-grid">
-      <label>Cena <input data-score-weight="price" type="range" min="0" max="10" step="1"></label>
-      <label>Plocha <input data-score-weight="area" type="range" min="0" max="10" step="1"></label>
-      <label>Zahrada/terasa <input data-score-weight="outdoor" type="range" min="0" max="10" step="1"></label>
-      <label>Dojezd <input data-score-weight="commute" type="range" min="0" max="10" step="1"></label>
-      <label>Stav <input data-score-weight="ready" type="range" min="0" max="10" step="1"></label>
-      <label>Splátka <input data-score-weight="mort" type="range" min="0" max="10" step="1"></label>
-      <label>PENB <input data-score-weight="energy" type="range" min="0" max="10" step="1"></label>
-    </div>
-  </section>
-
   <div class="sec-head">
     <h3>Nabídky</h3>
     <span class="count" id="count"></span>
+    <button class="btn-del bulk-candidates" type="button" id="bulk-delete-candidates" hidden>Smazat zobrazené kandidáty</button>
     <span class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do Jankovcovy 1522/53</span>
   </div>
   <div class="grid" id="cards"></div>
@@ -257,8 +252,6 @@ const DEST_KOZOMIN = "Kozomín 509, Kozomín";
 let commuteDest = localStorage.getItem("nase.commuteDest") || DEFAULT_DEST;
 let savedDestinations = JSON.parse(localStorage.getItem("nase.savedDestinations") || "[]");
 let suggestedDestinations = [];
-const DEFAULT_SCORE_WEIGHTS = {price:7, area:5, outdoor:6, commute:8, ready:4, mort:6, energy:2};
-let scoreWeights = {...DEFAULT_SCORE_WEIGHTS, ...JSON.parse(localStorage.getItem("nase.scoreWeights") || "{}")};
 const SEARCH_PRESETS = [
   {name:"Rodinné domy do 60 min", data:{types:["dum"], houseKind:"family", carTo:"60", excludeRecreation:true, photosOnly:true, limit:"12"}},
   {name:"Byty 3+kk", data:{types:["byt"], disp:"3+kk", excludeRecreation:true, photosOnly:true, limit:"12"}},
@@ -448,21 +441,15 @@ function scoreDetails(d){
   const mortRank=rankInfo(totalPay(d.dealPrice||d.price), K.map(x=>totalPay(x.dealPrice||x.price)), false);
   const gardens=K.filter(x=>x.gardenArea>0).length;
   const plots=K.filter(x=>x.plotArea>0).length;
-  const totalWeight = Object.values(scoreWeights).reduce((a,b)=>a+(Number(b)||0),0) || 1;
-  const withWeight = part => {
-    const weight = Number(scoreWeights[part.key]) || 0;
-    const max = Math.round((weight / totalWeight) * 100);
-    return {...part, max, got:Math.round(part.value * max), weight};
-  };
   const parts = [
-    withWeight({key:'price', label:'Cena za m²', value:priceScore, note:d.ppm ? `Tahle nabídka je ${priceRank.rank}. z ${priceRank.total} podle ceny za m². Má ${czk(d.ppm)} Kč/m², medián je ${czk(priceRank.median)} Kč/m².` : 'Chybí cena nebo plocha.'}),
-    withWeight({key:'area', label:'Užitná plocha domu/bytu', value:areaScore, note:d.area ? `Užitná plocha ${d.area} m² je ${areaRank.rank}. z ${areaRank.total}. Medián uložených nabídek je ${areaRank.median} m².` : 'Chybí užitná plocha.'}),
-    withWeight({key:'outdoor', label:'Pozemek / zahrada / terasa', value:outdoorScore, note:`Pozemek má ${d.plotArea?d.plotArea+' m²':'0 m²'}, zahradu ${d.gardenArea?d.gardenArea+' m²':'nemá'}. Z ${K.length} nabídek má zahradu ${gardens} a pozemek ${plots}.`}),
-    withWeight({key:'commute', label:'Dojezd', value:commuteScore, note:`Auto ${d.car?'~'+d.car+' min':'neznámé'} (${carRank.rank||'?'} z ${carRank.total||'?'}), MHD ${d.pt?'~'+d.pt+' min':'nepočítané / ruční'}. Kratší cesta zvedá skóre.`}),
-    withWeight({key:'ready', label:'Stav', value:readyScore, note:d.ready ? 'K nastěhování dostává plný počet.' : 'Výstavba má nižší skóre kvůli čekání a riziku termínu.'}),
-    withWeight({key:'mort', label:'Měsíční splátka', value:mortScore, note:`Splátka je ~${czk(totalPay(d.dealPrice||d.price))} Kč/měs, pořadí ${mortRank.rank}. z ${mortRank.total}. Změnou úroku nebo procenta půjčky se přepočítá i skóre.`}),
-    withWeight({key:'energy', label:'PENB', value:energyScore, note:d.en ? `Energetická třída ${d.en} pomáhá provozním nákladům.` : 'PENB není specifikovaný, proto dává jen neutrálně slabé body.'})
-  ].filter(p=>p.max>0);
+    {key:'price', label:'Cena za m²', value:priceScore, max:22, got:Math.round(priceScore*22), note:d.ppm ? `Tahle nabídka je ${priceRank.rank}. z ${priceRank.total} podle ceny za m². Má ${czk(d.ppm)} Kč/m², medián je ${czk(priceRank.median)} Kč/m².` : 'Chybí cena nebo plocha.'},
+    {key:'area', label:'Užitná plocha domu/bytu', value:areaScore, max:13, got:Math.round(areaScore*13), note:d.area ? `Užitná plocha ${d.area} m² je ${areaRank.rank}. z ${areaRank.total}. Medián uložených nabídek je ${areaRank.median} m².` : 'Chybí užitná plocha.'},
+    {key:'outdoor', label:'Pozemek / zahrada / terasa', value:outdoorScore, max:17, got:Math.round(outdoorScore*17), note:`Pozemek má ${d.plotArea?d.plotArea+' m²':'0 m²'}, zahradu ${d.gardenArea?d.gardenArea+' m²':'nemá'}. Z ${K.length} nabídek má zahradu ${gardens} a pozemek ${plots}.`},
+    {key:'commute', label:'Dojezd', value:commuteScore, max:22, got:Math.round(commuteScore*22), note:`Auto ${d.car?'~'+d.car+' min':'neznámé'} (${carRank.rank||'?'} z ${carRank.total||'?'}), MHD ${d.pt?'~'+d.pt+' min':'nepočítané / ruční'}. Kratší cesta zvedá skóre.`},
+    {key:'ready', label:'Stav', value:readyScore, max:9, got:Math.round(readyScore*9), note:d.ready ? 'K nastěhování dostává plný počet.' : 'Výstavba má nižší skóre kvůli čekání a riziku termínu.'},
+    {key:'mort', label:'Měsíční splátka', value:mortScore, max:13, got:Math.round(mortScore*13), note:`Splátka je ~${czk(totalPay(d.dealPrice||d.price))} Kč/měs, pořadí ${mortRank.rank}. z ${mortRank.total}. Změnou úroku nebo procenta půjčky se přepočítá i skóre.`},
+    {key:'energy', label:'PENB', value:energyScore, max:4, got:Math.round(energyScore*4), note:d.en ? `Energetická třída ${d.en} pomáhá provozním nákladům.` : 'PENB není specifikovaný, proto dává jen neutrálně slabé body.'}
+  ];
   return { parts, total: parts.reduce((sum,p)=>sum+p.got,0) };
 }
 function scoreProperty(d){
@@ -556,6 +543,11 @@ function renderCards(){
     ? (rows.length===1?" kandidát":(rows.length>=2&&rows.length<=4?" kandidáti":" kandidátů"))
     : (rows.length===1?" nabídka":(rows.length>=2&&rows.length<=4?" nabídky":" nabídek"));
   document.getElementById("count").textContent = rows.length + noun;
+  const bulk=document.getElementById("bulk-delete-candidates");
+  if(bulk) {
+    bulk.hidden = view !== 'cand' || !rows.length;
+    bulk.dataset.ids = rows.map(d=>d.id).join(",");
+  }
   document.getElementById("cards").innerHTML = rows.map(d=>{
     const isHouse = d.t==="dum";
     const isCand = d.status==='candidate';
@@ -901,6 +893,7 @@ function applyView(){
   const searchPanel=document.getElementById("search-panel"); if(searchPanel) searchPanel.hidden=!cv;
   const note=document.querySelector(".sec-head .note"); if(note) note.style.display = cv?'none':'';
   const h=document.querySelector(".sec-head h3"); if(h) h.textContent = cv?'Výsledky vyhledávání':'Nabídky';
+  const bulk=document.getElementById("bulk-delete-candidates"); if(bulk) bulk.hidden = !cv;
   document.getElementById("tab-kept").classList.toggle("on", !cv);
   document.getElementById("tab-cand").classList.toggle("on", cv);
 }
@@ -910,16 +903,17 @@ document.getElementById("tab-cand").addEventListener("click", ()=>{ view='cand';
 function searchFormData(){
   const val=id=>document.getElementById(id)?.value.trim() || "";
   const checked=id=>document.getElementById(id)?.checked || false;
+  const disp=[...document.querySelectorAll('input[name="s-disp"]:checked')].map(x=>x.value);
   return {
     locality:val("s-locality"),
     types:[checked("s-type-byt")?'byt':'', checked("s-type-dum")?'dum':''].filter(Boolean),
     houseKind:val("s-house-kind"),
-    disp:val("s-disp"),
+    disp:disp.join(","),
     priceFrom:val("s-price-from"), priceTo:val("s-price-to"),
     areaFrom:val("s-area-from"), areaTo:val("s-area-to"),
     plotFrom:val("s-plot-from"), gardenFrom:val("s-garden-from"), carTo:val("s-car-to"),
     energyMax:val("s-energy-max"), ready:val("s-ready"), limit:val("s-limit"),
-    excludeRecreation:checked("s-exclude-recreation"), photosOnly:checked("s-photos"),
+    excludeRecreation:true, photosOnly:checked("s-photos"),
     terrace:checked("s-terrace"), balcony:checked("s-balcony"), garage:checked("s-garage"), parking:checked("s-parking")
   };
 }
@@ -930,16 +924,18 @@ function applySearchData(data={}){
   check("s-type-byt", (data.types||[]).includes("byt"));
   check("s-type-dum", (data.types||[]).includes("dum"));
   set("s-house-kind", data.houseKind || "family");
-  ["disp","price-from","price-to","area-from","area-to","plot-from","garden-from","car-to","energy-max","ready","limit"].forEach(k=>{
+  const selectedDisp = String(data.disp || "").split(/[,\s;]+/).filter(Boolean);
+  document.querySelectorAll('input[name="s-disp"]').forEach(x=>x.checked = selectedDisp.includes(x.value));
+  ["price-from","price-to","area-from","area-to","plot-from","garden-from","car-to","energy-max","ready","limit"].forEach(k=>{
     const prop=k.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
     set("s-"+k, data[prop] || (k==="limit" ? "12" : ""));
   });
-  check("s-exclude-recreation", data.excludeRecreation !== false);
   check("s-photos", data.photosOnly !== false);
   check("s-terrace", data.terrace);
   check("s-balcony", data.balcony);
   check("s-garage", data.garage);
   check("s-parking", data.parking);
+  updateSearchTypeUi();
 }
 function renderSearchPresets(){
   const box=document.getElementById("search-presets");
@@ -963,20 +959,17 @@ document.getElementById("apply-saved-search").addEventListener("click", ()=>{
   if(i==="") return;
   applySearchData(savedSearches[Number(i)]?.data || {});
 });
-function initScoreWeights(){
-  document.querySelectorAll("[data-score-weight]").forEach(input=>{
-    const key=input.dataset.scoreWeight;
-    input.value=scoreWeights[key] ?? DEFAULT_SCORE_WEIGHTS[key] ?? 0;
-    input.addEventListener("input", ()=>{
-      scoreWeights[key]=Number(input.value)||0;
-      localStorage.setItem("nase.scoreWeights", JSON.stringify(scoreWeights));
-      DATA.forEach(d=>d.score=scoreProperty(d));
-      renderPick(); renderAll();
-    });
-  });
+function updateSearchTypeUi(){
+  const houses = document.getElementById("s-type-dum").checked;
+  const flats = document.getElementById("s-type-byt").checked;
+  const wrap = document.getElementById("s-house-kind-wrap");
+  if(wrap) wrap.hidden = !houses;
+  if(!houses && !flats) document.getElementById("s-type-byt").checked = true;
 }
 renderSearchPresets();
-initScoreWeights();
+document.getElementById("s-type-byt").addEventListener("change", updateSearchTypeUi);
+document.getElementById("s-type-dum").addEventListener("change", updateSearchTypeUi);
+updateSearchTypeUi();
 document.getElementById("dest-input").value = commuteDest;
 document.querySelector(".sec-head .note").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do ${esc(commuteDest)}`;
 function allDestinations(){
@@ -1268,6 +1261,30 @@ async function delById(id){
   loadData();
 }
 
+async function deleteMany(ids){
+  const list=(ids||[]).map(Number).filter(Boolean);
+  if(!list.length) return;
+  if(!confirm(`Smazat ${list.length} zobrazených kandidátů?`)) return;
+  showRecalcModal("Mažu kandidáty…", 5, "Odstraňuji vybrané výsledky vyhledávání.");
+  let done=0, failed=0;
+  for(const id of list){
+    try{
+      const r=await fetch(API+"/delete?id="+id,{method:"DELETE"});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      done++;
+    }catch(e){ failed++; }
+    showRecalcModal(`Mažu ${done+failed}/${list.length}`, ((done+failed)/list.length)*100, "Čistím kandidátní seznam.");
+  }
+  hideRecalcModal();
+  if(failed) alert(`Smazáno ${done}, nepovedlo se ${failed}.`);
+  await loadData();
+}
+
+document.getElementById("bulk-delete-candidates").addEventListener("click", e=>{
+  e.stopPropagation();
+  deleteMany(String(e.currentTarget.dataset.ids||"").split(","));
+});
+
 function editNote(id){
   const item=DATA.find(x=>x.id===id); if(!item) return;
   const wrap=document.createElement("div"); wrap.className="modal-bg";
@@ -1368,18 +1385,28 @@ function openGallery(id){
   wrap.innerHTML=`<div class="modal gallery-modal">
     <button class="modal-x" type="button" id="gal-x" aria-label="Zavřít">×</button>
     <h3>${esc(item.n)}</h3>
-    <div class="gallery-main"><img id="gal-main" src="${esc(viewImgs[0])}" alt="Foto · ${esc(item.n)}"></div>
-    <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-img="${esc(u)}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>
+    <div class="gallery-main"><img id="gal-main" src="${esc(viewImgs[0])}" alt="Foto · ${esc(item.n)}">${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="gal-prev" aria-label="Předchozí fotka">‹</button><button class="gallery-nav next" type="button" id="gal-next" aria-label="Další fotka">›</button>`:''}</div>
+    <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>
     <div class="actions"><button class="btn-ghost" type="button" id="gal-close">Zavřít</button></div>
   </div>`;
   document.body.appendChild(wrap);
   const close=()=>wrap.remove();
   wrap.querySelector("#gal-x").onclick=close;
   wrap.querySelector("#gal-close").onclick=close;
+  let photoIndex=0;
+  function setGalleryPhoto(i){
+    photoIndex=(i+viewImgs.length)%viewImgs.length;
+    wrap.querySelector("#gal-main").src=viewImgs[photoIndex];
+    const btns=[...wrap.querySelectorAll(".gallery-thumbs button")];
+    btns.forEach((x,idx)=>x.classList.toggle("on", idx===photoIndex));
+    btns[photoIndex]?.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"});
+  }
+  const prev=wrap.querySelector("#gal-prev"), next=wrap.querySelector("#gal-next");
+  if(prev) prev.onclick=()=>setGalleryPhoto(photoIndex-1);
+  if(next) next.onclick=()=>setGalleryPhoto(photoIndex+1);
   wrap.querySelector(".gallery-thumbs").addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b) return;
-    wrap.querySelector("#gal-main").src=b.dataset.img;
-    wrap.querySelectorAll(".gallery-thumbs button").forEach(x=>x.classList.toggle("on", x===b));
+    setGalleryPhoto(Number(b.dataset.i)||0);
   });
 }
 

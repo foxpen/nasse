@@ -20,7 +20,8 @@ function buildUrl(q = {}, typeValue = 'byt') {
   if (q.priceTo) url.searchParams.set('cena-do', q.priceTo);
   if (q.areaFrom) url.searchParams.set('plocha-od', q.areaFrom);
   if (q.areaTo) url.searchParams.set('plocha-do', q.areaTo);
-  if (q.disp) url.searchParams.set('velikost', q.disp);
+  const disp = wantedDispositions(q.disp);
+  if (disp.length === 1) url.searchParams.set('velikost', disp[0]);
   return url.href;
 }
 

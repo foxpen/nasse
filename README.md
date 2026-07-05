@@ -2,7 +2,7 @@
 
 Soukroma webova aplikace pro vyber a porovnavani nemovitosti. Bezi jako staticky frontend na Netlify, data drzi v Neon Postgres a prakticke veci kolem importu, dojezdu, vyhledavani a refreshu resi Netlify Functions.
 
-Aktualni verze: `1.2.0`.
+Aktualni verze: `1.2.1`.
 
 ## Co umi
 
@@ -15,7 +15,6 @@ Aktualni verze: `1.2.0`.
 - detail nemovitosti jako rozhodovaci panel s plusy, riziky, financemi, dojezdem a mapou,
 - hypotecni kalkulacka s fixaci, urokem, dobou, procentem pujcky a pojistenim,
 - automaticky prepocet mesicni splatky na kartach,
-- nastavitelne vahy score pro cenu, plochu, venkovni prostor, dojezd, stav, splatku a PENB,
 - ulozene cile dojezdu, naseptavac adres pres Mapy API a rucni prepocet po kliknuti,
 - Google Maps odkazy na trasu autem i MHD,
 - mapa nemovitosti s body podle score,
