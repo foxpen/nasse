@@ -87,8 +87,9 @@ a{color:inherit;}
 .top-map-btn{font:inherit; font-size:14px; font-weight:800; color:#fff; background:var(--primary); border:1px solid var(--primary);
   border-radius:var(--r-pill); padding:8px 16px; min-height:40px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:var(--sh-sm);}
 .top-map-btn:hover{filter:brightness(1.06);}
-.theme-toggle{font:inherit; font-size:13px; font-weight:850; color:var(--fg); background:var(--bg); border:1px solid var(--line-2);
-  border-radius:var(--r-pill); padding:8px 13px; min-height:40px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
+.theme-toggle{font:inherit; color:var(--fg); background:var(--bg); border:1px solid var(--line-2);
+  border-radius:999px; padding:0; width:40px; height:40px; min-width:40px; min-height:40px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:var(--sh-sm);}
+.theme-toggle svg{width:18px; height:18px;}
 .theme-toggle:hover{border-color:var(--primary); color:var(--primary);}
 
 /* ---------- controls (filter + sort) ---------- */
@@ -373,16 +374,16 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 /* ---------- mortgage calculator (Bydleníčko) ---------- */
 .settings-panel{display:grid; grid-template-columns:minmax(300px,.95fr) minmax(360px,1.25fr) minmax(240px,.58fr); gap:10px; margin:0 0 24px;
   background:color-mix(in srgb, var(--surface) 72%, var(--bg)); border:1px solid var(--line); border-radius:16px; padding:10px; box-shadow:var(--sh-sm);}
-.mortgage{display:flex; flex-wrap:wrap; align-items:center; gap:10px; background:var(--surface);
+.mortgage{display:flex; flex-wrap:wrap; align-content:flex-start; align-items:center; gap:10px; background:var(--surface);
   border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin:0; box-shadow:none;}
-.commute-settings{display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:var(--surface);
+.commute-settings{display:flex; flex-wrap:wrap; align-content:flex-start; align-items:center; gap:8px; background:var(--surface);
   border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin:0; box-shadow:none;}
-.recalc-panel{display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:var(--surface);
+.recalc-panel{display:grid; grid-template-columns:1fr; align-content:flex-start; align-items:start; gap:10px; background:var(--surface);
   border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin:0; box-shadow:none;}
 .mortgage .mlabel{display:inline-flex; align-items:center; gap:8px; font-weight:700;}
 .commute-settings .mlabel,.recalc-panel .mlabel{font-weight:800; color:var(--primary);}
 .mortgage .mlabel svg{width:18px;height:18px;color:var(--primary);}
-.box-title{display:flex; align-items:center; gap:8px; width:100%; font-size:14px; font-weight:950; color:var(--primary); padding-bottom:4px;}
+.box-title{display:flex; align-items:center; gap:8px; width:100%; min-height:24px; font-size:14px; font-weight:950; color:var(--primary); padding-bottom:4px;}
 .box-title svg{width:18px; height:18px;}
 .mortgage label{font-size:12px; color:var(--muted-fg); font-weight:700; display:inline-flex; align-items:center; gap:6px;}
 .commute-settings label{font-size:12px; color:var(--muted-fg); font-weight:700; display:inline-flex; align-items:center; gap:8px; flex:1 1 300px;}
@@ -395,30 +396,6 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .saved-dests{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
 .saved-dest{min-height:30px; padding:5px 9px; font-size:12px;}
 .saved-dest small{margin-left:6px; opacity:.8;}
-.search-panel{margin:0 0 24px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:16px; box-shadow:var(--sh-sm);}
-.search-presets{display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 12px;}
-.search-presets button{min-height:34px; padding:7px 11px; font-size:12.5px;}
-.search-grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:10px; align-items:end;}
-.search-grid label{display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--muted-fg); font-weight:850;}
-.search-grid input,.search-grid select{width:100%; min-height:40px; font:inherit; font-size:14px; font-weight:800; color:var(--fg); background:var(--bg); border:1px solid var(--line-2); border-radius:10px; padding:8px 11px;}
-.search-grid .wide{grid-column:span 3;}
-.search-grid .mid{grid-column:span 2;}
-.search-grid .small{grid-column:span 1;}
-.search-grid .full{grid-column:1/-1;}
-.search-types{border:1px solid var(--line-2); border-radius:10px; padding:7px 10px; min-height:40px; display:flex; align-items:center; gap:8px; background:var(--bg); flex-wrap:wrap;}
-.search-types legend{padding:0 4px; color:var(--muted-fg); font-size:12px; font-weight:850;}
-.search-types label{display:inline-flex; flex-direction:row; align-items:center; gap:5px; margin:0; color:var(--fg);}
-.search-types input{width:auto; min-height:0;}
-.disp-options{grid-column:span 4;}
-.disp-options label{background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:5px 8px; font-size:12px;}
-.search-flags{grid-column:1/-1; display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--bg); border:1px solid var(--line-2); border-radius:12px; padding:9px 10px;}
-.search-flags span{font-size:12px; color:var(--muted-fg); font-weight:900; margin-right:4px;}
-.search-flags label{display:inline-flex; flex-direction:row; align-items:center; gap:6px; margin:0; color:var(--fg); font-size:13px; font-weight:800;}
-.search-flags input{width:auto; min-height:0;}
-.search-grid .search-run{grid-column:span 2; min-height:42px; justify-content:center;}
-.search-save-row{display:grid; grid-template-columns:minmax(220px,1fr) auto auto; gap:8px; align-items:center; margin-top:12px;}
-.search-save-row select{width:100%; min-height:40px; font:inherit; font-size:14px; font-weight:800; color:var(--fg); background:var(--bg); border:1px solid var(--line-2); border-radius:10px; padding:8px 11px;}
-.bulk-candidates{margin-left:10px; min-height:30px; padding:6px 12px;}
 .decision-panel{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0;}
 .decision-panel h4{margin:0 0 6px; font-size:13px;}
 .decision-panel ul{margin:0; padding:0; list-style:none; display:grid; gap:5px;}
@@ -482,7 +459,8 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .saved-dests{display:flex; flex-wrap:wrap; gap:6px; flex:1 1 100%;}
 .saved-dest{max-width:100%; min-height:32px; padding:6px 10px; font-size:12px;}
 .saved-dest small{display:inline-block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; color:var(--muted-fg); margin-left:4px;}
-.compare-inline{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px; flex:1 1 100%; width:100%; padding:8px; margin-top:4px; background:var(--bg); border:1px solid var(--line); border-radius:12px;}
+.recalc-panel #compare-mode{justify-self:start; min-width:138px; min-height:38px; padding:8px 15px;}
+.compare-inline{display:grid; grid-template-columns:auto minmax(120px,1fr) auto; align-items:center; gap:8px; width:100%; padding:8px; margin:0; background:var(--bg); border:1px solid var(--line); border-radius:12px;}
 .compare-inline strong{font-size:13px; font-weight:950; justify-self:start;}
 .compare-inline .btn-add{justify-self:center; min-width:150px;}
 .compare-inline .btn-ghost{justify-self:end;}
@@ -492,7 +470,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .mort b{color:var(--primary); font-weight:800;}
 @media (max-width:1180px){ .settings-panel{grid-template-columns:1fr 1fr;} .recalc-panel{grid-column:1/-1;} }
 @media (max-width:980px){ .settings-panel{grid-template-columns:1fr;} .recalc-panel{grid-column:auto;} }
-@media (max-width:720px){ .search-save-row{grid-template-columns:1fr;} .decision-panel{grid-template-columns:1fr;} }
+@media (max-width:720px){ .decision-panel{grid-template-columns:1fr;} }
 @media (max-width:560px){ .mortgage .mnote{display:none;} .settings-panel{padding:8px;} .compare-inline{grid-template-columns:1fr;} .compare-inline strong,.compare-inline .btn-add,.compare-inline .btn-ghost{justify-self:stretch; justify-content:center;} }
 
 /* ---------- add / delete / modal ---------- */
@@ -579,30 +557,12 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .theme-auto .cardnote{border-left-color:var(--accent);}
 .modal textarea{resize:vertical; min-height:90px; line-height:1.5;}
 
-/* ---------- tabs: Naše / K roztřídění ---------- */
-.tabs{display:flex; gap:8px; margin:4px 0 18px; border-bottom:1px solid var(--line);}
-.tab{font:inherit; font-size:15px; font-weight:700; color:var(--muted-fg); background:none; border:none;
-  padding:10px 4px; margin-right:14px; cursor:pointer; border-bottom:3px solid transparent; transition:.2s var(--ease);}
-.tab:hover{color:var(--fg);}
-.tab.on{color:var(--primary); border-bottom-color:var(--primary);}
-.tab .cnt{font-size:12.5px; color:var(--muted-fg); font-weight:700; margin-left:4px;}
-.tab.on .cnt{color:var(--primary);}
-.scorebadge{position:absolute; top:12px; right:12px; z-index:3; font-size:12px; font-weight:800; color:#fff;
-  background:var(--primary); border-radius:var(--r-pill); padding:4px 10px; box-shadow:var(--sh);}
-.scorebadge.mid{background:var(--warn);}
 .score-pill{position:absolute; right:14px; top:48px; z-index:4; min-width:46px; height:36px; border:none; border-radius:var(--r-pill);
   display:flex; align-items:center; justify-content:center; color:#fff; font:inherit; font-size:16px; font-weight:1000; box-shadow:var(--sh); cursor:pointer;}
 .score-pill.good,.score-mini.good,.map-score.good{background:#16a34a;}
 .score-pill.mid,.score-mini.mid,.map-score.mid{background:#d97706;}
 .score-pill.bad,.score-mini.bad,.map-score.bad{background:#dc2626;}
 .score-mini{color:#fff; font-weight:900;}
-.cand-actions{display:flex; gap:8px; margin-top:14px;}
-.cand-actions button{flex:1; font:inherit; font-size:14px; font-weight:700; border-radius:var(--r-pill); padding:10px 12px; min-height:44px; cursor:pointer; border:1px solid var(--line-2);}
-.cand-take{background:var(--primary); color:#fff; border:none;}
-.cand-take:hover{background:var(--primary-700);}
-.cand-drop{background:transparent; color:var(--muted-fg);}
-.cand-drop:hover{color:#fff; background:#c0392b; border-color:#c0392b;}
-
 /* ---------- stav flags + domluvená cena ---------- */
 .flagchips{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 2px;}
 .flagchip{font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill); display:inline-flex; align-items:center; gap:4px;}
@@ -679,7 +639,6 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .map-head h3{font-size:18px; font-weight:800; margin-bottom:2px;}
 .map-head span{font-size:13px; color:var(--muted-fg); font-weight:600;}
 .map-head-actions{display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-left:auto;}
-.map-tabs{height:42px;}
 .map-layout{display:grid; grid-template-columns:minmax(0,1fr) 340px; height:min(64dvh,610px); min-height:430px;}
 #map,#map-modal-map{height:100%; min-height:0; background:var(--bg);}
 .map-side{border-left:1px solid var(--line); background:var(--surface); padding:16px; overflow:auto; min-height:0;}
@@ -720,11 +679,6 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .detail-listing{width:100%; margin-top:8px;}
 .penb-unknown{background:var(--bg); color:var(--muted-fg); border:1px solid var(--line);}
 @media (max-width:860px){
-  .search-grid{grid-template-columns:1fr 1fr;}
-  .search-grid .wide,.search-grid .mid,.search-grid .small,.search-grid .search-run{grid-column:span 1;}
-  .search-grid label:first-child{grid-column:1/-1;}
-  .search-flags{grid-column:1/-1;}
-  .search-grid .btn-add{grid-column:1/-1;}
   .dest-grid{grid-template-columns:1fr;}
   .dest-grid #dest-save,.dest-grid #dest-recalc{grid-column:auto;}
   .map-layout{grid-template-columns:1fr;}
@@ -804,7 +758,5 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   .card-metrics b{font-size:14px;}
   .controls{align-items:stretch;}
   .controls select,.controls .btn-add,.controls .btn-ghost{flex:1 1 auto;}
-  .search-grid{grid-template-columns:1fr;}
-  .search-grid .wide,.search-grid .mid,.search-grid .small,.search-grid .search-run{grid-column:1/-1;}
   .compare-scroll{max-height:72dvh;}
 }

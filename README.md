@@ -1,8 +1,8 @@
 # Nase Bydlenicko
 
-Soukroma webova aplikace pro vyber a porovnavani nemovitosti. Bezi jako staticky frontend na Netlify, data drzi v Neon Postgres a prakticke veci kolem importu, dojezdu, vyhledavani a refreshu resi Netlify Functions.
+Soukroma webova aplikace pro vyber a porovnavani nemovitosti. Bezi jako staticky frontend na Netlify, data drzi v Neon Postgres a prakticke veci kolem importu, dojezdu a refreshu resi Netlify Functions.
 
-Aktualni verze: `1.2.1`.
+Aktualni verze: `1.2.2`.
 
 ## Co umi
 
@@ -20,7 +20,6 @@ Aktualni verze: `1.2.1`.
 - mapa nemovitosti s body podle score,
 - porovnavaci rezim az pro 3 nemovitosti,
 - tabulka s razenim podle sloupcu,
-- vyhledavac realit jako kandidatni pohled, vcetne hromadneho pridavani kandidatu, preset filtru a ukladani vlastnich hledani,
 - refresh inzeratu a mazani nenalezenych nabidek,
 - jednoduche heslo pred vstupem do aplikace.
 
@@ -59,7 +58,6 @@ Vybrane funkce:
 - `delete-not-found` - smazani nenalezenych inzeratu,
 - `commute` - prepocet dojezdu,
 - `address-suggest` - naseptavac adres,
-- `search-listings` - vyhledani kandidatu na Srealitach,
 - `image-proxy` - proxy/cache fotek z inzeratu.
 
 ## Promenne prostredi
@@ -99,6 +97,5 @@ Neni to plnohodnotne trvale uloziste souboru. Pokud ma byt kazda fotka fyzicky u
 
 ## Co je dobre vedet
 
-- Vyhledavac realit pouziva verejne stranky Srealit, ne oficialni stabilni partnerske API.
 - MHD cas je dnes kombinace dostupnych dat a fallbacku na Google Maps odkaz; pro presne zive MHD by davalo smysl pridat placene Google Routes API.
 - Mapy.com API se pouziva pro geokodovani a auto trasu, odkazy pro uzivatele vedou do Google Maps.
