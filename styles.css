@@ -324,24 +324,103 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 @media (max-width:560px){ .grid{grid-template-columns:1fr;} .choices{grid-template-columns:1fr;} }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover,.choice:hover{transform:none;} .reveal{opacity:1!important;} .intro,.splash{display:none!important;} }
 
-/* ---------- auth gate ---------- */
-.auth-gate{position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; padding:22px;
-  background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(14px) saturate(130%);}
-.auth-box{width:100%; max-width:390px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
-  box-shadow:var(--sh-lg); padding:26px; display:flex; flex-direction:column; gap:10px;}
-.auth-mark{width:56px; height:56px; border-radius:16px; background:var(--primary); color:#fff; display:flex; align-items:center;
-  justify-content:center; font-weight:800; margin-bottom:4px;}
-.auth-box h2{font-size:24px; line-height:1.15; font-weight:800; letter-spacing:-.01em;}
-.auth-box p{font-size:14px; color:var(--muted-fg); margin-bottom:4px;}
+/* ---------- auth gate (split login: sekce vlevo, heslo vpravo) ---------- */
+.auth-gate{position:fixed; inset:0; z-index:2000; display:grid; grid-template-columns:1.05fr 1fr; background:var(--bg); overflow:auto;
+  --gp:#0F766E;
+  --clay-prim:10px 14px 26px color-mix(in srgb, var(--gp) 38%, transparent), inset 5px 6px 13px rgba(255,255,255,.26), inset -7px -8px 15px rgba(0,0,0,.3);
+  --clay-prim-press:inset 6px 7px 14px rgba(0,0,0,.4), inset -4px -5px 10px rgba(255,255,255,.16);
+  --clay-up:14px 18px 38px rgba(16,44,41,.18), inset 7px 8px 16px rgba(255,255,255,.92), inset -8px -9px 18px rgba(16,44,41,.07);
+  --clay-in:inset 5px 6px 12px rgba(16,44,41,.12), inset -4px -5px 10px rgba(255,255,255,.9);}
+@media (prefers-color-scheme: dark){
+  .auth-gate{
+    --clay-up:16px 20px 42px rgba(0,0,0,.55), inset 6px 7px 14px rgba(255,255,255,.05), inset -8px -9px 18px rgba(0,0,0,.5);
+    --clay-in:inset 5px 6px 12px rgba(0,0,0,.5), inset -4px -5px 10px rgba(255,255,255,.05);}
+}
+html[data-theme="light"] .auth-gate{
+  --clay-up:14px 18px 38px rgba(16,44,41,.18), inset 7px 8px 16px rgba(255,255,255,.92), inset -8px -9px 18px rgba(16,44,41,.07);
+  --clay-in:inset 5px 6px 12px rgba(16,44,41,.12), inset -4px -5px 10px rgba(255,255,255,.9);}
+html[data-theme="dark"] .auth-gate{
+  --clay-up:16px 20px 42px rgba(0,0,0,.55), inset 6px 7px 14px rgba(255,255,255,.05), inset -8px -9px 18px rgba(0,0,0,.5);
+  --clay-in:inset 5px 6px 12px rgba(0,0,0,.5), inset -4px -5px 10px rgba(255,255,255,.05);}
+
+/* levý panel — živý přehled sekcí */
+.ag-pitch{position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:center; gap:22px;
+  padding:clamp(28px,5vw,72px); background:linear-gradient(150deg,#0A403B 0%,#0C4B45 46%,#0A455C 100%); color:#fff;}
+/* lávová lampa — tři barvy sekcí pomalu plavou a přelévají se; aktivní se rozsvítí víc */
+.ag-lava{position:absolute; inset:0; pointer-events:none; filter:blur(64px) saturate(115%);}
+.ag-blob{position:absolute; border-radius:50%; opacity:.32; transition:opacity 1.4s var(--ease);}
+.ag-blob.on{opacity:.6;}
+.ag-blob.byd{width:54vmin; height:54vmin; left:-12%; top:-14%;
+  background:radial-gradient(circle at 35% 35%, #2DD4BF, #0F766E 72%); animation:agLava1 26s ease-in-out infinite;}
+.ag-blob.aut{width:48vmin; height:48vmin; right:-10%; top:24%;
+  background:radial-gradient(circle at 35% 35%, #38BDF8, #0369A1 72%); animation:agLava2 32s ease-in-out infinite;}
+.ag-blob.fin{width:46vmin; height:46vmin; left:16%; bottom:-16%;
+  background:radial-gradient(circle at 35% 35%, #FBBF24, #B45309 72%); animation:agLava3 38s ease-in-out infinite;}
+@keyframes agLava1{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(16vmin,13vmin) scale(1.14);} 66%{transform:translate(5vmin,27vmin) scale(.9);}}
+@keyframes agLava2{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(-15vmin,15vmin) scale(1.1);} 66%{transform:translate(-5vmin,-11vmin) scale(.92);}}
+@keyframes agLava3{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(15vmin,-13vmin) scale(1.08);} 66%{transform:translate(-11vmin,-5vmin) scale(.95);}}
+.ag-pitch>*:not(.ag-lava){position:relative; z-index:1;}
+.ag-head{display:flex; align-items:center; gap:12px; animation:agRise .55s var(--ease) .05s both;}
+.ag-mark{width:46px; height:46px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center;}
+.ag-mark svg{width:24px; height:24px;}
+.ag-wm{font-size:26px; font-weight:800; letter-spacing:-.02em;}
+.ag-tabs{display:flex; gap:8px; flex-wrap:wrap; animation:agRise .55s var(--ease) .12s both;}
+.ag-tab{font:inherit; font-size:13.5px; font-weight:800; display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.85);
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.16); border-radius:var(--r-pill); padding:9px 15px; min-height:40px;
+  cursor:pointer; transition:.22s var(--ease);}
+.ag-tab svg{width:16px; height:16px;}
+.ag-tab:hover{background:rgba(255,255,255,.22);}
+.ag-tab.on{background:#fff; border-color:#fff; color:var(--sec); transform:translateY(-1px);}
+.ag-body{min-height:270px; animation:agRise .55s var(--ease) .2s both; transition:opacity .3s var(--ease), transform .3s var(--ease);}
+.ag-body.ag-out{opacity:0; transform:translateX(-26px);}
+.ag-body.ag-enter{opacity:0; transform:translateX(30px); transition:none;}
+.ag-ic{width:64px; height:64px; border-radius:20px; display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.14); box-shadow:inset 0 0 0 1px rgba(255,255,255,.14); margin-bottom:14px;}
+.ag-ic svg{width:34px; height:34px;}
+.ag-body h2{font-size:clamp(26px,3.4vw,36px); font-weight:800; letter-spacing:-.02em; line-height:1.15;}
+.ag-body p{margin-top:8px; font-size:15px; line-height:1.55; font-weight:600; color:rgba(255,255,255,.82); max-width:46ch;}
+.ag-body ul{list-style:none; display:flex; flex-direction:column; gap:11px; margin-top:18px; padding:0;}
+.ag-body li{display:flex; align-items:center; gap:11px; font-size:14.5px; font-weight:700; animation:agRise .5s var(--ease) both;}
+.ag-body li:nth-child(1){animation-delay:.05s} .ag-body li:nth-child(2){animation-delay:.13s}
+.ag-body li:nth-child(3){animation-delay:.21s} .ag-body li:nth-child(4){animation-delay:.29s}
+.ag-dot{flex:0 0 auto; width:24px; height:24px; border-radius:9px; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center;}
+.ag-dot svg{width:13px; height:13px;}
+.ag-foot{font-size:12px; font-weight:700; letter-spacing:.03em; color:rgba(255,255,255,.6); animation:agRise .55s var(--ease) .28s both;}
+@keyframes agRise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+
+/* pravý panel — přihlášení */
+.ag-pane{display:flex; align-items:center; justify-content:center; padding:clamp(22px,4vw,56px);}
+.auth-box{width:100%; max-width:392px; background:var(--surface); border:0; border-radius:28px;
+  box-shadow:var(--clay-up); padding:clamp(26px,3vw,38px); display:flex; flex-direction:column; gap:10px;
+  animation:agRise .6s var(--ease) .15s both;}
+.auth-mark{width:56px; height:56px; border-radius:18px; background:var(--gp); color:#fff; display:flex; align-items:center;
+  justify-content:center; margin:0 auto 6px; box-shadow:var(--clay-prim); transition:background-color .9s var(--ease), box-shadow .9s var(--ease);}
+.auth-mark svg{width:28px; height:28px;}
+.auth-box h2{font-size:24px; line-height:1.15; font-weight:800; letter-spacing:-.01em; text-align:center;}
+.auth-box p{font-size:14px; color:var(--muted-fg); margin-bottom:4px; text-align:center;}
 .auth-box label{font-size:12.5px; font-weight:700; color:var(--muted-fg);}
-.auth-box input[type=password]{width:100%; font:inherit; color:var(--fg); background:var(--bg); border:1px solid var(--line-2);
-  border-radius:10px; padding:11px 12px; min-height:44px;}
+.auth-box input[type=password]{width:100%; font:inherit; color:var(--fg); background:var(--bg); border:0; border-radius:14px;
+  padding:12px 14px; min-height:46px; box-shadow:var(--clay-in); outline:none; transition:.16s var(--ease);}
+.auth-box input[type=password]:focus{box-shadow:var(--clay-in), 0 0 0 3px color-mix(in srgb,var(--gp) 28%, transparent);}
 .auth-check{display:flex; align-items:center; gap:9px; color:var(--fg)!important; font-size:14px!important; cursor:pointer; margin-top:2px;}
-.auth-check input{width:17px; height:17px; accent-color:var(--primary);}
-.auth-box button{font:inherit; font-weight:800; color:#fff; background:var(--primary); border:none; border-radius:var(--r-pill);
-  padding:11px 16px; min-height:46px; cursor:pointer; margin-top:4px;}
-.auth-box button:disabled{opacity:.72; cursor:wait;}
+.auth-check input{width:17px; height:17px; accent-color:var(--gp);}
+.auth-box button[type=submit]{font:inherit; font-weight:800; color:#fff; background:var(--gp); border:none; border-radius:var(--r-pill);
+  padding:12px 16px; min-height:48px; cursor:pointer; margin-top:4px; box-shadow:var(--clay-prim);
+  transition:transform .18s var(--ease), box-shadow .9s var(--ease), background-color .9s var(--ease);}
+.auth-box button[type=submit]:hover{transform:translateY(-2px);}
+.auth-box button[type=submit]:active{box-shadow:var(--clay-prim-press); transform:translateY(0);}
+.auth-box button:disabled{opacity:.72; cursor:wait; transform:none;}
 .auth-msg{min-height:18px; color:var(--warn); font-size:13px; font-weight:700;}
+@media (max-width:860px){
+  .auth-gate{display:block; overflow-y:auto;}
+  .ag-pitch{min-height:0; justify-content:flex-start; gap:18px; padding:26px 20px 30px;}
+  .ag-body{min-height:0;}
+  .ag-pane{padding:20px 16px 44px;}
+}
+@media (max-width:480px){
+  .ag-tab{font-size:12px; padding:8px 11px; gap:6px; min-height:36px;}
+  .ag-tab svg{width:14px; height:14px;}
+}
 
 /* ---------- landing splash (první načtení) ---------- */
 .splash{position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center;
