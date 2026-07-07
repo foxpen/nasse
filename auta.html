@@ -151,10 +151,10 @@ let CARS = [];
 const km = n => n.toLocaleString('cs-CZ');
 const RATE = 24.225; // kurz ČNB 19. 6. 2026: 1 EUR = 24,225 Kč
 // auta z DE mají price (€), česká mají czk (Kč) · sjednotíme:
-const pCzk = d => d.czk!=null ? d.czk : (d.price!=null ? Math.round(d.price*RATE/1000)*1000 : null);
-const pEur = d => d.price!=null ? d.price : (d.czk!=null ? Math.round(d.czk/RATE) : null);
-const czk = v => (v==null ? "?" : km(v)+" Kč");
-const eur = v => (v==null ? "?" : km(v)+" €");
+const pCzk = d => Number(d.czk)>0 ? Number(d.czk) : (Number(d.price)>0 ? Math.round(Number(d.price)*RATE/1000)*1000 : null);
+const pEur = d => Number(d.price)>0 ? Number(d.price) : (Number(d.czk)>0 ? Math.round(Number(d.czk)/RATE) : null);
+const czk = v => (v==null || Number(v)<=0 ? "?" : km(Number(v))+" Kč");
+const eur = v => (v==null || Number(v)<=0 ? "?" : km(Number(v))+" €");
 const { esc, jsstr, safeUrl } = window.Nase;
 const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
 const openUrl = window.Nase.openUrl;
@@ -228,8 +228,12 @@ function metricRank(id, getter, higher=true){
   return pos>=0 ? pos+1 : 0;
 }
 function topBadge(rank){ return rank>0 && rank<=3 ? `<i class="top-rank">TOP ${rank}</i>` : ""; }
+function isUsefulCarImage(url){
+  const s=String(url||"").toLowerCase();
+  return s && !/logo|favicon|placeholder|default-image|no-photo|bewertung|bewertungen|review|stars|rating|beste|google|facebook|trusted|autobazar|autoscout|mobile\.png/.test(s);
+}
 function carImages(d){
-  return (d.imgs&&d.imgs.length?d.imgs:[d.img]).filter(Boolean).map(safeUrl).filter(Boolean);
+  return (d.imgs&&d.imgs.length?d.imgs:[d.img]).filter(Boolean).map(safeUrl).filter(isUsefulCarImage);
 }
 
 function renderPick(){
@@ -258,8 +262,8 @@ function renderPick(){
 function renderKpis(){
   document.getElementById("kpi-count").textContent = CARS.length;
   const prices = CARS.map(pCzk).filter(p=>p!=null);
-  const lo=Math.round(Math.min(...prices)/1000), hi=Math.round(Math.max(...prices)/1000);
-  document.getElementById("kpi-range").innerHTML = km(lo)+'–'+km(hi)+' <span class="u">tis. Kč</span>';
+  const lo=prices.length?Math.round(Math.min(...prices)/1000):0, hi=prices.length?Math.round(Math.max(...prices)/1000):0;
+  document.getElementById("kpi-range").innerHTML = prices.length ? km(lo)+'–'+km(hi)+' <span class="u">tis. Kč</span>' : '?';
   document.getElementById("kpi-km").innerHTML = km(Math.min(...CARS.map(c=>c.km)))+' <span class="u">km</span>';
   const ys=CARS.map(c=>c.year).sort((a,b)=>a-b), m=Math.floor(ys.length/2);
   document.getElementById("kpi-year").textContent = ys.length%2 ? ys[m] : Math.round((ys[m-1]+ys[m])/2);
@@ -275,8 +279,9 @@ function renderCards(){
   document.getElementById("count").textContent = rows.length + (rows.length===1?" auto":(rows.length<5?" auta":" aut"));
   document.getElementById("cards").innerHTML = rows.map(d=>{
     const url = safeUrl(d.url);
-    const img = safeUrl(d.img);
-    const imgs = carImages(d).length;
+    const cardImgs = carImages(d);
+    const img = cardImgs[0] || "";
+    const imgs = cardImgs.length;
     const selecting=compareMode || deleteMode;
     const selected=deleteMode ? selectedDelete.has(d.id) : selectedCompare.has(d.id);
     return `<article class="card${d.win?' best':''}${selecting?' compare-select':''}${selected?' selected':''}" tabindex="0" role="button" aria-label="${esc(d.n)}, ${czk(pCzk(d))}"
@@ -304,13 +309,11 @@ function renderCards(){
           <span>${topBadge(metricRank(d.id, x=>x.km, false))}<b>${km(d.km||0)} km</b><small>nájezd</small></span>
           <span>${topBadge(metricRank(d.id, x=>x.kw, true))}<b>${d.kw||0} kW</b><small>výkon</small></span>
         </div>
-        <div class="chips">
+        <div class="chips auto-basic-chips">
           <span class="chip">${I.fuel}${d.awd?"4×4":"FWD"}</span>
           <span class="chip">${esc(d.fuel||'?')}</span>
-          <span class="chip">${esc(d.stav||'?')}</span>
           <span class="chip">${czk(monthlyCost(d))}/měs</span>
         </div>
-        <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${esc(f)}</span></li>`).join("")}</ul>
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
         <div class="card-actions">
           <button class="btn-add" type="button" onclick="event.stopPropagation();openDetail(${d.id})">Detail</button>
@@ -641,12 +644,11 @@ function openDetail(id){
     <button class="modal-x" type="button" id="detail-x" aria-label="Zavřít">×</button>
     <div class="detail-top">
       <div><h3>${esc(d.n)}</h3><p class="hint">${esc(d.variant||'')} · ${esc(carMade(d))} · ${km(d.km||0)} km · ${d.ps||0} PS</p></div>
-      <button class="map-score ${scoreClass(d.score)} score-detail-btn" type="button" id="detail-score">${d.score}</button>
     </div>
     <div class="detail-layout">
       <div class="auto-detail-media">
-        ${viewImgs.length?`<div class="gallery-main detail-gallery"><img id="detail-main" src="${esc(viewImgs[0])}" alt="Foto auta · ${esc(d.n)}">${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="detail-prev" aria-label="Předchozí fotka">‹</button><button class="gallery-nav next" type="button" id="detail-next" aria-label="Další fotka">›</button>`:''}</div>
-        <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>`:`<div class="gallery-main detail-gallery"><div class="state">Bez fotky</div></div>`}
+        ${viewImgs.length?`<div class="gallery-main detail-gallery"><img id="detail-main" src="${esc(viewImgs[0])}" alt="Foto auta · ${esc(d.n)}"><button class="map-score ${scoreClass(d.score)} score-detail-btn detail-photo-score" type="button" id="detail-score">${d.score}</button>${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="detail-prev" aria-label="Předchozí fotka">‹</button><button class="gallery-nav next" type="button" id="detail-next" aria-label="Další fotka">›</button>`:''}</div>
+        <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>`:`<div class="gallery-main detail-gallery"><button class="map-score ${scoreClass(d.score)} score-detail-btn detail-photo-score" type="button" id="detail-score">${d.score}</button><div class="state">Bez fotky</div></div>`}
         <div class="detail-map-actions">
           ${url?`<a class="btn-add" href="${esc(url)}" target="_blank" rel="noopener">Otevřít inzerát</a>`:''}
           <button class="btn-ghost" type="button" id="detail-note">Poznámka</button>
@@ -666,7 +668,7 @@ function openDetail(id){
           <div><dt>Palivo</dt><dd>${esc(d.fuel||'?')}</dd></div>
           <div><dt>Stav</dt><dd>${esc(d.stav||'?')}</dd></div>
         </dl>
-        ${(d.feats||[]).length?`<h4>Výbava / poznámky z inzerátu</h4><ul class="detail-feats">${d.feats.map(f=>`<li>${I.dot}<span>${esc(f)}</span></li>`).join("")}</ul>`:''}
+        ${(d.feats||[]).length?`<h4>Výbava / poznámky z inzerátu</h4><ul class="detail-feats">${d.feats.map(f=>`<li><span>${esc(f)}</span></li>`).join("")}</ul>`:''}
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
       </div>
     </div>

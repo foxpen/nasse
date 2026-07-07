@@ -43,6 +43,7 @@ function isBadImageUrl(url) {
   const s = String(url || '').toLowerCase();
   return !s
     || /logo|avatar|icon|sprite|map|marker|agency|reality-logo|watermark/.test(s)
+    || /bewertung|bewertungen|review|rating|stars|trusted|beste|autobazar|autoscout|google|facebook|mobile\.png/.test(s)
     || /cebia|autobezobav|affiliate|utm_/.test(s)
     || /\/_next\/static\//.test(s)
     || /favicon|placeholder|default-image|no-photo/.test(s);
@@ -51,6 +52,7 @@ function isBadImageUrl(url) {
 function imageKey(url) {
   try {
     const u = new URL(url);
+    if (/pics\.carcalc\.de$/i.test(u.hostname)) return u.href.split('&')[0];
     let path = u.pathname
       .replace(/\/media\/cache\/[^/]+\//, '/media/cache/')
       .replace(/\/data\/images\/advert\/[^/]+\/\d+\/(\d+)-[^/]+$/i, '/data/images/advert/$1')
