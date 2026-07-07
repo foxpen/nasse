@@ -27,6 +27,12 @@
     if (url) window.open(url, '_blank', 'noopener');
   }
 
+  // české skloňování počtů: plural(1,'vůz','vozy','vozů') → 'vůz'
+  function plural(n, one, few, many) {
+    n = Math.abs(Number(n) || 0);
+    return n === 1 ? one : (n >= 2 && n <= 4 ? few : many);
+  }
+
   function initThemeToggle() {
     const labels = { system: 'Systém', light: 'Světlý', dark: 'Tmavý' };
     const icons = {
@@ -54,5 +60,5 @@
     });
   }
 
-  window.Nase = { esc, jsstr, safeUrl, openUrl, initThemeToggle };
+  window.Nase = { esc, jsstr, safeUrl, openUrl, plural, initThemeToggle };
 })();

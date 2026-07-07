@@ -191,7 +191,7 @@
 <script src="auth.js"></script>
 <script src="app-utils.js"></script>
 <script>
-const { esc } = window.Nase;
+const { esc, plural } = window.Nase;
 const STORE = 'nase.finance.v1';
 const SESSION = 'nase.finance.unlocked.';
 const CATEGORIES = ['Bydlení','Jídlo','Auto / doprava','Děti','Pojištění','Splátky','Zábava','Zdraví','Rezerva / investice','Ostatní'];
@@ -332,8 +332,13 @@ function renderImports(){
   carSel.innerHTML = SOURCE.cars.length
     ? SOURCE.cars.map((x,i)=>`<option value="${i}">${esc(x.n||x.name||'Auto')} · ${money(carMonthlyCost(x))}/měs</option>`).join('')
     : '<option value="">\u017d\u00e1dn\u00e1 auta</option>';
-  document.getElementById('import-home-note').textContent = SOURCE.homes.length ? `Připraveno ${SOURCE.homes.length} nemovitostí. Splátka je orientačně 90 % ceny, 4,94 %, 30 let.` : 'Nemovitosti se nepodařilo načíst nebo nejsou uložené.';
-  document.getElementById('import-car-note').textContent = SOURCE.cars.length ? `Připraveno ${SOURCE.cars.length} aut. Provoz počítá palivo, servis, pojištění, pneu a dálniční známku.` : 'Auta se nepodařilo načíst nebo nejsou uložená.';
+  const nh = SOURCE.homes.length, nc = SOURCE.cars.length;
+  document.getElementById('import-home-note').textContent = nh
+    ? `${nh===1?'Připravena':(nh<5?'Připraveny':'Připraveno')} ${nh} ${plural(nh,'nemovitost','nemovitosti','nemovitostí')}. Splátka je orientačně 90 % ceny, 4,94 %, 30 let.`
+    : 'Nemovitosti se nepodařilo načíst nebo nejsou uložené.';
+  document.getElementById('import-car-note').textContent = nc
+    ? `${nc===1?'Připraveno':(nc<5?'Připravena':'Připraveno')} ${nc} ${plural(nc,'auto','auta','aut')}. Provoz počítá palivo, servis, pojištění, pneu a dálniční známku.`
+    : 'Auta se nepodařilo načíst nebo nejsou uložená.';
 }
 async function loadSourceListings(){
   try{
@@ -354,7 +359,8 @@ function renderKpis(){
   document.getElementById('kpi-balance').textContent = money(balance);
   document.getElementById('kpi-daily').textContent = money(daily);
   document.getElementById('budget-title').textContent = budget().name;
-  document.getElementById('budget-sub').textContent = `${budget().members.length} členů · úspora ${savings}% · ${budget().pin?'chráněno PINem':'bez PINu'}`;
+  const nm = budget().members.length;
+  document.getElementById('budget-sub').textContent = `${nm} ${plural(nm,'člen','členové','členů')} · úspora ${savings}% · ${budget().pin?'chráněno PINem':'bez PINu'}`;
   const bar = Math.max(0, Math.min(100, savings));
   document.getElementById('health-bar').style.width = bar + '%';
   document.getElementById('health-bar').className = savings < 5 ? 'bad' : (savings < 15 ? 'mid' : 'good');

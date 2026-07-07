@@ -70,6 +70,7 @@
 </main>
 
 <script src="auth.js"></script>
+<script src="app-utils.js"></script>
 <script>
 function initThemeToggle(){
   const labels={system:"Systém", light:"Světlý", dark:"Tmavý"};
@@ -95,6 +96,7 @@ function initThemeToggle(){
 initThemeToggle();
 </script>
 <script>(async function(){
+  const plural=window.Nase.plural;
   try{
     await window.naseAuthReady;
     const r=await fetch('/.netlify/functions/list'); if(!r.ok) return;
@@ -103,16 +105,16 @@ initThemeToggle();
     if(byd.length){
       const prices=byd.map(x=>x.price).filter(Boolean);
       const m=prices.length?(Math.min(...prices)/1e6).toFixed(2).replace('.',','):null;
-      document.getElementById('stat-byd').textContent = byd.length+' nemovitostí'+(m?' · od '+m+' mil. Kč':'');
+      document.getElementById('stat-byd').textContent = byd.length+' '+plural(byd.length,'nemovitost','nemovitosti','nemovitostí')+(m?' · od '+m+' mil. Kč':'');
     }
     if(aut.length){
-      document.getElementById('stat-aut').textContent = aut.length+' vozů';
+      document.getElementById('stat-aut').textContent = aut.length+' '+plural(aut.length,'vůz','vozy','vozů');
     }
   }catch(e){}
   try{
     const data=JSON.parse(localStorage.getItem('nase.finance.v1')||'null');
     const el=document.getElementById('stat-fin');
-    if(el && data?.budgets?.length) el.textContent = data.budgets.length+' rozpočet'+(data.budgets.length<5?'y':'ů');
+    if(el && data?.budgets?.length) el.textContent = data.budgets.length+' '+plural(data.budgets.length,'rozpočet','rozpočty','rozpočtů');
   }catch(e){}
 })();</script>
 </body>
