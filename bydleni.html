@@ -28,7 +28,7 @@
     <div class="intro-label">Naše Bydleníčko</div>
   </div>
 </div>
-<script>(function(){var i=document.getElementById('intro');if(!i)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){i.remove();return;}setTimeout(function(){i.remove();},2600);})();</script>
+<script>(function(){var i=document.getElementById('intro');if(!i)return;var k='nase.intro.byd';if(matchMedia('(prefers-reduced-motion: reduce)').matches||sessionStorage.getItem(k)){i.remove();return;}sessionStorage.setItem(k,'1');setTimeout(function(){i.remove();},2600);})();</script>
 
 <div class="topbar">
   <div class="inner">

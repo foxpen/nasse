@@ -905,6 +905,17 @@ html[data-theme="dark"] .auth-gate{
 .scenario-box{padding:14px; display:grid; gap:10px;}
 .scenario-box textarea{min-height:180px; resize:vertical;}
 .pin-modal label{display:grid; gap:6px; margin:12px 0; color:var(--muted-fg); font-size:13px; font-weight:850;}
+.undo-toast{position:fixed; left:50%; bottom:22px; transform:translate(-50%, 14px); z-index:1500;
+  display:flex; align-items:center; gap:14px; background:var(--fg); color:var(--bg);
+  border-radius:var(--r-pill); padding:10px 12px 10px 20px; box-shadow:var(--sh-lg);
+  font-size:14px; font-weight:700; max-width:calc(100vw - 32px);
+  opacity:0; visibility:hidden; transition:.25s var(--ease);}
+.undo-toast.on{opacity:1; visibility:visible; transform:translate(-50%, 0);}
+.undo-toast span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.undo-toast button{font:inherit; font-weight:800; color:var(--bg); flex:0 0 auto;
+  background:color-mix(in srgb, var(--bg) 18%, transparent); border:0; border-radius:var(--r-pill);
+  padding:7px 14px; min-height:36px; cursor:pointer;}
+.undo-toast button:hover{background:color-mix(in srgb, var(--bg) 30%, transparent);}
 @media (max-width:860px){
   .finance-hero,.finance-health,.finance-split{grid-template-columns:1fr;}
   .finance-columns{grid-template-columns:1fr;}

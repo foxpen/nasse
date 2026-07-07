@@ -28,7 +28,7 @@
     <div class="intro-label">Naše Hospodařeníčko</div>
   </div>
 </div>
-<script>(function(){var i=document.getElementById('intro');if(!i)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){i.remove();return;}setTimeout(function(){i.remove();},2600);})();</script>
+<script>(function(){var i=document.getElementById('intro');if(!i)return;var k='nase.intro.fin';if(matchMedia('(prefers-reduced-motion: reduce)').matches||sessionStorage.getItem(k)){i.remove();return;}sessionStorage.setItem(k,'1');setTimeout(function(){i.remove();},2600);})();</script>
 
 <div class="topbar">
   <div class="inner">
@@ -385,15 +385,67 @@ function renderAll(){
   renderKpis();
   document.getElementById('budget-notes').value = b.notes || '';
 }
+let undoRestore = null;
+let undoTimer = 0;
+function showUndo(label, restore){
+  let t = document.getElementById('undo-toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'undo-toast';
+    t.className = 'undo-toast';
+    t.setAttribute('role','status');
+    t.setAttribute('aria-live','polite');
+    t.innerHTML = '<span id="undo-text"></span><button type="button" id="undo-btn">Vrátit zpět</button>';
+    document.body.appendChild(t);
+    document.getElementById('undo-btn').addEventListener('click', ()=>{
+      if(undoRestore){ undoRestore(); saveData(); renderAll(); }
+      hideUndo();
+    });
+  }
+  document.getElementById('undo-text').textContent = label;
+  undoRestore = restore;
+  t.classList.add('on');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(hideUndo, 5000);
+}
+function hideUndo(){
+  const t = document.getElementById('undo-toast');
+  if(t) t.classList.remove('on');
+  undoRestore = null;
+}
 window.deleteMember = function(mid){
   const b=budget();
-  b.members = b.members.filter(m=>m.id!==mid);
+  const m=b.members.find(x=>x.id===mid);
+  if(!m) return;
+  const incomeIds=b.incomes.filter(x=>x.memberId===mid).map(x=>x.id);
+  const expenseIds=b.expenses.filter(x=>x.memberId===mid).map(x=>x.id);
+  b.members = b.members.filter(x=>x.id!==mid);
   b.incomes.forEach(x=>{ if(x.memberId===mid) x.memberId=''; });
   b.expenses.forEach(x=>{ if(x.memberId===mid) x.memberId=''; });
   saveData(); renderAll();
+  showUndo('Člen „'+m.name+'" smazán.', ()=>{
+    const bb=budget();
+    bb.members.push(m);
+    bb.incomes.forEach(x=>{ if(incomeIds.includes(x.id)) x.memberId=mid; });
+    bb.expenses.forEach(x=>{ if(expenseIds.includes(x.id)) x.memberId=mid; });
+  });
 };
-window.deleteIncome = function(iid){ const b=budget(); b.incomes=b.incomes.filter(x=>x.id!==iid); saveData(); renderAll(); };
-window.deleteExpense = function(eid){ const b=budget(); b.expenses=b.expenses.filter(x=>x.id!==eid); saveData(); renderAll(); };
+window.deleteIncome = function(iid){
+  const b=budget();
+  const item=b.incomes.find(x=>x.id===iid);
+  if(!item) return;
+  b.incomes=b.incomes.filter(x=>x.id!==iid);
+  saveData(); renderAll();
+  showUndo('Příjem „'+item.name+'" smazán.', ()=>{ budget().incomes.push(item); });
+};
+window.deleteExpense = function(eid){
+  const b=budget();
+  const item=b.expenses.find(x=>x.id===eid);
+  if(!item) return;
+  b.expenses=b.expenses.filter(x=>x.id!==eid);
+  saveData(); renderAll();
+  showUndo('Výdaj „'+item.name+'" smazán.', ()=>{ budget().expenses.push(item); });
+};
 
 function wire(){
   document.getElementById('expense-category').innerHTML = CATEGORIES.map(c=>`<option>${esc(c)}</option>`).join('');

@@ -22,7 +22,7 @@
     <span class="splash-bar" aria-hidden="true"></span>
   </div>
 </div>
-<script>(function(){var s=document.getElementById('splash');if(!s)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){s.remove();return;}setTimeout(function(){s.remove();},2750);})();</script>
+<script>(function(){var s=document.getElementById('splash');if(!s)return;var k='nase.intro.index';if(matchMedia('(prefers-reduced-motion: reduce)').matches||sessionStorage.getItem(k)){s.remove();return;}sessionStorage.setItem(k,'1');setTimeout(function(){s.remove();},2750);})();</script>
 
 <main class="onboard">
   <button class="theme-toggle onboard-theme" type="button" data-theme-toggle aria-label="Motiv: Systém"></button>
