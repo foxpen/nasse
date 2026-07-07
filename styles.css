@@ -786,10 +786,10 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .finance-health .bar i{width:0; transition:width .25s var(--ease); background:var(--ok);}
 .finance-health .bar i.mid{background:var(--warn);}
 .finance-health .bar i.bad{background:#ef4444;}
-.finance-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:start;}
+.finance-columns{display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start;}
+.finance-col{display:grid; gap:14px; align-content:start; min-width:0;}
+.col-label{font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-fg); padding:2px 2px 0;}
 .finance-panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px; box-shadow:var(--sh-sm);}
-.salary-panel{grid-column:span 3;}
-.finance-integrations{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:14px;}
 .integration-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center;}
 .integration-row select{min-width:0; width:100%; border-radius:10px; min-height:40px;}
 .quick-expenses{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
@@ -808,9 +808,9 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .mini-row small{display:block; color:var(--muted-fg); font-size:12px; font-weight:750; margin-top:2px;}
 .mini-row b{font-size:14px; white-space:nowrap;}
 .btn-del{width:30px; height:30px; border-radius:999px; border:1px solid var(--line-2); background:var(--surface); color:var(--fg); cursor:pointer; font-weight:950;}
-.salary-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;}
+.salary-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .salary-grid label{display:flex; flex-direction:column; gap:5px; color:var(--muted-fg); font-size:12px; font-weight:850;}
-.salary-result{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:12px 0;}
+.salary-result{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0;}
 .salary-result div{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:10px 12px;}
 .salary-result span{display:block; color:var(--muted-fg); font-size:12px; font-weight:850;}
 .salary-result b{display:block; margin-top:4px; font-size:18px; font-weight:950;}
@@ -827,8 +827,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .pin-modal label{display:grid; gap:6px; margin:12px 0; color:var(--muted-fg); font-size:13px; font-weight:850;}
 @media (max-width:860px){
   .finance-hero,.finance-health,.finance-split{grid-template-columns:1fr;}
-  .finance-grid,.finance-integrations{grid-template-columns:1fr;}
-  .salary-panel{grid-column:auto;}
+  .finance-columns{grid-template-columns:1fr;}
   .finance-form,.salary-grid,.salary-result{grid-template-columns:1fr;}
   .dest-grid{grid-template-columns:1fr;}
   .dest-grid #dest-save,.dest-grid #dest-recalc{grid-column:auto;}
@@ -844,8 +843,8 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 }
 @media (max-width:560px){
   main{padding-left:12px; padding-right:12px;}
-  .topbar .inner,.switch,.finance-hero,.finance-grid,.finance-split,.budget-card,.finance-panel{max-width:100%;}
-  .finance-integrations,.integration-row,.quick-expenses{grid-template-columns:1fr; max-width:100%;}
+  .topbar .inner,.switch,.finance-hero,.finance-columns,.finance-split,.budget-card,.finance-panel{max-width:100%;}
+  .integration-row,.quick-expenses{grid-template-columns:1fr; max-width:100%;}
   .switch{overflow-x:auto;}
   .budget-row{display:grid; grid-template-columns:1fr; width:100%;}
   .budget-row label{min-width:0; width:100%;}

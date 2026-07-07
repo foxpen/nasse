@@ -50,14 +50,14 @@
   <section class="finance-hero">
     <div class="budget-card">
       <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg> Měsíční rozpočet</div>
+      <h2 id="budget-title">Rodinný rozpočet</h2>
+      <p id="budget-sub">Příjmy, výdaje, mzdy a volné peníze v jednom přehledu.</p>
       <div class="budget-row">
         <label>Rozpočet <select id="budget-select"></select></label>
         <button class="btn-ghost" type="button" id="budget-add">Nový</button>
         <button class="btn-ghost" type="button" id="budget-copy">Duplikovat</button>
         <button class="btn-ghost" type="button" id="budget-pin">PIN</button>
       </div>
-      <h2 id="budget-title">Rodinný rozpočet</h2>
-      <p id="budget-sub">Příjmy, výdaje, mzdy a volné peníze v jednom přehledu.</p>
     </div>
     <div class="kpis finance-kpis" aria-label="Souhrn rozpočtu">
       <div class="kpi"><div class="l">Příjmy</div><div class="v" id="kpi-income">0 Kč</div></div>
@@ -72,78 +72,77 @@
     <div class="bar"><i id="health-bar"></i></div>
   </div>
 
-  <section class="finance-grid">
-    <div class="finance-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/></svg>Členové domácnosti</div>
-      <div class="inline-form">
-        <input id="member-name" placeholder="Jméno člena">
-        <button class="btn-add" type="button" id="member-add">Přidat</button>
+  <section class="finance-columns">
+    <div class="finance-col">
+      <div class="col-label">Příjmová strana</div>
+
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>Příjem</div>
+        <div class="finance-form">
+          <select id="income-member"></select>
+          <input id="income-name" placeholder="Mzda, bonus, rodičák...">
+          <input id="income-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
+          <button class="btn-add" type="button" id="income-add">Přidat příjem</button>
+        </div>
+        <div class="mini-list" id="income-list"></div>
       </div>
-      <div class="mini-list" id="member-list"></div>
+
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4"/><path d="M15 9h2"/></svg>Kalkulačka mzdy</div>
+        <div class="salary-grid">
+          <label>Hrubá mzda <input id="salary-gross" type="number" value="50000" min="0" step="500"></label>
+          <label>Sleva / měsíc <input id="salary-discount" type="number" value="2570" min="0" step="100"></label>
+          <label>Srážky navíc <input id="salary-deductions" type="number" value="0" min="0" step="100"></label>
+          <label>Čistá ručně <input id="salary-net-manual" type="number" min="0" step="500" placeholder="volitelné"></label>
+        </div>
+        <div class="salary-result">
+          <div><span>Sociální</span><b id="salary-social">0 Kč</b></div>
+          <div><span>Zdravotní</span><b id="salary-health">0 Kč</b></div>
+          <div><span>Daň po slevě</span><b id="salary-tax">0 Kč</b></div>
+          <div class="total"><span>Čistá mzda</span><b id="salary-net">0 Kč</b></div>
+        </div>
+        <button class="btn-ghost" type="button" id="salary-to-income">Přidat jako příjem</button>
+        <p class="hint">Orientační výpočet pro zaměstnance: sociální 7,1 %, zdravotní 4,5 %, daň 15 %. Parametry a slevu můžeš upravit.</p>
+      </div>
     </div>
 
-    <div class="finance-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>Příjem</div>
-      <div class="finance-form">
-        <select id="income-member"></select>
-        <input id="income-name" placeholder="Mzda, bonus, rodičák...">
-        <input id="income-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
-        <button class="btn-add" type="button" id="income-add">Přidat příjem</button>
-      </div>
-      <div class="mini-list" id="income-list"></div>
-    </div>
+    <div class="finance-col">
+      <div class="col-label">Výdajová strana</div>
 
-    <div class="finance-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/></svg>Výdaj</div>
-      <div class="finance-form">
-        <select id="expense-category"></select>
-        <input id="expense-name" placeholder="Nájem, jídlo, školka...">
-        <input id="expense-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
-        <select id="expense-member"></select>
-        <button class="btn-add" type="button" id="expense-add">Přidat výdaj</button>
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/></svg>Výdaj</div>
+        <div class="finance-form">
+          <select id="expense-category"></select>
+          <input id="expense-name" placeholder="Nájem, jídlo, školka...">
+          <input id="expense-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
+          <select id="expense-member"></select>
+          <button class="btn-add" type="button" id="expense-add">Přidat výdaj</button>
+        </div>
+        <div class="mini-list" id="expense-list"></div>
       </div>
-      <div class="mini-list" id="expense-list"></div>
-    </div>
 
-    <div class="finance-panel salary-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4"/><path d="M15 9h2"/></svg>Kalkulačka mzdy</div>
-      <div class="salary-grid">
-        <label>Hrubá mzda <input id="salary-gross" type="number" value="50000" min="0" step="500"></label>
-        <label>Sleva / měsíc <input id="salary-discount" type="number" value="2570" min="0" step="100"></label>
-        <label>Srážky navíc <input id="salary-deductions" type="number" value="0" min="0" step="100"></label>
-        <label>Čistá ručně <input id="salary-net-manual" type="number" min="0" step="500" placeholder="volitelné"></label>
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>Rychl&#233; v&#253;daje</div>
+        <div class="quick-expenses" id="quick-expenses"></div>
       </div>
-      <div class="salary-result">
-        <div><span>Sociální</span><b id="salary-social">0 Kč</b></div>
-        <div><span>Zdravotní</span><b id="salary-health">0 Kč</b></div>
-        <div><span>Daň po slevě</span><b id="salary-tax">0 Kč</b></div>
-        <div class="total"><span>Čistá mzda</span><b id="salary-net">0 Kč</b></div>
-      </div>
-      <button class="btn-ghost" type="button" id="salary-to-income">Přidat jako příjem</button>
-      <p class="hint">Orientační výpočet pro zaměstnance: sociální 7,1 %, zdravotní 4,5 %, daň 15 %. Parametry a slevu můžeš upravit.</p>
-    </div>
-  </section>
 
-  <section class="finance-integrations">
-    <div class="finance-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-6 9 6"/><path d="M5 10v10h14V10"/></svg>Import z Bydlen&#237;&#269;ka</div>
-      <div class="integration-row">
-        <select id="import-home"></select>
-        <button class="btn-add" type="button" id="import-home-add">P&#345;idat spl&#225;tku</button>
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-6 9 6"/><path d="M5 10v10h14V10"/></svg>Import z Bydlen&#237;&#269;ka</div>
+        <div class="integration-row">
+          <select id="import-home"></select>
+          <button class="btn-add" type="button" id="import-home-add">P&#345;idat spl&#225;tku</button>
+        </div>
+        <p class="hint" id="import-home-note">Na&#269;&#237;t&#225;m nemovitosti...</p>
       </div>
-      <p class="hint" id="import-home-note">Na&#269;&#237;t&#225;m nemovitosti...</p>
-    </div>
-    <div class="finance-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Import z Aut&#237;&#269;ka</div>
-      <div class="integration-row">
-        <select id="import-car"></select>
-        <button class="btn-add" type="button" id="import-car-add">P&#345;idat provoz</button>
+
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Import z Aut&#237;&#269;ka</div>
+        <div class="integration-row">
+          <select id="import-car"></select>
+          <button class="btn-add" type="button" id="import-car-add">P&#345;idat provoz</button>
+        </div>
+        <p class="hint" id="import-car-note">Na&#269;&#237;t&#225;m auta...</p>
       </div>
-      <p class="hint" id="import-car-note">Na&#269;&#237;t&#225;m auta...</p>
-    </div>
-    <div class="finance-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>Rychl&#233; v&#253;daje</div>
-      <div class="quick-expenses" id="quick-expenses"></div>
     </div>
   </section>
 
@@ -152,11 +151,21 @@
       <div class="th">Výdaje podle kategorií</div>
       <div class="category-list" id="category-list"></div>
     </div>
-    <div class="tablewrap">
-      <div class="th">Scénáře a poznámky</div>
-      <div class="scenario-box">
-        <textarea id="budget-notes" placeholder="Poznámky ke scénáři: hypotéka, mateřská, rezerva, plánované nákupy..."></textarea>
-        <button class="btn-ghost" type="button" id="budget-save-note">Uložit poznámku</button>
+    <div class="finance-col">
+      <div class="tablewrap">
+        <div class="th">Scénáře a poznámky</div>
+        <div class="scenario-box">
+          <textarea id="budget-notes" placeholder="Poznámky ke scénáři: hypotéka, mateřská, rezerva, plánované nákupy..."></textarea>
+          <button class="btn-ghost" type="button" id="budget-save-note">Uložit poznámku</button>
+        </div>
+      </div>
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/></svg>Členové domácnosti</div>
+        <div class="inline-form">
+          <input id="member-name" placeholder="Jméno člena">
+          <button class="btn-add" type="button" id="member-add">Přidat</button>
+        </div>
+        <div class="mini-list" id="member-list"></div>
       </div>
     </div>
   </section>
