@@ -2,7 +2,7 @@
 
 Soukromá webová aplikace pro výběr a porovnávání nemovitostí a aut. Běží jako statický frontend na Netlify, data drží v Neon Postgres a praktické věci kolem importu, dojezdu, aktualizací a fotek řeší Netlify Functions.
 
-Aktuální verze: `1.2.7`.
+Aktuální verze: `1.3.0`.
 
 ## Co umí
 
