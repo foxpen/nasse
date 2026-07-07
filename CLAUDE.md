@@ -50,6 +50,7 @@ Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce:
 - Intro/splash animace: každá stránka má overlay, který se hraje **jen jednou za session** (`sessionStorage['nase.intro.*']`) a respektuje `prefers-reduced-motion` (globální kill-switch v `styles.css` + kontroly v JS).
 - Destruktivní akce v Hospodaříčku používají undo toast (`showUndo()` v `hospodareni.html`), ne confirm.
 - Peníze formátuj `toLocaleString('cs-CZ')`; písmo Plus Jakarta Sans s `font-feature-settings: "tnum"`.
+- Počty vždy skloňuj přes `Nase.plural(n, '1 tvar', '2–4 tvar', '5+ tvar')` (např. vůz/vozy/vozů) — nikdy nelep pevnou koncovku k číslu. U vět se s počtem musí shodovat i sloveso („Připravena 1 nemovitost" vs. „Připraveno 5 nemovitostí").
 - Layout je fluidní — `main` nemá max-width; karty používají `auto-fill, minmax()`. Nezaváděj pevné šířky stránek.
 - `login-demo.html` je jen referenční demo (claymorphism), není nalinkované z aplikace.
 
