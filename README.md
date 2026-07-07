@@ -1,32 +1,34 @@
-# Nase Bydlenicko
+# Naše Bydleníčko
 
-Soukroma webova aplikace pro vyber a porovnavani nemovitosti. Bezi jako staticky frontend na Netlify, data drzi v Neon Postgres a prakticke veci kolem importu, dojezdu a refreshu resi Netlify Functions.
+Soukromá webová aplikace pro výběr a porovnávání nemovitostí a aut. Běží jako statický frontend na Netlify, data drží v Neon Postgres a praktické věci kolem importu, dojezdu, aktualizací a fotek řeší Netlify Functions.
 
-Aktualni verze: `1.2.2`.
+Aktuální verze: `1.2.6`.
 
-## Co umi
+## Co umí
 
-- sprava vlastniho shortlistu domu a bytu,
-- import z `sreality.cz` a `bezrealitky.cz`,
-- samostatne pole pro adresu, nazev, uzitnou plochu, pozemek, zahradu, terasu, balkon/lodzii, garaz, parkovani, PENB, stav a kontakt,
-- galerie fotek v detailu, sipky mezi fotkami a proxy cache obrazku pres Netlify funkci,
-- deduplikace fotek z importu a klientska cache `image-proxy` odpovedi pres service worker,
-- detail nemovitosti s mapou, trasou autem, trasou MHD a odkazem na puvodni inzerat,
-- detail nemovitosti jako rozhodovaci panel s plusy, riziky, financemi, dojezdem a mapou,
-- hypotecni kalkulacka s fixaci, urokem, dobou, procentem pujcky a pojistenim,
-- automaticky prepocet mesicni splatky na kartach,
-- ulozene cile dojezdu, naseptavac adres pres Mapy API a rucni prepocet po kliknuti,
+- správa vlastního shortlistu domů, bytů a aut,
+- hromadné mazání vybraných nemovitostí i aut s potvrzovacím modalem,
+- Autíčko má vlastní skóre, detail s galerií, TOP metriky podle roku, nájezdu a výkonu a aktualizaci inzerátů,
+- Autíčko počítá orientační měsíční náklady podle ročního nájezdu, paliva, servisu, pojištění, pneumatik a dálniční známky,
+- import nemovitostí ze `sreality.cz` a `bezrealitky.cz`,
+- samostatná pole pro adresu, název, užitnou plochu, pozemek, zahradu, terasu, balkon/lodžii, garáž, parkování, PENB, stav a kontakt,
+- deduplikovaná galerie fotek v detailu, šipky mezi fotkami a proxy cache obrázků přes Netlify funkci,
+- detail nemovitosti jako rozhodovací panel s fotkami, plusy, riziky, financemi, dojezdem a mapou,
+- mapa nemovitostí s body podle skóre a dopočtem chybějících souřadnic,
+- hypotéční kalkulačka s fixací, úrokem, dobou, procentem půjčky a pojištěním,
+- automatický přepočet měsíční splátky na kartách,
+- uložené cíle dojezdu, našeptávač adres přes Mapy API a ruční přepočet po kliknutí,
 - Google Maps odkazy na trasu autem i MHD,
-- mapa nemovitosti s body podle score,
-- porovnavaci rezim az pro 3 nemovitosti,
-- tabulka s razenim podle sloupcu,
-- refresh inzeratu a mazani nenalezenych nabidek,
-- jednoduche heslo pred vstupem do aplikace.
+- porovnávací režim až pro 3 nemovitosti,
+- tabulka s řazením podle sloupců,
+- aktualizace inzerátů a mazání nenalezených nabídek,
+- sjednocený přepínač světlého, tmavého a systémového motivu,
+- jednoduché heslo před vstupem do aplikace.
 
 ## Architektura
 
 ```text
-staticke HTML/CSS/JS
+statické HTML/CSS/JS
         |
         v
 Netlify Functions
@@ -35,67 +37,71 @@ Netlify Functions
 Neon Postgres: listings(id, section, data jsonb, created_at)
 ```
 
-Frontend je bez build kroku. Hlavni soubory:
+Frontend je bez build kroku. Hlavní soubory:
 
-- `index.html` - vstup a rozcestnik,
-- `bydleni.html` - hlavni aplikace pro nemovitosti,
-- `auta.html` - starsi sekce pro auta,
-- `styles.css` - sdilene styly,
-- `sw.js` - klientska cache fotek z `image-proxy`,
+- `index.html` - vstup a rozcestník,
+- `bydleni.html` - aplikace pro nemovitosti,
+- `auta.html` - aplikace pro auta,
+- `app-utils.js` - sdílené helpery,
+- `styles.css` - sdílené styly,
+- `sw.js` - klientská cache fotek z `image-proxy`,
 - `netlify/functions/*` - API funkce,
-- `db/schema.sql` - zakladni DB schema.
+- `db/schema.sql` - základní DB schema.
 
 ## Netlify Functions
 
-Vybrane funkce:
+Vybrané funkce:
 
-- `list` - nacteni nabidek,
-- `add` - pridani nabidky,
-- `update` - ulozeni uprav,
-- `delete` - smazani,
-- `extract` - import dat z inzeratu,
-- `refresh-listings` - aktualizace ulozenych inzeratu,
-- `delete-not-found` - smazani nenalezenych inzeratu,
-- `commute` - prepocet dojezdu,
-- `address-suggest` - naseptavac adres,
-- `image-proxy` - proxy/cache fotek z inzeratu.
+- `list` - načtení nabídek,
+- `add` - přidání nabídky,
+- `update` - uložení úprav,
+- `delete` - smazání,
+- `extract` - import dat z inzerátu,
+- `refresh-listings` - aktualizace uložených inzerátů,
+- `delete-not-found` - smazání nenalezených inzerátů,
+- `commute` - přepočet dojezdu,
+- `recompute-commute` - dávkový přepočet dojezdů,
+- `address-suggest` - našeptávač adres,
+- `image-proxy` - proxy/cache fotek z inzerátu.
 
-## Promenne prostredi
+## Proměnné prostředí
 
-| Promenna | Povinna | Popis |
+| Proměnná | Povinná | Popis |
 | --- | --- | --- |
 | `DATABASE_URL` nebo `NETLIFY_DATABASE_URL` | ano | Postgres connection string |
 | `APP_PASSWORD` nebo `NASE_PASSWORD` | ano | heslo do aplikace |
-| `AUTH_SECRET` | doporuceno | podpis prihlasovaci cookie |
-| `MAPY_API_KEY` | doporuceno | geokodovani, naseptavac a auto dojezd |
-| `GOOGLE_MAPS_API_KEY` | volitelne | pripraveno pro pripadne presnejsi Google routovani |
+| `AUTH_SECRET` | doporučeno | podpis přihlašovací cookie |
+| `MAPY_API_KEY` | doporučeno | geokódování, našeptávač a auto dojezd |
+| `GOOGLE_MAPS_API_KEY` | volitelné | připraveno pro případné přesnější Google routování |
 
-## Lokalni spusteni
+API klíče nikdy necommituj do repozitáře. Na Netlify patří do Environment variables. Pro Seznam/Mapy použij `MAPY_API_KEY`; používá se pro Mapy.com geokódování, našeptávač a routing. Importy Sauto/Sreality/Bezrealitky běží přes parser stránky, ne přes uložený veřejný klíč v kódu.
+
+## Lokální spuštění
 
 ```powershell
 npm install
 npx netlify dev
 ```
 
-Pro lokalni beh nastav `.env` nebo env promenne stejne jako na Netlify.
+Pro lokální běh nastav `.env` nebo env proměnné stejně jako na Netlify.
 
 ## Deploy
 
-Projekt je pripraveny na Netlify. Build command zustava prazdny a publish directory je `.`.
+Projekt je připravený na Netlify. Build command zůstává prázdný a publish directory je `.`.
 
-Rucni deploy:
+Ruční deploy:
 
 ```powershell
 npx netlify deploy --prod --dir .
 ```
 
-## Poznamky k importu fotek
+## Poznámky k importu fotek
 
-Fotky se ukladaji jako puvodni URL z inzeratu, ale aplikace je zobrazuje pres `image-proxy`. Tim se snizi zavislost UI na hotlinku, obrazky se cacheuji na Netlify/CDN i v prohlizeci pres `sw.js` a duplicity z galerie se filtruji podle URL bez velikostnich parametru. Import navic zahazuje typicka loga, avatary, placeholdery a staticke obrazky webu.
+Fotky se ukládají jako původní URL z inzerátu, ale aplikace je zobrazuje přes `image-proxy`. Tím se sníží závislost UI na hotlinku, obrázky se cacheují na Netlify/CDN i v prohlížeči přes `sw.js` a duplicity z galerie se filtrují podle URL bez velikostních parametrů. Import navíc zahazuje typická loga, avatary, placeholdery a statické obrázky webu.
 
-Neni to plnohodnotne trvale uloziste souboru. Pokud ma byt kazda fotka fyzicky ulozena a mazana spolu s nemovitosti, dalsi krok je pridat objektove uloziste typu Cloudinary, Uploadcare, S3/R2 nebo Supabase Storage.
+Není to plnohodnotné trvalé úložiště souborů. Pokud má být každá fotka fyzicky uložená a mazaná spolu s nemovitostí, další krok je přidat objektové úložiště typu Cloudinary, Uploadcare, S3/R2 nebo Supabase Storage.
 
-## Co je dobre vedet
+## Co je dobré vědět
 
-- MHD cas je dnes kombinace dostupnych dat a fallbacku na Google Maps odkaz; pro presne zive MHD by davalo smysl pridat placene Google Routes API.
-- Mapy.com API se pouziva pro geokodovani a auto trasu, odkazy pro uzivatele vedou do Google Maps.
+- MHD čas je dnes kombinace dostupných dat a fallbacku na Google Maps odkaz; pro přesné živé MHD by dávalo smysl přidat placené Google Routes API.
+- Mapy.com API se používá pro geokódování a auto trasu, odkazy pro uživatele vedou do Google Maps.

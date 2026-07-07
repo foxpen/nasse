@@ -5,7 +5,8 @@ import { cleanListing } from './_lib/validate.js';
 import { extractUrl } from './extract.js';
 
 const KEEP = new Set(['flags', 'dealPrice', 'note', 'status', 'car', 'pt', 'commuteDest', 'lat', 'lon', 'history']);
-const WATCH = ['n', 'disp', 'price', 'area', 'land', 'plotArea', 'gardenArea', 'terrace', 'balcony', 'garage', 'parking', 'ready', 'when', 'en', 'origin', 'img', 'imgs', 'feats', 'listedAt', 'updatedAt', 'url'];
+const WATCH = ['n', 'disp', 'price', 'area', 'land', 'plotArea', 'gardenArea', 'terrace', 'balcony', 'garage', 'parking', 'ready', 'when', 'en', 'origin', 'img', 'imgs', 'feats', 'listedAt', 'updatedAt', 'url',
+  'brand', 'variant', 'stav', 'made', 'year', 'km', 'fuel', 'body', 'awd', 'kw', 'ps', 'czk'];
 
 function diff(before, after) {
   return WATCH

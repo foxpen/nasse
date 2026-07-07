@@ -32,7 +32,8 @@ function dec(value) {
 function cleanImageUrl(url) {
   let out = String(url || '').replace(/\\\//g, '/').replace(/&amp;/g, '&').trim();
   if (out.startsWith('//')) out = 'https:' + out;
-  if (/sdn\.cz\/d_18\/c_img_/i.test(out) && !/[?&]fl=/.test(out)) {
+  if (/sdn\.cz\/d_(?:18|19)\/c_img_/i.test(out)) {
+    out = out.split('?')[0];
     out += '?fl=res,1200,1200,1|shr,,20|jpg,80';
   }
   return /^https?:\/\//i.test(out) ? out : '';
@@ -42,6 +43,7 @@ function isBadImageUrl(url) {
   const s = String(url || '').toLowerCase();
   return !s
     || /logo|avatar|icon|sprite|map|marker|agency|reality-logo|watermark/.test(s)
+    || /cebia|autobezobav|affiliate|utm_/.test(s)
     || /\/_next\/static\//.test(s)
     || /favicon|placeholder|default-image|no-photo/.test(s);
 }
@@ -95,6 +97,19 @@ function imagesFrom(html, primary = '', limit = 30) {
     if (found.length >= limit * 3) break;
   }
   return uniqueImages(found, limit);
+}
+
+function sautoGalleryImages(html, primary = '') {
+  const imgs = imagesFrom(html, primary, 40)
+    .filter(u => /sdn\.cz\/d_(?:18|19)\/c_img_/i.test(u))
+    .filter(u => /\.(?:jpg|jpeg|webp)(?:\?|$)/i.test(u));
+  return uniqueImages(imgs, 30);
+}
+
+function normalizeMonthYear(value) {
+  const m = String(value || '').match(/\b(0?[1-9]|1[0-2])\s*[/.]\s*((?:19|20)\d{2})\b/);
+  if (m) return `${String(Number(m[1])).padStart(2, '0')}/${m[2]}`;
+  return String(value || '').trim();
 }
 
 function srealityGalleryImages(html, primary = '') {
@@ -229,7 +244,12 @@ function m2Near(source, words) {
     if (direct) return dec(direct[1]);
     const after = new RegExp('([0-9][0-9\\s,.]*)\\s*' + M2 + '[^\\n\\r.;]{0,64}' + word, 'ig');
     const matches = [...s.matchAll(after)];
-    if (matches.length) return dec(matches[matches.length - 1][1]);
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const m = matches[i];
+      const snippet = s.slice(m.index, Math.min(s.length, m.index + m[0].length + 80));
+      if (/u[žz]itn|obytn|podlahov|plocha\s+(?:bytu|domu|jednotky)/i.test(snippet)) continue;
+      return dec(m[1]);
+    }
   }
   return 0;
 }
@@ -248,6 +268,17 @@ function m2BeforeWord(source, words) {
   return 0;
 }
 
+function hasOutdoorLabel(source, word) {
+  return new RegExp(word, 'i').test(String(source || ''));
+}
+
+function cleanOutdoorArea(value, usableArea, source, word) {
+  const n = Number(value) || 0;
+  if (!n) return 0;
+  if (usableArea && n === Number(usableArea) && !hasOutdoorLabel(source, word)) return 0;
+  return n;
+}
+
 function parseSreality(url, html) {
   const title = meta(html, 'og:title');
   const desc = meta(html, 'og:description');
@@ -257,8 +288,10 @@ function parseSreality(url, html) {
   const img = imgs[0] || '';
   const t = /\/dum\//.test(url) ? 'dum' : 'byt';
   const area = firstM2(title) || firstM2(desc);
-  const plotArea = m2Near(joined, ['pozem(?:ek|ku|kem)?']) || 0;
-  const gardenArea = m2BeforeWord(joined, ['zahrad(?:a|y|u|ou)?']) || 0;
+  let plotArea = m2Near(joined, ['(?:plocha\\s+)?pozem(?:ek|ku|kem)?']) || 0;
+  let gardenArea = m2Near(joined, ['zahrad(?:a|y|u|ou)?']) || m2BeforeWord(joined, ['zahrad(?:a|y|u|ou)?']) || 0;
+  plotArea = cleanOutdoorArea(plotArea, area, joined, 'pozem');
+  gardenArea = cleanOutdoorArea(gardenArea, area, joined, 'zahrad');
   const dispM = title.match(/(\d\+(?:kk|1))/i) || desc.match(/(\d\+(?:kk|1))/i);
   const priceM = html.match(/"price":\s*(\d{5,})/) || desc.match(/([\d\s]{6,})\s*K[čc]/i);
   const price = priceM ? num(priceM[1]) : null;
@@ -304,8 +337,8 @@ function parseBezrealitky(url, html) {
   const condMap = { NOVOSTAVBA: 'Novostavba', VELMI_DOBRY: 'Velmi dobrý', VERY_GOOD: 'Velmi dobrý', GOOD: 'Dobrý', PO_REKONSTRUKCI: 'Po rekonstrukci', DOBRY: 'Dobrý', VE_VYSTAVBE: 've výstavbě', K_REKONSTRUKCI: 'Před rekonstrukcí' };
   const when = condMap[adv.condition] || '';
   const en = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].includes(adv.penb) ? adv.penb : '';
-  const land = adv.surfaceLand || 0;
-  const garden = adv.frontGardenSurface || adv.gardenSurface || 0;
+  const land = cleanOutdoorArea(adv.surfaceLand || 0, adv.surface || 0, 'pozemek', 'pozem');
+  const garden = cleanOutdoorArea(adv.frontGardenSurface || adv.gardenSurface || 0, adv.surface || 0, 'zahrada', 'zahrad');
   const desc = getAny(adv, ['descriptionByLocale', 'descriptionByLocale({"locale":"CS"})', 'description']);
   const address = getAny(adv, ['address', 'address({"locale":"CS"})', 'address({"locale":"CS","withHouseNumber":false})']);
   const street = adv.street || (address ? String(address).split(',')[0] : '');
@@ -330,18 +363,41 @@ function parseBezrealitky(url, html) {
 function parseSauto(url, html) {
   const title = meta(html, 'og:title').replace(/\s*\|\s*Sauto\.cz.*/i, '').trim();
   const desc = meta(html, 'og:description');
+  const text = stripHtml(html);
   const img = cleanImageUrl(meta(html, 'og:image'));
-  const imgs = imagesFrom(html, img);
+  const imgs = sautoGalleryImages(html, img);
   const brand = (title.split(/\s+/)[0] || '').toLowerCase();
-  const kw = num((html.match(/(\d{2,3})\s*kW/) || [])[1]);
+  const kw = num((text.match(/(\d{2,3})\s*kW/i) || html.match(/"power"\s*:\s*(\d{2,3})/i) || [])[1]);
   const ps = kw ? Math.round(kw * 1.35962) : null;
-  const km = num((desc.match(/tachometr\s*([\d\s]+)\s*km/i) || [])[1]);
-  const czk = num((desc.match(/cena\s*([\d\s]+)\s*K[čc]/i) || html.match(/"price":\s*(\d{5,})/) || [])[1]);
-  const year = num((html.match(/"manufacturing_date":"(\d{4})/) || desc.match(/(20\d{2})/) || [])[1]);
-  const fuelM = desc.match(/\b(Benzín|Nafta|Diesel|Elektro|Hybrid)\b/i);
+  const km = num((text.match(/(?:tachometr|najeto)\D{0,24}([\d\s]+)\s*km/i) || desc.match(/tachometr\s*([\d\s]+)\s*km/i) || [])[1]);
+  const czk = num((desc.match(/cena\s*([\d\s]+)\s*K[čc]/i) || text.match(/cena\D{0,20}([\d\s]{5,})\s*K[čc]/i) || html.match(/"price":\s*(\d{5,})/) || [])[1]);
+  const made = (
+    text.match(/(?:rok\s+v[ýy]roby|vyrobeno|prvn[ií]\s+registrace|uveden[ií]\s+do\s+provozu|v\s+provozu\s+od)\D{0,28}((?:0?[1-9]|1[0-2])\s*[/.]\s*(?:19|20)\d{2})/i)
+    || text.match(/(?:rok\s+v[ýy]roby|vyrobeno|prvn[ií]\s+registrace|uveden[ií]\s+do\s+provozu|v\s+provozu\s+od)\D{0,28}((?:19|20)\d{2})/i)
+    || []
+  )[1] || '';
+  const year = num((made.match(/(19|20)\d{2}/) || html.match(/"manufacturing_date"\s*:\s*"((?:19|20)\d{2})/) || [])[0]);
+  const fuelM = text.match(/\b(Benzín|Nafta|Diesel|Elektro|Hybrid|LPG|CNG)\b/i);
   const fuel = fuelM ? fuelM[1].toLowerCase().replace('nafta', 'diesel').replace('benzín', 'benzin') : 'benzin';
-  const awd = /\b(AWD|4x4|4×4|4WD)\b/i.test(title + ' ' + desc);
-  return { section: 'auto', data: { brand, n: title, variant: (awd ? '4×4' : 'FWD'), stav: /ojet/i.test(desc) ? 'ojeté' : 'nové', year: year || new Date().getFullYear(), km: km || 0, fuel, awd, kw: kw || 0, ps: ps || 0, czk: czk || null, img, imgs, feats: [], url } };
+  const awd = /\b(AWD|4x4|4×4|4WD|pohon\s+4)/i.test(title + ' ' + text);
+  const transmission = (text.match(/\b(automat|manu[aá]l|DSG)\b/i) || [])[1] || '';
+  const body = (text.match(/\b(SUV|kombi|sedan|hatchback|liftback|kup[eé]|MPV)\b/i) || [])[1] || '';
+  const feats = [];
+  const addIf = (re, label) => { if (re.test(title + ' ' + text) && !feats.includes(label)) feats.push(label); };
+  addIf(/1\.\s*maj|prvn[ií]\s+majitel/i, '1. majitel');
+  addIf(/servisn[ií]\s+kn/i, 'servisní knížka');
+  addIf(/nehavar/i, 'nehavarované');
+  addIf(/panorama|panoramat/i, 'panoramatická střecha');
+  addIf(/navigac/i, 'navigace');
+  addIf(/tempomat/i, 'tempomat');
+  addIf(/\bLED\b|matrix/i, 'LED světla');
+  addIf(/kamera/i, 'parkovací kamera');
+  addIf(/parkovac[ií]\s+senzor/i, 'parkovací senzory');
+  addIf(/vyh[řr][íi]van/i, 'vyhřívání');
+  addIf(/ta[žz]n[eé]/i, 'tažné zařízení');
+  addIf(/DPH/i, 'možný odpočet DPH');
+  const variant = [body, transmission, awd ? '4×4' : 'FWD', fuel].filter(Boolean).join(' · ');
+  return { section: 'auto', data: { brand, n: title, variant, stav: /ojet|použit/i.test(text) ? 'ojeté' : 'nové', made: normalizeMonthYear(made), year: year || new Date().getFullYear(), km: km || 0, fuel, body: [transmission, body].filter(Boolean).join(' · '), awd, kw: kw || 0, ps: ps || 0, czk: czk || null, img: imgs[0] || img, imgs, feats: feats.slice(0, 12), url } };
 }
 
 function parseBazos(url, html) {

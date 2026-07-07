@@ -38,7 +38,7 @@
     </a>
     <div class="spacer"></div>
     <button class="top-map-btn" type="button" id="map-open">Mapa</button>
-    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Motiv: System"></button>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Motiv: Systém"></button>
     <nav class="switch" aria-label="Sekce">
       <a href="bydleni.html" class="active" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
       <a href="auta.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
@@ -106,6 +106,7 @@
       <option value="pt">Nejblíž MHD</option>
     </select>
     <button class="btn-ghost" id="refresh-all" type="button">Aktualizovat inzeráty</button>
+    <button class="btn-ghost" id="bulk-delete" type="button">Smazat</button>
     <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
   </div>
 
@@ -174,33 +175,6 @@ const I = {
   star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
 };
 
-function initThemeToggle(){
-  const labels={system:"System", light:"Svetly", dark:"Tmavy"};
-  const icons={
-    system:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
-    light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>',
-    dark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 7 7 0 1 0 20.5 14.5Z"/></svg>'
-  };
-  const apply=mode=>{
-    if(mode==="system") document.documentElement.removeAttribute("data-theme");
-    else document.documentElement.dataset.theme=mode;
-    localStorage.setItem("nase.theme", mode);
-    document.querySelectorAll("[data-theme-toggle]").forEach(btn=>{
-      btn.innerHTML=icons[mode]||icons.system;
-      btn.title=labels[mode]||"System";
-      btn.setAttribute("aria-label","Motiv: "+(labels[mode]||"System"));
-    });
-  };
-  let mode=localStorage.getItem("nase.theme")||"system";
-  apply(mode);
-  document.querySelectorAll("[data-theme-toggle]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      mode = mode==="system" ? "light" : (mode==="light" ? "dark" : "system");
-      apply(mode);
-    });
-  });
-}
-
 const API = "/.netlify/functions";
 let DATA = [];
 let MINPPM = 0, MAXPPM = 1;
@@ -209,6 +183,7 @@ const DEFAULT_DEST = "Jankovcova 1522/53, Praha 7";
 const DEST_JANKOVCOVA = "Jankovcova 1522/53, Praha 7";
 const DEST_KOZOMIN = "Kozomín 509, Kozomín";
 let commuteDest = localStorage.getItem("nase.commuteDest") || DEFAULT_DEST;
+let displayedCommuteDest = localStorage.getItem("nase.displayedCommuteDest") || commuteDest;
 let savedDestinations = JSON.parse(localStorage.getItem("nase.savedDestinations") || "[]");
 let suggestedDestinations = [];
 const BUILTIN_DESTS = [
@@ -216,7 +191,9 @@ const BUILTIN_DESTS = [
   {name:"Sklad Kozomín", address:DEST_KOZOMIN}
 ];
 const selectedCompare = new Set();
+const selectedDelete = new Set();
 let compareMode = false;
+let deleteMode = false;
 let tableOpen = false;
 let tableSort = { key: "score", dir: "desc" };
 let destTimer = null;
@@ -241,7 +218,7 @@ async function loadData(){
   const pick=document.getElementById("pick");
   if(pick){
     pick.classList.add("is-loading");
-    pick.innerHTML='<span class="badge">Nacitam data</span><h2>Pripravuji prehled</h2><div class="pmeta">Stahuji ulozene nabidky, skore a dojezdy.</div>';
+    pick.innerHTML='<span class="badge">Načítám data</span><h2>Připravuji přehled</h2><div class="pmeta">Stahuji uložené nabídky, skóre a dojezdy.</div>';
   }
   ["kpi-count","kpi-range","kpi-ready","kpi-ppm"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent="."; });
   grid.innerHTML = '<div class="state">Načítám…</div>';
@@ -293,6 +270,13 @@ function mapUrl(origin, mode){
   const travelmode = mode === 'transit' ? 'transit' : 'driving';
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin||'')}&destination=${encodeURIComponent(commuteDest)}&travelmode=${travelmode}`;
 }
+function commuteNoteSvg(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>`;
+}
+function updateCommuteNote(){
+  const el=document.querySelector(".sec-head .note");
+  if(el) el.innerHTML = `${commuteNoteSvg()}Dojezd orientačně do ${esc(displayedCommuteDest)}`;
+}
 function mapyPlaceUrl(origin){
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(origin||'')}`;
 }
@@ -315,6 +299,8 @@ function normalizeProperty(d){
   d.imgs = uniqueImageList(Array.isArray(d.imgs) ? d.imgs.filter(Boolean) : (d.img ? [d.img] : []));
   d.plotArea = nnum(d.plotArea) || parseM2(landText, ['pozemek']);
   d.gardenArea = nnum(d.gardenArea) || parseM2(landText, ['zahrada','zahr\\.']);
+  if(d.area && d.plotArea === d.area && !/pozem/i.test(landText)) d.plotArea = 0;
+  if(d.area && d.gardenArea === d.area && !/zahrad/i.test(landText)) d.gardenArea = 0;
   d.terrace = Boolean(d.terrace) || hasAny(landText, ['terasa','terasy']);
   d.balcony = Boolean(d.balcony) || hasAny(landText, ['balkon','balkón','lodžie']);
   d.garage = Boolean(d.garage) || hasAny(landText, ['garáž']);
@@ -407,6 +393,21 @@ function scoreProperty(d){
 }
 function scoreClass(score){ return score>=75?'good':score>=50?'mid':'bad'; }
 function scoreText(score){ return score>=75?'výborné':score>=50?'solidní':'slabší'; }
+function tipReasons(d){
+  const rows=kept().map(x=>({...x, score:scoreProperty(x)}));
+  const ppmRank=rankInfo(d.ppm, rows.map(x=>x.ppm), false);
+  const carRank=rankInfo(d.car, rows.map(x=>x.car), false);
+  const areaRank=rankInfo(d.area, rows.map(x=>x.area), true);
+  const outdoor=d.gardenArea||d.plotArea||0;
+  const outdoorRank=rankInfo(outdoor, rows.map(x=>x.gardenArea||x.plotArea||0), true);
+  const reasons=[];
+  if(ppmRank.rank && ppmRank.rank<=3) reasons.push(`TOP ${ppmRank.rank} cena/m²`);
+  if(carRank.rank && carRank.rank<=3) reasons.push(`TOP ${carRank.rank} dojezd`);
+  if(areaRank.rank && areaRank.rank<=3) reasons.push(`TOP ${areaRank.rank} užitná plocha`);
+  if(outdoorRank.rank && outdoorRank.rank<=3 && outdoor>0) reasons.push(`TOP ${outdoorRank.rank} venkovní prostor`);
+  if(d.ready) reasons.push('k nastěhování');
+  return reasons.slice(0,3);
+}
 function decisionInsights(d){
   const plus=[], risk=[];
   if(d.score>=70) plus.push(`Silné celkové skóre ${d.score}/100.`);
@@ -459,14 +460,20 @@ function renderPick(){
   el.style.display="";
   el.href = "#";
   el.onclick = e => { e.preventDefault(); openDetail(d.id); };
+  el.removeAttribute("target");
+  el.removeAttribute("rel");
+  const ep=d.dealPrice||d.price;
+  const reasons=tipReasons(d);
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
     <span class="badge">${I.star} Tip · nejlepší skóre</span>
+    <button class="map-score ${scoreClass(d.score)} pick-score" type="button" onclick="event.preventDefault();event.stopPropagation();openScore(${d.id})">${d.score}</button>
     <div>
       <h2>${esc(d.n)}</h2>
-      <div class="pmeta">${esc(d.disp)} · skóre ${d.score}/100 · ${esc(d.land)} · ${esc(d.when)}<br>🏦 splátka ~${czk(totalPay(d.price))} Kč/měs · 🚗 ~${d.car} / 🚆 ~${d.pt} min do cíle</div>
+      <div class="pmeta">${esc(d.disp)} · ${esc(d.land||'bez doplněného pozemku')} · ${esc(readyLabel(d))}</div>
+      <div class="pick-reasons">${reasons.map(r=>`<span>${esc(r)}</span>`).join("") || `<span>nejlepší poměr aktuálních metrik</span>`}</div>
       <div class="prow">
-        <span class="big">${czk(d.price)} Kč</span>
-        <span class="ppm"><b style="font-size:18px;">${czk(d.ppm)}</b> Kč/m²<br>${d.area} m²</span>
+        <span class="big">${czk(ep)} Kč</span>
+        <span class="ppm"><b style="font-size:18px;">${czk(d.ppm)}</b> Kč/m²<br>${d.area} m² · ${d.car?fmtDuration(d.car):'?'} autem</span>
       </div>
     </div>`;
 }
@@ -497,11 +504,12 @@ function renderCards(){
     const url = safeUrl(d.url);
     const img = imgSrc(d.img);
     const imgs = d.imgs.length;
-    const selected = selectedCompare.has(d.id);
+    const selecting = compareMode || deleteMode;
+    const selected = deleteMode ? selectedDelete.has(d.id) : selectedCompare.has(d.id);
     const outdoorValue = d.gardenArea ? `${d.gardenArea} m²` : (d.plotArea ? `${d.plotArea} m²` : 'bez');
     const outdoorLabel = d.gardenArea ? 'zahrada' : (d.plotArea ? 'pozemek' : 'zahrada');
-    return `<article class="card${(d.flags||[]).includes('zamitnuto')?' zamitnuto':''}${compareMode?' compare-select':''}${selected?' selected':''}" tabindex="0" role="button" aria-label="${esc(d.n)}, ${czk(ep)} korun"
-        onclick="${compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`}}">
+    return `<article class="card${(d.flags||[]).includes('zamitnuto')?' zamitnuto':''}${selecting?' compare-select':''}${selected?' selected':''}" tabindex="0" role="button" aria-label="${esc(d.n)}, ${czk(ep)} korun"
+        onclick="${deleteMode?`toggleDelete(${d.id})`:(compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`)}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${deleteMode?`toggleDelete(${d.id})`:(compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`)}}">
       <div class="media ${isHouse?'house':'byt'}">
         <div class="corner">
           ${readyTag(d)}
@@ -509,7 +517,7 @@ function renderCards(){
         </div>
         <div class="del"><button class="btn-stav" type="button" onclick="event.stopPropagation();editStav(${d.id})">✎ Stav</button><button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝</button><button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button></div>
         <button class="score-pill ${scoreClass(d.score)}" type="button" onclick="event.stopPropagation();openScore(${d.id})" title="Rozkliknout skóre">${d.score}</button>
-        ${compareMode?`<span class="select-pill">${selected?'Vybráno':'Vybrat'}</span>`:''}
+        ${selecting?`<span class="select-pill">${selected?'Vybráno':'Vybrat'}</span>`:''}
         ${commuteRunning?`<span class="recalc-chip">přepočítávám…</span>`:''}
         <span class="glyph" aria-hidden="true">${isHouse?I.house:I.building}</span>
         ${img?`<img src="${esc(img)}" alt="Foto · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:''}
@@ -618,9 +626,12 @@ function toggleCompare(id, on){
   renderCards();
 }
 function startCompare(){
+  deleteMode = false;
+  selectedDelete.clear();
   compareMode = true;
   selectedCompare.clear();
   document.getElementById("compare-mode").textContent = "Vybírám...";
+  document.getElementById("bulk-delete").textContent = "Smazat";
   updateCompareBar();
   renderCards();
 }
@@ -630,6 +641,63 @@ function clearCompare(){
   document.getElementById("compare-mode").textContent = "Porovnat";
   updateCompareBar();
   renderCards();
+}
+
+function toggleDelete(id){
+  if(selectedDelete.has(id)) selectedDelete.delete(id);
+  else selectedDelete.add(id);
+  document.getElementById("bulk-delete").textContent = selectedDelete.size ? `Smazat (${selectedDelete.size})` : "Ruším mazání";
+  renderCards();
+}
+function startBulkDelete(){
+  if(deleteMode && selectedDelete.size){
+    confirmBulkDelete();
+    return;
+  }
+  if(deleteMode){
+    deleteMode=false;
+    selectedDelete.clear();
+    document.getElementById("bulk-delete").textContent="Smazat";
+    renderCards();
+    return;
+  }
+  compareMode=false;
+  selectedCompare.clear();
+  updateCompareBar();
+  document.getElementById("compare-mode").textContent = "Porovnat";
+  deleteMode=true;
+  selectedDelete.clear();
+  document.getElementById("bulk-delete").textContent="Ruším mazání";
+  renderCards();
+}
+function confirmBulkDelete(){
+  const items=[...selectedDelete].map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
+  if(!items.length) return;
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal" style="max-width:560px">
+    <button class="modal-x" type="button" id="bd-x" aria-label="Zavřít">×</button>
+    <h3>Smazat vybrané nemovitosti?</h3>
+    <p class="hint">Opravdu smazat ${items.length} položek? Tahle akce se uloží do databáze.</p>
+    <div class="refresh-list">${items.map(d=>`<div class="refresh-item"><b>${esc(d.n)}</b><br><span>${esc(d.disp||'')}</span></div>`).join("")}</div>
+    <div class="msg" id="bd-msg"></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="bd-cancel">Zrušit</button><button class="btn-add danger-action" type="button" id="bd-ok">Ano, smazat</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#bd-x").onclick=close;
+  wrap.querySelector("#bd-cancel").onclick=close;
+  wrap.querySelector("#bd-ok").onclick=async()=>{
+    const msg=wrap.querySelector("#bd-msg"); msg.className="msg"; msg.textContent="Mažu vybrané položky...";
+    let ok=0, fail=0;
+    for(const item of items){
+      try{ const r=await fetch(API+"/delete?id="+item.id,{method:"DELETE"}); if(!r.ok) throw new Error("HTTP "+r.status); ok++; }
+      catch(e){ fail++; }
+    }
+    window.dispatchEvent(new CustomEvent('nase:react',{detail:'bulk-delete-byd'}));
+    deleteMode=false; selectedDelete.clear(); document.getElementById("bulk-delete").textContent="Smazat";
+    msg.className=fail?"msg err":"msg ok"; msg.textContent=`Smazáno ${ok}. Chyby ${fail}.`;
+    setTimeout(()=>{ close(); loadData(); }, fail?1100:550);
+  };
 }
 function renderCompare(){
   const items = [...selectedCompare].map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
@@ -729,7 +797,9 @@ function renderMap(){
   initMap();
   if(!map || !markersLayer) return;
   markersLayer.clearLayers();
-  const rows = kept().filter(d=>d.lat&&d.lon);
+  const allRows = kept();
+  const rows = allRows.filter(d=>d.lat&&d.lon);
+  const missing = allRows.length - rows.length;
   const bounds=[];
   rows.forEach(d=>{
     const color=markerColor(d.score);
@@ -740,6 +810,14 @@ function renderMap(){
     bounds.push([d.lat,d.lon]);
   });
   if(bounds.length) map.fitBounds(bounds, {padding:[32,32], maxZoom:12});
+  const side=document.getElementById("map-modal-side");
+  if(side && !rows.length){
+    side.innerHTML = `<div class="state">Na mapě zatím nejsou souřadnice.<br><small>Klikni na dopočítání bodů, appka je doplní z adres.</small></div>`;
+  } else if(side && missing && side.querySelector(".state")){
+    side.innerHTML = `<div class="state">${missing} ${missing===1?'nabídka nemá':'nabídky nemají'} souřadnice.<br><small>Dopočítání bodů je doplní z adres.</small></div>`;
+  } else if(side && !missing && side.querySelector(".state")){
+    side.innerHTML = `<div class="state">Všechny nabídky s adresou jsou v mapě.<br><small>Klikni na bod a otevře se karta nemovitosti.</small></div>`;
+  }
   setTimeout(()=>map && map.invalidateSize(), 80);
 }
 function showMapSide(d){
@@ -788,7 +866,7 @@ function openMapModal(){
   const close=()=>{ if(map){ map.remove(); map=null; markersLayer=null; } mapWrap.remove(); mapWrap=null; };
   mapWrap.querySelector("#map-x").onclick=close;
   mapWrap.querySelector("#map-close").onclick=close;
-  mapWrap.querySelector("#map-geocode").onclick=()=>recomputeCommutes(kept());
+  mapWrap.querySelector("#map-geocode").onclick=()=>recomputeCommutes(kept(), {reason:"map"});
   renderMap();
 }
 function renderAll(){ renderCards(); renderTable(); updateCompareBar(); updateTableVisibility(); }
@@ -813,7 +891,7 @@ document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.va
 function updateTabs(){}
 function applyView(){}
 document.getElementById("dest-input").value = commuteDest;
-document.querySelector(".sec-head .note").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do ${esc(commuteDest)}`;
+updateCommuteNote();
 function allDestinations(){
   const custom = savedDestinations.filter(x=>x && x.name && x.address);
   return [...BUILTIN_DESTS, ...custom];
@@ -822,7 +900,6 @@ function setDestination(value){
   document.getElementById("dest-input").value = value;
   commuteDest = value;
   localStorage.setItem("nase.commuteDest", value);
-  document.querySelector(".sec-head .note").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do ${esc(commuteDest)}`;
   renderAll();
 }
 function stageDestination(value){
@@ -838,7 +915,9 @@ function renderSavedDestinations(){
   const idx=options.findIndex(d=>d.address===commuteDest);
   select.value = String(idx>=0?idx:0);
   const list=document.getElementById("saved-dests");
-  if(list) list.innerHTML = savedDestinations.length ? savedDestinations.map((d,i)=>`<button class="btn-ghost saved-dest" type="button" data-del="${i}" title="Smazat uloženou lokalitu">${esc(d.name)} <small>×</small></button>`).join("") : "";
+  if(list) list.innerHTML = savedDestinations.length
+    ? `<button class="btn-ghost saved-dest" type="button" data-manage="1">Spravovat uložené adresy</button>` + savedDestinations.map((d,i)=>`<button class="btn-ghost saved-dest" type="button" data-del="${i}" title="Smazat uloženou lokalitu">${esc(d.name)} <small>×</small></button>`).join("")
+    : "";
 }
 async function suggestDestinations(value){
   const list=document.getElementById("dest-options"); if(!list) return;
@@ -874,7 +953,7 @@ function openSaveDestinationModal(address){
   wrap.className="modal-bg";
   const suggested=(address.split(",")[0] || "Cil").trim();
   wrap.innerHTML=`<div class="modal save-dest-modal">
-    <button class="modal-x" type="button" id="sd-x" aria-label="Zavrit">x</button>
+    <button class="modal-x" type="button" id="sd-x" aria-label="Zavřít">×</button>
     <h3>Ulozit lokalitu</h3>
     <p class="hint">${esc(address)}</p>
     <label>Nazev lokality</label>
@@ -893,7 +972,7 @@ function openSaveDestinationModal(address){
     if(!name){ wrap.querySelector("#sd-msg").textContent="Zadej nazev lokality."; return; }
     savedDestinations = [{name, address}, ...savedDestinations.filter(x=>x.address!==address)].slice(0, 12);
     saveDestinations(); renderSavedDestinations(); stageDestination(address);
-    document.getElementById("dest-msg").textContent="Adresa ulozena.";
+    document.getElementById("dest-msg").textContent="Adresa uložena.";
     close();
   };
   wrap.querySelector("#sd-x").onclick=close;
@@ -903,15 +982,41 @@ function openSaveDestinationModal(address){
   input.focus();
   input.select();
 }
+function openManageDestinations(){
+  const wrap=document.createElement("div");
+  wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal" style="max-width:620px">
+    <button class="modal-x" type="button" id="md-x" aria-label="Zavřít">×</button>
+    <h3>Uložené adresy</h3>
+    <p class="hint">Předdefinované lokality zůstávají napevno. Vlastní uložené adresy můžeš smazat, když se uklikneš nebo přestanou dávat smysl.</p>
+    <div class="refresh-list" id="md-list">
+      ${savedDestinations.length ? savedDestinations.map((d,i)=>`<div class="refresh-item"><b>${esc(d.name)}</b><br><span>${esc(d.address)}</span><button class="btn-del" type="button" data-remove="${i}">Smazat</button></div>`).join("") : '<p class="hint">Nemáš uloženou žádnou vlastní adresu.</p>'}
+    </div>
+    <div class="actions"><button class="btn-ghost" type="button" id="md-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#md-x").onclick=close;
+  wrap.querySelector("#md-close").onclick=close;
+  wrap.querySelector("#md-list").addEventListener("click", e=>{
+    const b=e.target.closest("[data-remove]"); if(!b) return;
+    savedDestinations.splice(Number(b.dataset.remove),1);
+    saveDestinations();
+    renderSavedDestinations();
+    close();
+  });
+}
 document.getElementById("dest-save").addEventListener("click", e=>{
   e.preventDefault();
   e.stopImmediatePropagation();
   const v=selectedTypedAddress();
-  if(!v){ document.getElementById("dest-msg").textContent="Nejdriv vyber konkretni adresu z naseptavace."; return; }
+  if(!v){ document.getElementById("dest-msg").textContent="Nejdřív vyber konkrétní adresu z našeptávače."; return; }
   openSaveDestinationModal(v);
 }, true);
 document.getElementById("dest-input").addEventListener("input", e=>{ suggestDestinations(e.target.value.trim()); });
 document.getElementById("saved-dests").addEventListener("click", e=>{
+  const manage=e.target.closest("button[data-manage]");
+  if(manage){ openManageDestinations(); return; }
   const b=e.target.closest("button[data-del]"); if(!b) return;
   savedDestinations.splice(Number(b.dataset.del),1); saveDestinations(); renderSavedDestinations();
 });
@@ -935,6 +1040,7 @@ document.getElementById("tablewrap").addEventListener("click", e=>{
 document.getElementById("compare-open").addEventListener("click", renderCompare);
 document.getElementById("compare-clear").addEventListener("click", clearCompare);
 document.getElementById("refresh-all").addEventListener("click", refreshAllListings);
+document.getElementById("bulk-delete").addEventListener("click", startBulkDelete);
 
 async function refreshAllListings(){
   showRecalcModal("Aktualizuji inzeráty…", 8, "Kontroluji původní inzeráty a změny dat.");
@@ -975,20 +1081,21 @@ async function refreshAllListings(){
   }
 }
 
-async function recomputeCommutes(rowsOverride=null){
+async function recomputeCommutes(rowsOverride=null, opts={}){
   const msg=document.getElementById("dest-msg");
   if(commuteRunning) return;
   commuteRunning = true;
   const rows=rowsOverride || kept();
   if(!rows.length){ commuteRunning=false; return; }
   msg.textContent="";
-  showRecalcModal("Přepočítávám dojezdy…", 2, "Aktualizuji časy na kartách podle zadaného cíle.");
+  const note = opts.reason === "map" ? "Doplňuji souřadnice a časy pro zobrazení v mapě." : "Aktualizuji časy na kartách podle zadaného cíle.";
+  showRecalcModal("Přepočítávám dojezdy…", 2, note);
   renderCards();
   let ok=0, failed=0, firstError="";
   try{
     for(let i=0;i<rows.length;i++){
       const d=rows[i];
-      showRecalcModal(`Přepočítávám ${i+1}/${rows.length}`, (i/rows.length)*92 + 3, "Aktualizuji časy na kartách podle zadaného cíle.");
+      showRecalcModal(`Přepočítávám ${i+1}/${rows.length}`, (i/rows.length)*92 + 3, note);
       try{
         const r=await fetch(API+"/commute?q="+encodeURIComponent(d.origin||d.n)+"&dest="+encodeURIComponent(commuteDest));
         const j=await r.json();
@@ -999,18 +1106,24 @@ async function recomputeCommutes(rowsOverride=null){
         else if(j.car) patch.pt=Math.max(j.car+15, Math.round(j.car*1.65));
         if(j.lat) patch.lat=j.lat;
         if(j.lon) patch.lon=j.lon;
-        if(j.car||j.pt){
+        if(j.car||j.pt||j.lat||j.lon){
+          Object.assign(d, patch);
           await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:d.id,patch})});
           ok++;
+          if(mapWrap) renderMap();
         }
       }catch(e){ failed++; firstError=firstError||e.message; }
-      showRecalcModal(`Přepočítávám ${i+1}/${rows.length}`, ((i+1)/rows.length)*96, "Aktualizuji časy na kartách podle zadaného cíle.");
+      showRecalcModal(`Přepočítávám ${i+1}/${rows.length}`, ((i+1)/rows.length)*96, note);
     }
     showRecalcModal("Hotovo", 100, "Dojezdy jsou přepočítané.");
+    displayedCommuteDest = commuteDest;
+    localStorage.setItem("nase.displayedCommuteDest", displayedCommuteDest);
+    updateCommuteNote();
     msg.textContent = failed && !ok ? `Nepřepočítáno: ${firstError||"chybí API klíč"}` : "";
   } finally {
     commuteRunning = false;
     hideRecalcModal();
+    if(mapWrap) renderMap();
     loadData();
   }
 }
@@ -1325,6 +1438,7 @@ function openAdd(){
   const msg=wrap.querySelector("#m_msg");
   const g=id=>wrap.querySelector("#m_"+id).value.trim();
   let importedExtra = {};
+  let computedPosition = {};
   wrap.querySelector("#m_cancel").onclick=close;
   wrap.querySelector("#m_x").onclick=close;
   function markMissing(fields){
@@ -1373,6 +1487,7 @@ function openAdd(){
       if(j.car){
         wrap.querySelector("#m_car").value=j.car;
         if(!wrap.querySelector("#m_pt").value) wrap.querySelector("#m_pt").value=Math.max(j.car+15, Math.round(j.car*1.65));
+        computedPosition = { lat:j.lat || computedPosition.lat, lon:j.lon || computedPosition.lon, commuteDest };
         clearMissing("car","pt");
         msg.className="msg ok"; msg.textContent="Dojezd autem ~"+j.car+" min"+(j.km?" ("+j.km+" km)":"")+" doplněn. MHD je orientační odhad.";
       }
@@ -1420,6 +1535,7 @@ function openAdd(){
       car:Number(g("car"))||0, pt:Number(g("pt"))||0, origin:g("origin") || (g("n").split(/[-–,]/)[0]||"").trim(),
       img:g("img"), imgs:wrap.querySelector("#m_imgs").value.split(/\n+/).map(s=>s.trim()).filter(Boolean),
       feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url"),
+      ...computedPosition,
       ...importedExtra };
     if(!data.n){ msg.className="msg err"; msg.textContent="Vyplň aspoň název."; return; }
     msg.className="msg"; msg.textContent="Ukládám…";
@@ -1433,7 +1549,7 @@ function openAdd(){
 }
 document.getElementById("btn-add").addEventListener("click", openAdd);
 
-initThemeToggle();
+window.Nase.initThemeToggle();
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }

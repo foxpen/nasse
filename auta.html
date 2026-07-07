@@ -46,7 +46,7 @@
       <span class="t">Naše</span>
     </a>
     <div class="spacer"></div>
-    <button class="theme-toggle" type="button" data-theme-toggle>System</button>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Motiv: Systém"></button>
     <nav class="switch" aria-label="Sekce">
       <a href="bydleni.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
       <a href="auta.html" class="active aut" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
@@ -56,7 +56,7 @@
 
 <main>
   <section class="hero" id="hero" hidden>
-    <a class="pick aut" id="pick" aria-label="Tip · nejlevnější auto"></a>
+    <a class="pick aut" id="pick" aria-label="Tip · nejlepší auto"></a>
     <div class="kpis" aria-label="Souhrn">
       <div class="kpi"><div class="l">Aut</div><div class="v" id="kpi-count">·</div></div>
       <div class="kpi"><div class="l">Cenové rozpětí</div><div class="v" id="kpi-range">·</div></div>
@@ -65,13 +65,31 @@
     </div>
   </section>
 
+  <div class="settings-panel auto-settings" id="auto-settings" hidden>
+    <div class="mortgage car-costs" id="car-costs">
+      <div class="box-title">Náklady auta</div>
+      <label>Ročně <input id="c-km-year" type="number" value="12000" min="1000" step="1000"> km</label>
+      <label>Palivo <input id="c-fuel-price" type="number" value="38" min="0" step="0.5"> Kč/l</label>
+      <label>Servis <input id="c-service" type="number" value="1500" min="0" step="100"> Kč/měs</label>
+      <label>Pojištění <input id="c-insurance" type="number" value="1200" min="0" step="100"> Kč/měs</label>
+      <label><input id="c-tires" type="checkbox" checked> pneu rezerva</label>
+      <label><input id="c-highway" type="checkbox" checked> dálniční známka</label>
+      <span class="mnote" id="c-note">Orientační náklady se započítají do skóre a karet.</span>
+    </div>
+    <div class="recalc-panel">
+      <div class="box-title">Porovnání</div>
+      <button class="btn-ghost" type="button" id="compare-mode">Porovnat</button>
+      <div class="compare-inline" id="compare-inline" hidden>
+        <strong id="compare-count">0/3 vybráno</strong>
+        <button class="btn-add" type="button" id="compare-open" hidden>Otevřít porovnání</button>
+        <button class="btn-ghost" type="button" id="compare-clear">Zrušit</button>
+      </div>
+    </div>
+  </div>
+
   <div class="controls" id="controls" hidden>
     <div class="seg" id="filters" role="group" aria-label="Filtr značky">
       <button data-f="all" aria-pressed="true">Vše</button>
-      <button data-f="mazda" aria-pressed="false">Mazda</button>
-      <button data-f="kia" aria-pressed="false">Kia</button>
-      <button data-f="hyundai" aria-pressed="false">Hyundai</button>
-      <button data-f="jeep" aria-pressed="false">Jeep</button>
     </div>
     <div class="spacer"></div>
     <select id="sort" aria-label="Řazení">
@@ -80,6 +98,8 @@
       <option value="km">Nejméně najeto</option>
       <option value="power">Nejvýkonnější</option>
     </select>
+    <button class="btn-ghost" id="refresh-all" type="button">Aktualizovat inzeráty</button>
+    <button class="btn-ghost" id="bulk-delete" type="button">Smazat</button>
     <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
   </div>
 
@@ -140,8 +160,33 @@ const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}
 const openUrl = window.Nase.openUrl;
 
 let filter="all", sort="price";
-let MINPRICE=0, MAXKM=0, MINKM=0;
+let MINPRICE=0, MAXPRICE=1, MAXKM=0, MINKM=0, MINYEAR=0, MAXYEAR=1, MINPOWER=0, MAXPOWER=1;
+let MINCOST=0, MAXCOST=1;
+let compareMode=false;
+const selectedCompare = new Set();
+let deleteMode=false;
+const selectedDelete = new Set();
+const defaultCostSettings={kmYear:12000,fuelPrice:38,service:1500,insurance:1200,tires:true,highway:true};
+let costSettings = {...defaultCostSettings, ...JSON.parse(localStorage.getItem("nase.carCosts") || "{}")};
 
+function carMade(d){ return d.made || d.firstRegistration || d.year || "?"; }
+function numFromMade(value){ return Number((String(value||'').match(/(20\d{2}|19\d{2})/)||[])[1])||0; }
+function carConsumption(d){
+  const raw = Number(d.consumption || d.spotreba || 0);
+  if(raw>0) return raw;
+  const fuel=String(d.fuel||'').toLowerCase();
+  if(/hybrid/.test(fuel)) return 4.8;
+  if(/diesel|nafta/.test(fuel)) return 5.8;
+  if(/elektro/.test(fuel)) return 0;
+  return d.kw && d.kw>130 ? 8.2 : 6.8;
+}
+function monthlyCost(d){
+  const fuel=String(d.fuel||'').toLowerCase();
+  const fuelMonthly = /elektro/.test(fuel) ? 900 : (costSettings.kmYear/12) * (carConsumption(d)/100) * costSettings.fuelPrice;
+  const tires = costSettings.tires ? 450 : 0;
+  const highway = costSettings.highway ? Math.round(2440/12) : 0;
+  return Math.round(fuelMonthly + Number(costSettings.service||0) + Number(costSettings.insurance||0) + tires + highway);
+}
 function priceKey(v){ return v==null ? Infinity : v; }
 function sortRows(rows){
   return rows.sort((a,b)=>{
@@ -152,16 +197,57 @@ function sortRows(rows){
   });
 }
 
+function normHigh(v,min,max){ return max===min ? 1 : Math.max(0, Math.min(1, (v-min)/(max-min))); }
+function normLow(v,min,max){ return max===min ? 1 : Math.max(0, Math.min(1, 1 - ((v-min)/(max-min)))); }
+function carScore(d){
+  const price=pCzk(d);
+  const priceScore=price ? normLow(price, MINPRICE, MAXPRICE) : 0.35;
+  const kmScore=d.km ? normLow(d.km, MINKM, MAXKM) : 0.35;
+  const yearScore=d.year ? normHigh(d.year, MINYEAR, MAXYEAR) : 0.4;
+  const powerScore=d.kw ? normHigh(d.kw, MINPOWER, MAXPOWER) : 0.45;
+  const costScore=monthlyCost(d) ? normLow(monthlyCost(d), MINCOST, MAXCOST) : 0.5;
+  const driveScore=d.awd ? 1 : 0.65;
+  const stateScore=d.stav==="nové" ? 1 : 0.72;
+  return Math.round(priceScore*24 + kmScore*20 + yearScore*16 + powerScore*10 + costScore*14 + driveScore*7 + stateScore*9);
+}
+function scoreClass(score){ return score>=75?'good':score>=50?'mid':'bad'; }
+function carReasons(d){
+  const reasons=[];
+  if(pCzk(d)===MINPRICE) reasons.push('nejnižší cena');
+  if(d.km===MINKM) reasons.push('nejméně najeto');
+  if(d.year===MAXYEAR) reasons.push('nejnovější ročník');
+  if(d.kw===MAXPOWER) reasons.push('nejvyšší výkon');
+  if(monthlyCost(d)===MINCOST) reasons.push('nejnižší provoz');
+  if(d.awd) reasons.push('4×4');
+  return reasons.slice(0,3);
+}
+function metricRank(id, getter, higher=true){
+  const rows=CARS.map(d=>({id:d.id, value:Number(getter(d))||0})).filter(x=>x.value>0);
+  rows.sort((a,b)=>higher ? b.value-a.value : a.value-b.value);
+  const pos=rows.findIndex(x=>x.id===id);
+  return pos>=0 ? pos+1 : 0;
+}
+function topBadge(rank){ return rank>0 && rank<=3 ? `<i class="top-rank">TOP ${rank}</i>` : ""; }
+function carImages(d){
+  return (d.imgs&&d.imgs.length?d.imgs:[d.img]).filter(Boolean).map(safeUrl).filter(Boolean);
+}
+
 function renderPick(){
-  const d = CARS.find(c=>c.win) || [...CARS].filter(c=>c.price!=null).sort((a,b)=>a.price-b.price)[0];
+  CARS.forEach(d=>d.score=carScore(d));
+  const d = [...CARS].sort((a,b)=>(b.score-a.score)||priceKey(pCzk(a))-priceKey(pCzk(b))||(a.id-b.id))[0];
   const el = document.getElementById("pick");
-  const url = safeUrl(d.url);
-  el.href = url || "#"; if(url){el.target="_blank"; el.rel="noopener";}
+  const reasons=carReasons(d);
+  el.href = "#";
+  el.onclick = e => { e.preventDefault(); openDetail(d.id); };
+  el.removeAttribute("target");
+  el.removeAttribute("rel");
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
-    <span class="badge">${I.star} Tip · vítěz výběru</span>
+    <span class="badge">${I.star} Tip · nejlepší skóre</span>
+    <button class="map-score ${scoreClass(d.score)} pick-score" type="button" onclick="event.preventDefault();event.stopPropagation();openCarScore(${d.id})">${d.score}</button>
     <div>
       <h2>${esc(d.n)}</h2>
-      <div class="pmeta">${esc(d.variant)} · ${d.year} · ${km(d.km)} km · ${d.ps} PS</div>
+      <div class="pmeta">${esc(d.variant)} · ${esc(carMade(d))} · ${km(d.km)} km · ${d.ps} PS</div>
+      <div class="pick-reasons">${reasons.map(r=>`<span>${esc(r)}</span>`).join("") || `<span>nejlepší poměr auta</span>`}</div>
       <div class="prow">
         <span class="big">${czk(pCzk(d))}</span>
         <span class="ppm">≈ ${eur(pEur(d))}<br>${esc(d.stav)} · ${km(d.km)} km</span>
@@ -184,43 +270,52 @@ function stavTag(d){ return d.stav==="nové"
   : `<span class="tag" style="background:var(--warn-bg);color:var(--warn);">ojeté</span>`; }
 
 function renderCards(){
+  CARS.forEach(d=>d.score=carScore(d));
   let rows = sortRows(CARS.filter(d=> filter==="all"||d.brand===filter));
   document.getElementById("count").textContent = rows.length + (rows.length===1?" auto":(rows.length<5?" auta":" aut"));
   document.getElementById("cards").innerHTML = rows.map(d=>{
-    const known = d.price!=null;
-    const pct = MAXKM===MINKM ? 100 : Math.round(((MAXKM - d.km)/(MAXKM - MINKM))*82 + 18);
     const url = safeUrl(d.url);
     const img = safeUrl(d.img);
-    return `<article class="card${d.win?' best':''}" tabindex="0" role="link" aria-label="${esc(d.n)}, ${czk(pCzk(d))}"
-        onclick="openUrl(${jsstr(url)})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUrl(${jsstr(url)})}">
+    const imgs = carImages(d).length;
+    const selecting=compareMode || deleteMode;
+    const selected=deleteMode ? selectedDelete.has(d.id) : selectedCompare.has(d.id);
+    return `<article class="card${d.win?' best':''}${selecting?' compare-select':''}${selected?' selected':''}" tabindex="0" role="button" aria-label="${esc(d.n)}, ${czk(pCzk(d))}"
+        onclick="${deleteMode?`toggleDelete(${d.id})`:(compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`)}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${deleteMode?`toggleDelete(${d.id})`:(compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`)}}">
       <div class="media byt">
         <div class="corner">
           ${stavTag(d)}
-          <span class="tag" style="background:var(--bg);color:var(--fg);">${I.cal}${d.year}</span>
         </div>
         <div class="del">
           <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝 Poznámka</button>
           <button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button>
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
+        <button class="score-pill ${scoreClass(d.score)}" type="button" onclick="event.stopPropagation();openCarScore(${d.id})" title="Rozkliknout skóre">${d.score}</button>
+        ${selecting?`<span class="select-pill">${selected?'Vybráno':'Vybrat'}</span>`:''}
         ${img?`<img src="${esc(img)}" alt="Foto auta · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:""}
         <span class="pricechip">${czk(pCzk(d))}</span>
+        ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openDetail(${d.id})">${imgs} fotek</button>`:''}
       </div>
       <div class="body">
         <div class="ctitle">${esc(d.n)}</div>
         <div class="csub">${esc(d.variant)}</div>
-        <div class="chips">
-          <span class="chip">${I.gauge}${km(d.km)} km</span>
-          <span class="chip">${I.bolt}${d.ps} PS</span>
-          <span class="chip">${I.fuel}${d.awd?"4×4":"FWD"}</span>
+        <div class="card-metrics">
+          <span>${topBadge(metricRank(d.id, x=>x.year, true))}<b>${esc(carMade(d))}</b><small>rok výroby</small></span>
+          <span>${topBadge(metricRank(d.id, x=>x.km, false))}<b>${km(d.km||0)} km</b><small>nájezd</small></span>
+          <span>${topBadge(metricRank(d.id, x=>x.kw, true))}<b>${d.kw||0} kW</b><small>výkon</small></span>
         </div>
-        <div class="ppmwrap">
-          <div class="ppmtop"><span>Najeto${d.km===MINKM?' · nejméně':''}</span><b>${km(d.km)} km</b></div>
-          <div class="bar"><i class="${d.win?'lo':''}" style="width:${pct}%"></i></div>
+        <div class="chips">
+          <span class="chip">${I.fuel}${d.awd?"4×4":"FWD"}</span>
+          <span class="chip">${esc(d.fuel||'?')}</span>
+          <span class="chip">${esc(d.stav||'?')}</span>
+          <span class="chip">${czk(monthlyCost(d))}/měs</span>
         </div>
         <ul class="feats">${(d.feats||[]).map(f=>`<li>${I.dot}<span>${esc(f)}</span></li>`).join("")}</ul>
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
-        ${url?`<a class="cta aut" href="${esc(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Otevřít inzerát ${I.arrow}</a>`:`<span class="cta aut" style="background:var(--line);color:var(--muted-fg);cursor:default;">Bez odkazu</span>`}
+        <div class="card-actions">
+          <button class="btn-add" type="button" onclick="event.stopPropagation();openDetail(${d.id})">Detail</button>
+          ${url?`<a class="btn-ghost maplink" href="${esc(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Inzerát</a>`:`<span class="btn-ghost maplink" style="cursor:default;">Bez odkazu</span>`}
+        </div>
       </div>
     </article>`;
   }).join("");
@@ -247,18 +342,66 @@ function renderTable(){
 function computeExtents(){
   const prices=CARS.map(pCzk).filter(p=>p!=null);
   MINPRICE = prices.length?Math.min(...prices):0;
+  MAXPRICE = prices.length?Math.max(...prices):1;
   const kms=CARS.map(c=>c.km).filter(k=>k!=null);
   MAXKM = kms.length?Math.max(...kms):1;
   MINKM = kms.length?Math.min(...kms):0;
+  const years=CARS.map(c=>c.year).filter(Boolean);
+  MINYEAR = years.length?Math.min(...years):0;
+  MAXYEAR = years.length?Math.max(...years):1;
+  const powers=CARS.map(c=>c.kw).filter(Boolean);
+  MINPOWER = powers.length?Math.min(...powers):0;
+  MAXPOWER = powers.length?Math.max(...powers):1;
+  const costs=CARS.map(monthlyCost).filter(Boolean);
+  MINCOST = costs.length?Math.min(...costs):0;
+  MAXCOST = costs.length?Math.max(...costs):1;
+}
+function renderBrandFilters(){
+  const el=document.getElementById("filters");
+  const brands=[...new Set(CARS.map(d=>String(d.brand||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"cs"));
+  if(filter!=="all" && !brands.includes(filter)) filter="all";
+  el.innerHTML = [`<button data-f="all" aria-pressed="${filter==="all"}">Vše</button>`, ...brands.map(b=>`<button data-f="${esc(b)}" aria-pressed="${filter===b}">${esc(b.charAt(0).toUpperCase()+b.slice(1))}</button>`)].join("");
+}
+function saveCostSettings(){
+  localStorage.setItem("nase.carCosts", JSON.stringify(costSettings));
+}
+function initCostControls(){
+  const bindNum=(id,key)=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.value=costSettings[key];
+    el.addEventListener("input",()=>{
+      costSettings[key]=Number(el.value)||0;
+      saveCostSettings();
+      computeExtents();
+      renderPick(); renderCards(); renderTable(); updateCompareBar();
+    });
+  };
+  const bindBool=(id,key)=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.checked=Boolean(costSettings[key]);
+    el.addEventListener("change",()=>{
+      costSettings[key]=el.checked;
+      saveCostSettings();
+      computeExtents();
+      renderPick(); renderCards(); renderTable(); updateCompareBar();
+    });
+  };
+  bindNum("c-km-year","kmYear");
+  bindNum("c-fuel-price","fuelPrice");
+  bindNum("c-service","service");
+  bindNum("c-insurance","insurance");
+  bindBool("c-tires","tires");
+  bindBool("c-highway","highway");
 }
 function refresh(){
   const has = CARS.length>0;
   document.getElementById("empty").hidden = has;
-  ["hero","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=!has);
+  ["hero","auto-settings","sechead","tablewrap"].forEach(id=>document.getElementById(id).hidden=!has);
   document.getElementById("controls").hidden = false;
   if(!has) return;
   computeExtents();
-  renderPick(); renderKpis(); renderCards(); renderTable();
+  renderBrandFilters();
+  renderPick(); renderKpis(); renderCards(); renderTable(); updateCompareBar();
 }
 async function loadData(){
   try{
@@ -283,10 +426,263 @@ async function delById(id){
   loadData();
 }
 
+function updateCompareBar(){
+  const n=selectedCompare.size;
+  document.getElementById("compare-inline").hidden = !compareMode;
+  document.getElementById("compare-count").textContent = compareMode ? `${n}/3 vybráno` : "0 vybráno";
+  const openBtn=document.getElementById("compare-open");
+  if(openBtn) openBtn.hidden = !compareMode || n < 2;
+}
+function startCompare(){
+  deleteMode=false;
+  selectedDelete.clear();
+  compareMode=true;
+  selectedCompare.clear();
+  document.getElementById("compare-mode").textContent="Vybírám...";
+  document.getElementById("bulk-delete").textContent="Smazat";
+  updateCompareBar();
+  renderCards();
+}
+function clearCompare(){
+  compareMode=false;
+  selectedCompare.clear();
+  document.getElementById("compare-mode").textContent="Porovnat";
+  updateCompareBar();
+  renderCards();
+}
+function toggleCompare(id){
+  if(selectedCompare.has(id)) selectedCompare.delete(id);
+  else {
+    if(selectedCompare.size>=3) return;
+    selectedCompare.add(id);
+  }
+  updateCompareBar();
+  renderCards();
+}
+function toggleDelete(id){
+  if(selectedDelete.has(id)) selectedDelete.delete(id);
+  else selectedDelete.add(id);
+  document.getElementById("bulk-delete").textContent = selectedDelete.size ? `Smazat (${selectedDelete.size})` : "Ruším mazání";
+  renderCards();
+}
+function startBulkDelete(){
+  if(deleteMode && selectedDelete.size){
+    confirmBulkDelete();
+    return;
+  }
+  if(deleteMode){
+    deleteMode=false;
+    selectedDelete.clear();
+    document.getElementById("bulk-delete").textContent="Smazat";
+    renderCards();
+    return;
+  }
+  compareMode=false;
+  selectedCompare.clear();
+  updateCompareBar();
+  document.getElementById("compare-mode").textContent="Porovnat";
+  deleteMode=true;
+  selectedDelete.clear();
+  document.getElementById("bulk-delete").textContent="Ruším mazání";
+  renderCards();
+}
+function confirmBulkDelete(){
+  const items=[...selectedDelete].map(id=>CARS.find(d=>d.id===id)).filter(Boolean);
+  if(!items.length) return;
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal" style="max-width:560px">
+    <button class="modal-x" type="button" id="bd-x" aria-label="Zavřít">×</button>
+    <h3>Smazat vybraná auta?</h3>
+    <p class="hint">Opravdu smazat ${items.length} aut? Tahle akce se uloží do databáze.</p>
+    <div class="refresh-list">${items.map(d=>`<div class="refresh-item"><b>${esc(d.n)}</b><br><span>${esc(d.variant||'')}</span></div>`).join("")}</div>
+    <div class="msg" id="bd-msg"></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="bd-cancel">Zrušit</button><button class="btn-add danger-action" type="button" id="bd-ok">Ano, smazat</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#bd-x").onclick=close;
+  wrap.querySelector("#bd-cancel").onclick=close;
+  wrap.querySelector("#bd-ok").onclick=async()=>{
+    const msg=wrap.querySelector("#bd-msg"); msg.className="msg"; msg.textContent="Mažu vybraná auta...";
+    let ok=0, fail=0;
+    for(const item of items){
+      try{ const r=await fetch(API+"/delete?id="+item.id,{method:"DELETE"}); if(!r.ok) throw new Error("HTTP "+r.status); ok++; }
+      catch(e){ fail++; }
+    }
+    window.dispatchEvent(new CustomEvent('nase:react',{detail:'bulk-delete-auto'}));
+    deleteMode=false; selectedDelete.clear(); document.getElementById("bulk-delete").textContent="Smazat";
+    msg.className=fail?"msg err":"msg ok"; msg.textContent=`Smazáno ${ok}. Chyby ${fail}.`;
+    setTimeout(()=>{ close(); loadData(); }, fail?1100:550);
+  };
+}
+function compareMetric(label, getter, fmt, higher=true){
+  const rows=[...selectedCompare].map(id=>CARS.find(x=>x.id===id)).filter(Boolean);
+  const vals=rows.map(getter).filter(v=>v!=null && v!==0);
+  const best=vals.length ? (higher?Math.max(...vals):Math.min(...vals)) : null;
+  return `<tr><th>${esc(label)}</th>${rows.map(d=>{
+    const v=getter(d);
+    const ok=best!=null && v===best;
+    const diff=(best!=null && v!=null) ? v-best : 0;
+    const sign = higher ? diff : -diff;
+    return `<td class="${ok?'pos':'neg'}"><b>${esc(fmt(v,d))}</b>${ok?'<small>nejlepší</small>':(best!=null?`<small>${sign>0?'+':''}${esc(fmt(sign,d))}</small>`:'')}</td>`;
+  }).join("")}</tr>`;
+}
+function renderCompare(){
+  const rows=[...selectedCompare].map(id=>CARS.find(x=>x.id===id)).filter(Boolean);
+  if(rows.length<2) return;
+  const metrics=[
+    compareMetric("Cena", d=>pCzk(d)||0, v=>czk(Math.abs(v)), false),
+    compareMetric("Rok", d=>d.year||0, (v,d)=>v===d.year?String(carMade(d)):String(Math.abs(v)), true),
+    compareMetric("Najeto", d=>d.km||0, v=>km(Math.abs(v))+" km", false),
+    compareMetric("Výkon", d=>d.kw||0, v=>Math.abs(v)+" kW", true),
+    compareMetric("Měsíční provoz", d=>monthlyCost(d)||0, v=>czk(Math.abs(v))+"/měs", false),
+    compareMetric("Skóre", d=>d.score||0, v=>Math.abs(v)+"/100", true)
+  ];
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal compare-modal">
+    <button class="modal-x" type="button" id="cmp-x" aria-label="Zavřít">×</button>
+    <h3>Porovnání aut</h3>
+    <p class="hint">Zeleně je nejlepší hodnota. Kliknutím na název otevřeš detail auta.</p>
+    <div class="scroll compare-scroll"><table>
+      <thead><tr><th>Parametr</th>${rows.map(d=>`<th><button class="inline-link" type="button" onclick="openDetail(${d.id})">${esc(d.n)}</button></th>`).join("")}</tr></thead>
+      <tbody>${metrics.join("")}</tbody>
+    </table></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="cmp-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#cmp-x").onclick=close;
+  wrap.querySelector("#cmp-close").onclick=close;
+}
+
+async function refreshAutoListings(){
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal" style="max-width:620px">
+    <button class="modal-x" type="button" id="refresh-close" aria-label="Zavřít">×</button>
+    <h3>Aktualizace inzerátů</h3>
+    <p class="hint" id="refresh-summary">Kontroluji uložená auta podle původních odkazů…</p>
+    <div class="refresh-list" id="refresh-list"></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="refresh-ok">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#refresh-close").onclick=close;
+  wrap.querySelector("#refresh-ok").onclick=close;
+  try{
+    const r=await fetch(API+"/refresh-listings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({section:"auto"})});
+    const j=await r.json();
+    if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
+    const s=j.summary||{};
+    wrap.querySelector("#refresh-summary").textContent=`Aktualizováno ${s.updated||0} z ${s.total||0}. Beze změny ${s.unchanged||0}. Chyby ${s.errors||0}. Nenalezeno ${s.notFound||0}.`;
+    wrap.querySelector("#refresh-list").innerHTML=(j.items||[]).map(it=>`<div class="refresh-item"><b>${esc(it.n||'Auto')}</b><br><span>${esc(it.status)}${it.changes?` · ${it.changes} změn`:''}${it.message?` · ${esc(it.message)}`:''}</span></div>`).join("");
+    window.dispatchEvent(new CustomEvent('nase:react',{detail:'refresh-auto'}));
+    loadData();
+  }catch(e){
+    wrap.querySelector("#refresh-summary").textContent="Aktualizace selhala: "+e.message;
+  }
+}
+
+function openCarScore(id){
+  const d=CARS.find(x=>x.id===id); if(!d) return;
+  const parts=[
+    {label:'Cena', value:pCzk(d), text:pCzk(d)===MINPRICE?'nejnižší v uloženém výběru':'levnější auto dostane víc bodů'},
+    {label:'Najeto', value:d.km?km(d.km)+' km':'?', text:d.km===MINKM?'nejméně najeto':'nižší nájezd zvedá skóre'},
+    {label:'Ročník', value:d.year||'?', text:d.year===MAXYEAR?'nejnovější ročník':'novější auto zvedá skóre'},
+    {label:'Výkon', value:d.ps?d.ps+' PS':'?', text:d.kw===MAXPOWER?'nejvyšší výkon':'vyšší výkon přidává menší bonus'},
+    {label:'Měsíční provoz', value:czk(monthlyCost(d))+'/měs', text:monthlyCost(d)===MINCOST?'nejnižší orientační provoz':'nižší servis, pojištění a spotřeba zvedají skóre'},
+    {label:'Pohon/stav', value:(d.awd?'4×4':'FWD')+' · '+(d.stav||'?'), text:'4×4 a nové auto mají mírný bonus'}
+  ];
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal score-modal">
+    <button class="modal-x" type="button" id="score-x" aria-label="Zavřít">×</button>
+    <h3>Skóre auta</h3>
+    <p class="hint">${esc(d.n)}</p>
+    <div style="display:flex;align-items:center;gap:14px;margin:12px 0 16px">
+      <div class="map-score ${scoreClass(d.score)}">${d.score}</div>
+      <p class="hint">Maximum je 100 bodů. Skóre porovnává cenu, nájezd, ročník, výkon, orientační měsíční provoz, pohon a stav proti ostatním uloženým autům.</p>
+    </div>
+    <div class="score-breakdown">
+      ${parts.map(p=>`<div class="score-row"><div class="score-row-head"><b>${esc(p.label)}</b><span>${esc(p.value)}</span></div><p>${esc(p.text)}</p></div>`).join("")}
+    </div>
+    <div class="actions"><button class="btn-ghost" type="button" id="score-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#score-x").onclick=close;
+  wrap.querySelector("#score-close").onclick=close;
+}
+
+function openDetail(id){
+  const d=CARS.find(x=>x.id===id); if(!d) return;
+  const url=safeUrl(d.url);
+  const viewImgs=carImages(d);
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal detail-modal">
+    <button class="modal-x" type="button" id="detail-x" aria-label="Zavřít">×</button>
+    <div class="detail-top">
+      <div><h3>${esc(d.n)}</h3><p class="hint">${esc(d.variant||'')} · ${esc(carMade(d))} · ${km(d.km||0)} km · ${d.ps||0} PS</p></div>
+      <button class="map-score ${scoreClass(d.score)} score-detail-btn" type="button" id="detail-score">${d.score}</button>
+    </div>
+    <div class="detail-layout">
+      <div>
+        ${viewImgs.length?`<div class="gallery-main detail-gallery"><img id="detail-main" src="${esc(viewImgs[0])}" alt="Foto auta · ${esc(d.n)}">${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="detail-prev" aria-label="Předchozí fotka">‹</button><button class="gallery-nav next" type="button" id="detail-next" aria-label="Další fotka">›</button>`:''}</div>
+        <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>`:`<div class="gallery-main detail-gallery"><div class="state">Bez fotky</div></div>`}
+        <div class="detail-map-actions">
+          ${url?`<a class="btn-add" href="${esc(url)}" target="_blank" rel="noopener">Otevřít inzerát</a>`:''}
+          <button class="btn-ghost" type="button" id="detail-note">Poznámka</button>
+          <button class="btn-ghost" type="button" id="detail-delete">Smazat</button>
+        </div>
+      </div>
+      <div class="detail-info">
+        <dl class="detail-dl">
+          <div><dt>Cena</dt><dd>${czk(pCzk(d))}</dd></div>
+          <div><dt>Cena EUR</dt><dd>${eur(pEur(d))}</dd></div>
+          <div><dt>Provoz</dt><dd>~${czk(monthlyCost(d))}/měs</dd></div>
+          <div><dt>Spotřeba</dt><dd>~${String(carConsumption(d)).replace('.', ',')} l/100 km</dd></div>
+          <div><dt>Rok výroby</dt><dd>${esc(carMade(d))}</dd></div>
+          <div><dt>Najeto</dt><dd>${km(d.km||0)} km</dd></div>
+          <div><dt>Výkon</dt><dd>${d.kw||0} kW / ${d.ps||0} PS</dd></div>
+          <div><dt>Pohon</dt><dd>${d.awd?'4×4':'FWD'}</dd></div>
+          <div><dt>Palivo</dt><dd>${esc(d.fuel||'?')}</dd></div>
+          <div><dt>Stav</dt><dd>${esc(d.stav||'?')}</dd></div>
+        </dl>
+        ${(d.feats||[]).length?`<h4>Výbava / poznámky z inzerátu</h4><ul class="detail-feats">${d.feats.map(f=>`<li>${I.dot}<span>${esc(f)}</span></li>`).join("")}</ul>`:''}
+        ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
+      </div>
+    </div>
+    <div class="actions"><button class="btn-ghost" type="button" id="detail-close">Zavřít</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#detail-x").onclick=close;
+  wrap.querySelector("#detail-close").onclick=close;
+  wrap.querySelector("#detail-score").onclick=()=>openCarScore(d.id);
+  wrap.querySelector("#detail-note").onclick=()=>{ close(); editNote(d.id); };
+  wrap.querySelector("#detail-delete").onclick=()=>{ close(); delById(d.id); };
+  const thumbs=wrap.querySelector(".gallery-thumbs");
+  let photoIndex=0;
+  function setPhoto(i){
+    if(!viewImgs.length) return;
+    photoIndex=(i+viewImgs.length)%viewImgs.length;
+    const main=wrap.querySelector("#detail-main"); if(main) main.src=viewImgs[photoIndex];
+    const btns=[...wrap.querySelectorAll(".gallery-thumbs button")];
+    btns.forEach((x,idx)=>x.classList.toggle("on", idx===photoIndex));
+    btns[photoIndex]?.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"});
+  }
+  if(thumbs) thumbs.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    setPhoto(Number(b.dataset.i)||0);
+  });
+  const prev=wrap.querySelector("#detail-prev"), next=wrap.querySelector("#detail-next");
+  if(prev) prev.onclick=()=>setPhoto(photoIndex-1);
+  if(next) next.onclick=()=>setPhoto(photoIndex+1);
+}
+
 function editNote(id){
   const item=CARS.find(x=>x.id===id); if(!item) return;
   const wrap=document.createElement("div"); wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal" style="max-width:460px">
+    <button class="modal-x" type="button" id="nm_x" aria-label="Zavřít">×</button>
     <h3>Poznámka</h3>
     <p class="hint">${esc(item.n)}</p>
     <textarea id="nm_txt" rows="5" placeholder="Napiš si poznámku k tomuhle autu…">${esc(item.note)}</textarea>
@@ -295,7 +691,7 @@ function editNote(id){
   </div>`;
   document.body.appendChild(wrap);
   const close=()=>wrap.remove();
-  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#nm_x").onclick=close;
   wrap.querySelector("#nm_cancel").onclick=close;
   wrap.querySelector("#nm_txt").focus();
   wrap.querySelector("#nm_save").onclick=async()=>{
@@ -315,6 +711,7 @@ function openAdd(){
   const wrap=document.createElement("div");
   wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal">
+    <button class="modal-x" type="button" id="m_x" aria-label="Zavřít">×</button>
     <h3>Přidat auto</h3>
     <p class="hint">Vlož odkaz ze sauto.cz nebo bazos.cz a dej Načíst · pole se vyplní sama. Zahraniční (mobile.de…) vyplň ručně.</p>
     <label>Odkaz (sauto.cz / bazos.cz)</label>
@@ -323,10 +720,12 @@ function openAdd(){
     ${fld("Název (značka + model)","n","Mazda CX-5 ...")}
     <div class="grid2"><div>${fld("Značka","brand","mazda")}</div><div>${fld("Varianta / popis","variant","FWD · ojeté")}</div></div>
     <div class="grid2"><div><label>Stav</label><select id="m_stav" style="width:100%"><option value="ojeté">ojeté</option><option value="nové">nové</option></select></div><div><label>Pohon</label><select id="m_awd" style="width:100%"><option value="false">FWD</option><option value="true">4×4</option></select></div></div>
-    <div class="grid2"><div>${fld("Rok","year")}</div><div>${fld("Najeto (km)","km")}</div></div>
-    <div class="grid2"><div>${fld("Výkon (kW)","kw")}</div><div>${fld("Palivo","fuel","benzin")}</div></div>
+    <div class="grid2"><div>${fld("Rok / první registrace","made","05/2021")}</div><div>${fld("Rok pro řazení","year","2021")}</div></div>
+    <div class="grid2"><div>${fld("Najeto (km)","km")}</div><div>${fld("Výkon (kW)","kw")}</div></div>
+    <div class="grid2"><div>${fld("Palivo","fuel","benzin")}</div><div>${fld("Převodovka / karoserie","body","automat · SUV")}</div></div>
     <div class="grid2"><div>${fld("Cena (Kč) · české","czk")}</div><div>${fld("Cena (€) · zahraniční","price")}</div></div>
     ${fld("Foto (URL)","img")}
+    <label>Fotky galerie (jedna URL na řádek)</label><textarea id="m_imgs" rows="3" placeholder="https://...jpg"></textarea>
     ${fld("Vlastnosti (oddělené čárkou)","feats")}
     <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
   </div>`;
@@ -334,7 +733,7 @@ function openAdd(){
   const close=()=>wrap.remove();
   const msg=wrap.querySelector("#m_msg");
   const g=id=>wrap.querySelector("#m_"+id).value.trim();
-  wrap.addEventListener("click",e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector("#m_x").onclick=close;
   wrap.querySelector("#m_cancel").onclick=close;
   wrap.querySelector("#m_fetch").onclick=async()=>{
     const u=g("url"); if(!u) return;
@@ -345,8 +744,10 @@ function openAdd(){
       if(!r.ok||j.error){ msg.className="msg err"; msg.textContent=j.error||"Nepovedlo se."; return; }
       const d=j.data||{};
       const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!=="") el.value=v; };
-      set("n",d.n); set("brand",d.brand); set("variant",d.variant); set("year",d.year); set("km",d.km);
-      set("kw",d.kw); set("fuel",d.fuel); set("czk",d.czk); set("price",d.price); set("img",d.img);
+      set("n",d.n); set("brand",d.brand); set("variant",d.variant); set("made",d.made || d.firstRegistration); set("year",d.year); set("km",d.km);
+      set("kw",d.kw); set("fuel",d.fuel); set("body",d.body); set("czk",d.czk); set("price",d.price); set("img",d.img);
+      const imgs = Array.isArray(d.imgs) ? d.imgs : [];
+      if(imgs.length) wrap.querySelector("#m_imgs").value = imgs.join("\n");
       set("feats",(d.feats||[]).join(", "));
       if(d.stav) wrap.querySelector("#m_stav").value=d.stav;
       wrap.querySelector("#m_awd").value=String(!!d.awd);
@@ -357,10 +758,11 @@ function openAdd(){
     const kw=Number(g("kw"))||0;
     const data={ brand:(g("brand")||"").toLowerCase(), n:g("n"), variant:g("variant"),
       stav:wrap.querySelector("#m_stav").value, awd:wrap.querySelector("#m_awd").value==="true",
-      year:Number(g("year"))||new Date().getFullYear(), km:Number(g("km").replace(/\s/g,''))||0,
-      fuel:g("fuel")||"benzin", kw, ps:kw?Math.round(kw*1.35962):0,
+      made:g("made"), year:Number(g("year"))||numFromMade(g("made"))||new Date().getFullYear(), km:Number(g("km").replace(/\s/g,''))||0,
+      fuel:g("fuel")||"benzin", body:g("body"), kw, ps:kw?Math.round(kw*1.35962):0,
       czk:g("czk")?Number(g("czk").replace(/\s/g,'')):null, price:g("price")?Number(g("price").replace(/\s/g,'')):null,
-      img:g("img"), feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url") };
+      img:g("img"), imgs:wrap.querySelector("#m_imgs").value.split(/\n+/).map(s=>s.trim()).filter(Boolean),
+      feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url") };
     if(!data.n){ msg.className="msg err"; msg.textContent="Vyplň aspoň název."; return; }
     msg.className="msg"; msg.textContent="Ukládám…";
     try{
@@ -379,20 +781,14 @@ document.getElementById("filters").addEventListener("click", e=>{
   renderCards();
 });
 document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderCards(); renderTable(); });
+document.getElementById("refresh-all").addEventListener("click", refreshAutoListings);
+document.getElementById("compare-mode").addEventListener("click", startCompare);
+document.getElementById("compare-open").addEventListener("click", renderCompare);
+document.getElementById("compare-clear").addEventListener("click", clearCompare);
+document.getElementById("bulk-delete").addEventListener("click", startBulkDelete);
 document.getElementById("btn-add").addEventListener("click", openAdd);
-function initThemeToggle(){
-  const labels={system:"System", light:"Svetly", dark:"Tmavy"};
-  const apply=mode=>{
-    if(mode==="system") document.documentElement.removeAttribute("data-theme");
-    else document.documentElement.dataset.theme=mode;
-    localStorage.setItem("nase.theme", mode);
-    document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.textContent=labels[mode]||"System");
-  };
-  let mode=localStorage.getItem("nase.theme")||"system";
-  apply(mode);
-  document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.addEventListener("click",()=>{ mode=mode==="system"?"light":(mode==="light"?"dark":"system"); apply(mode); }));
-}
-initThemeToggle();
+initCostControls();
+window.Nase.initThemeToggle();
 window.naseAuthReady.then(loadData);
 </script>
 </body>

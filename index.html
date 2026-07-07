@@ -24,7 +24,7 @@
 <script>(function(){var s=document.getElementById('splash');if(!s)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){s.remove();return;}setTimeout(function(){s.remove();},2750);})();</script>
 
 <main class="onboard">
-  <button class="theme-toggle onboard-theme" type="button" data-theme-toggle aria-label="Motiv: System"></button>
+  <button class="theme-toggle onboard-theme" type="button" data-theme-toggle aria-label="Motiv: Systém"></button>
   <div class="ob-inner">
     <div class="ob-head">
       <div class="logo reveal" style="animation-delay:.02s" aria-hidden="true">
@@ -63,7 +63,7 @@
 <script src="auth.js"></script>
 <script>
 function initThemeToggle(){
-  const labels={system:"System", light:"Svetly", dark:"Tmavy"};
+  const labels={system:"Systém", light:"Světlý", dark:"Tmavý"};
   const icons={
     system:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
     light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>',
@@ -75,8 +75,8 @@ function initThemeToggle(){
     localStorage.setItem("nase.theme", mode);
     document.querySelectorAll("[data-theme-toggle]").forEach(btn=>{
       btn.innerHTML=icons[mode]||icons.system;
-      btn.title=labels[mode]||"System";
-      btn.setAttribute("aria-label","Motiv: "+(labels[mode]||"System"));
+      btn.title=labels[mode]||"Systém";
+      btn.setAttribute("aria-label","Motiv: "+(labels[mode]||"Systém"));
     });
   };
   let mode=localStorage.getItem("nase.theme")||"system";
