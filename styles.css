@@ -129,7 +129,7 @@ a{color:inherit;}
 select{font:inherit; font-size:14px; font-weight:600; color:var(--fg); background:var(--surface);
        border:1px solid var(--line-2); border-radius:var(--r-pill); padding:9px 16px; min-height:42px; cursor:pointer;}
 
-main{width:100%; max-width:1900px; margin:0 auto; padding:24px var(--pad) 80px;}
+main{width:100%; margin:0 auto; padding:24px var(--pad) 80px;}
 
 /* ---------- hero ---------- */
 .hero{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:18px; margin-bottom:24px;}
@@ -261,7 +261,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .onboard::before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
   background:linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--surface) 8%, transparent) 48%, transparent 100%);}
 .onboard-theme{position:absolute; top:20px; right:var(--pad); z-index:2;}
-.ob-inner{position:relative; z-index:1; width:100%; max-width:780px; margin:0 auto; text-align:center;}
+.ob-inner{position:relative; z-index:1; width:100%; max-width:1200px; margin:0 auto; text-align:center;}
 .onboard .logo{width:62px;height:62px;border-radius:18px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:var(--sh);}
 .onboard .logo svg{width:34px;height:34px;}
 .wordmark{font-size:clamp(46px,9vw,78px); font-weight:800; letter-spacing:-.02em; line-height:1.12; color:var(--fg); margin:2px 0 0;}
@@ -321,6 +321,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   .commute-settings label{flex-basis:100%;}
   .recalc-panel .btn-add,.recalc-panel .btn-ghost{flex:1 1 auto;}
 }
+@media (max-width:900px){ .choices{grid-template-columns:1fr; max-width:520px; margin-left:auto; margin-right:auto;} }
 @media (max-width:560px){ .grid{grid-template-columns:1fr;} .choices{grid-template-columns:1fr;} }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover,.choice:hover{transform:none;} .reveal{opacity:1!important;} .intro,.splash{display:none!important;} }
 
