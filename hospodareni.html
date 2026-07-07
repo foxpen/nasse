@@ -12,6 +12,24 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-finance">
+
+<div class="intro intro-fin" id="intro" aria-hidden="true">
+  <div class="intro-stage">
+    <svg class="if-svg" viewBox="0 0 200 200">
+      <path class="line if-axis" d="M38 38 V162 H172"/>
+      <rect class="fbar fb1" x="56" y="120" width="22" height="42" rx="3"/>
+      <rect class="fbar fb2" x="86" y="98" width="22" height="64" rx="3"/>
+      <rect class="fbar fb3" x="116" y="76" width="22" height="86" rx="3"/>
+      <rect class="fbar fb4" x="146" y="54" width="22" height="108" rx="3"/>
+      <path class="line if-trend" d="M52 132 L94 108 L126 86 L164 58"/>
+      <circle class="if-coin" cx="164" cy="40" r="13"/>
+      <path class="if-coin-mark" d="M160 40 h8 M164 35.5 v9"/>
+    </svg>
+    <div class="intro-label">Naše Hospodařeníčko</div>
+  </div>
+</div>
+<script>(function(){var i=document.getElementById('intro');if(!i)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){i.remove();return;}setTimeout(function(){i.remove();},2600);})();</script>
+
 <div class="topbar">
   <div class="inner">
     <a class="brand" href="index.html" aria-label="Zpět na rozcestník">

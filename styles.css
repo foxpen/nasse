@@ -59,30 +59,30 @@ html[data-theme="light"] .theme-auto{
   --accent:#0284C7; --accent-700:#0369A1;
   --tint-byt:#E0F2FE; --info:#075985; --info-bg:#E0F2FE;
 }
-/* ---------- finance section theme (mint + blue ledger) ---------- */
+/* ---------- finance section theme (golden ledger amber) ---------- */
 .theme-finance{
-  --primary:#0F766E; --primary-700:#115E59; --secondary:#2563EB;
-  --accent:#2563EB; --accent-700:#1D4ED8;
-  --tint-house:#E7F4F0; --tint-byt:#E6EEF9;
+  --primary:#D97706; --primary-700:#B45309; --secondary:#F59E0B;
+  --accent:#D97706; --accent-700:#B45309;
+  --tint-house:#FEF3C7; --tint-byt:#FEF3C7; --info:#92560A; --info-bg:#FEF3C7;
 }
-.choice.fin{ --accent:#2563EB; --tint-byt:#E6EEF9; }
+.choice.fin{ --accent:#D97706; --tint-byt:#FEF3C7; }
 @media (prefers-color-scheme: dark){
   .theme-finance{
-    --primary:#5DCAA5; --primary-700:#2DD4BF; --secondary:#60A5FA;
-    --accent:#60A5FA; --accent-700:#3B82F6;
-    --tint-house:#10241F; --tint-byt:#10233E;
+    --primary:#FBBF24; --primary-700:#F59E0B; --secondary:#F59E0B;
+    --accent:#FBBF24; --accent-700:#F59E0B;
+    --tint-house:#332508; --tint-byt:#332508; --info:#FCD34D; --info-bg:#332508;
   }
-  .choice.fin{ --accent:#60A5FA; --tint-byt:#10233E; }
+  .choice.fin{ --accent:#FBBF24; --tint-byt:#332508; }
 }
 html[data-theme="dark"] .theme-finance{
-  --primary:#5DCAA5; --primary-700:#2DD4BF; --secondary:#60A5FA;
-  --accent:#60A5FA; --accent-700:#3B82F6;
-  --tint-house:#10241F; --tint-byt:#10233E;
+  --primary:#FBBF24; --primary-700:#F59E0B; --secondary:#F59E0B;
+  --accent:#FBBF24; --accent-700:#F59E0B;
+  --tint-house:#332508; --tint-byt:#332508; --info:#FCD34D; --info-bg:#332508;
 }
 html[data-theme="light"] .theme-finance{
-  --primary:#0F766E; --primary-700:#115E59; --secondary:#2563EB;
-  --accent:#2563EB; --accent-700:#1D4ED8;
-  --tint-house:#E7F4F0; --tint-byt:#E6EEF9;
+  --primary:#D97706; --primary-700:#B45309; --secondary:#F59E0B;
+  --accent:#D97706; --accent-700:#B45309;
+  --tint-house:#FEF3C7; --tint-byt:#FEF3C7; --info:#92560A; --info-bg:#FEF3C7;
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -266,7 +266,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .onboard .logo svg{width:34px;height:34px;}
 .wordmark{font-size:clamp(46px,9vw,78px); font-weight:800; letter-spacing:-.02em; line-height:1.12; color:var(--fg); margin:2px 0 0;}
 .accentbar{display:block; width:74px; height:5px; border-radius:var(--r-pill); margin:14px auto 0;
-  background:linear-gradient(90deg,var(--primary) 0%, #14B8A6 50%, #0EA5E9 100%);}
+  background:linear-gradient(90deg,var(--primary) 0%, #F59E0B 50%, #0EA5E9 100%);}
 .onboard p.sub{color:var(--muted-fg); font-size:16.5px; margin-top:14px;}
 .choices{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; margin-top:36px;}
 .choice{position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
@@ -274,6 +274,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
         text-align:left; gap:5px; box-shadow:var(--sh-sm); transition:.25s var(--ease); min-height:230px;}
 .choice::before{content:""; position:absolute; top:0; left:0; right:0; height:4px; background:var(--primary);}
 .choice.aut::before{background:var(--accent);}
+.choice.fin::before{background:var(--accent);}
 .choice:hover{transform:translateY(-6px); box-shadow:var(--sh-lg); border-color:var(--line-2);}
 .choice .cic{width:60px; height:60px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
 .choice .cic svg{width:32px;height:32px;}
@@ -290,6 +291,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .choice .go svg{width:18px;height:18px; transition:transform .2s var(--ease);}
 .choice:hover .go svg{transform:translateX(4px);}
 .choice.aut .go{color:var(--accent);}
+.choice.fin .go{color:var(--accent);}
 .ob-foot{margin-top:28px; font-size:12.5px; color:var(--muted-fg); font-weight:600; display:flex; align-items:center; justify-content:center; gap:7px;}
 .ob-foot svg{width:14px;height:14px;}
 @keyframes riseIn{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:none;}}
@@ -347,7 +349,8 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .splash::before{content:""; position:absolute; inset:0; pointer-events:none;
   background:
     radial-gradient(42% 42% at 30% 34%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 60%),
-    radial-gradient(42% 42% at 72% 68%, color-mix(in srgb, #0EA5E9 22%, transparent), transparent 60%);
+    radial-gradient(42% 42% at 72% 68%, color-mix(in srgb, #0EA5E9 22%, transparent), transparent 60%),
+    radial-gradient(38% 38% at 50% 84%, color-mix(in srgb, #F59E0B 18%, transparent), transparent 60%);
   animation:breathe 2.2s ease-in-out infinite;}
 @keyframes breathe{0%,100%{opacity:.7; transform:scale(1);} 50%{opacity:1; transform:scale(1.06);}}
 @keyframes splashOut{to{opacity:0; visibility:hidden; transform:scale(1.05);}}
@@ -357,13 +360,15 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .si svg{width:38px; height:38px;}
 .si-house{background:var(--primary); animation:flyL .75s var(--ease) both;}
 .si-car{background:#0EA5E9; animation:flyR .75s var(--ease) both;}
+.si-fin{background:#F59E0B; animation:flyU .75s var(--ease) .1s both;}
 @keyframes flyL{0%{opacity:0; transform:translateX(-70px) rotate(-14deg) scale(.7);} 100%{opacity:1; transform:none;}}
 @keyframes flyR{0%{opacity:0; transform:translateX(70px) rotate(14deg) scale(.7);} 100%{opacity:1; transform:none;}}
+@keyframes flyU{0%{opacity:0; transform:translateY(64px) scale(.7);} 100%{opacity:1; transform:none;}}
 .splash-word{font-size:clamp(42px,11vw,74px); font-weight:800; letter-spacing:-.02em; color:var(--fg);
   animation:wordUp .5s var(--ease) .6s both;}
 @keyframes wordUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 .splash-bar{width:0; height:5px; border-radius:var(--r-pill);
-  background:linear-gradient(90deg,var(--primary) 0%, #14B8A6 50%, #0EA5E9 100%);
+  background:linear-gradient(90deg,var(--primary) 0%, #F59E0B 50%, #0EA5E9 100%);
   animation:barGrow .55s var(--ease) .95s both;}
 @keyframes barGrow{from{width:0;} to{width:96px;}}
 
@@ -376,6 +381,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   animation:labelIn .5s var(--ease) 1.05s forwards;}
 .intro-byd .intro-label{color:var(--primary);}
 .intro-aut .intro-label{color:var(--accent);}
+.intro-fin .intro-label{color:var(--accent);}
 @keyframes labelIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
 
 /* házení — domeček: cihly naskáčou + nakreslí se zdi a střecha */
@@ -404,6 +410,20 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 .ia-road{stroke:var(--line-2); stroke-width:4; stroke-linecap:round; stroke-dasharray:20 16;
   animation:roadmove .35s linear infinite;}
 @keyframes roadmove{to{stroke-dashoffset:-36;}}
+
+/* hospodaření — nakreslí se osy, sloupce grafu vyrostou, trend se protáhne a mince cinkne */
+.if-svg{width:clamp(150px,42vw,184px); height:auto; overflow:visible;}
+.if-svg .line{stroke:var(--primary); stroke-width:6; stroke-linecap:round; stroke-linejoin:round; fill:none;}
+.if-axis{stroke-dasharray:270; stroke-dashoffset:270; animation:draw .55s var(--ease) .05s forwards;}
+.if-svg .fbar{fill:var(--secondary); opacity:0; transform-box:fill-box; transform-origin:center bottom;
+  animation:barRise .45s var(--ease) forwards;}
+.if-svg .fb1{animation-delay:.35s} .if-svg .fb2{animation-delay:.5s} .if-svg .fb3{animation-delay:.65s} .if-svg .fb4{animation-delay:.8s}
+@keyframes barRise{from{opacity:0; transform:scaleY(.1);} to{opacity:1; transform:scaleY(1);}}
+.if-trend{stroke-dasharray:210; stroke-dashoffset:210; animation:draw .6s var(--ease) 1s forwards;}
+.if-coin{fill:var(--primary); opacity:0; transform-box:fill-box; transform-origin:center;
+  animation:popIn .4s var(--ease) 1.5s forwards;}
+.if-coin-mark{stroke:var(--surface); stroke-width:2.6; stroke-linecap:round; fill:none; opacity:0;
+  animation:popIn .35s var(--ease) 1.6s forwards;}
 
 /* ---------- mortgage calculator (Bydleníčko) ---------- */
 .settings-panel{display:grid; grid-template-columns:minmax(300px,.95fr) minmax(360px,1.25fr) minmax(240px,.58fr); gap:10px; margin:0 0 24px;
@@ -747,7 +767,7 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 
 /* ---------- finance dashboard ---------- */
 .finance-hero{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(360px,.9fr); gap:18px; margin-bottom:18px;}
-.budget-card{position:relative; overflow:hidden; min-height:220px; border-radius:var(--r-lg); background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; padding:24px; box-shadow:var(--sh-sm);}
+.budget-card{position:relative; overflow:hidden; min-height:220px; border-radius:var(--r-lg); background:linear-gradient(135deg,var(--accent-700),var(--primary)); color:#fff; padding:24px; box-shadow:var(--sh-sm);}
 .budget-card::after{content:""; position:absolute; right:-60px; top:-70px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.12);}
 .budget-card .badge{display:inline-flex; align-items:center; gap:7px; min-height:30px; border-radius:999px; padding:5px 10px; background:rgba(255,255,255,.18); font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.05em;}
 .budget-card .badge svg{width:15px; height:15px;}
