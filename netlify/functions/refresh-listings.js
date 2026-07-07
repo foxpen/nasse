@@ -35,7 +35,7 @@ export async function handler(event) {
     let updated = 0, unchanged = 0, errors = 0, notFound = 0;
     for (const row of rows) {
       const before = row.data || {};
-      if (!before.url) { unchanged++; out.push({ id: row.id, n: before.n, status: 'skipped', message: 'bez odkazu' }); continue; }
+      if (!before.url) { unchanged++; out.push({ id: row.id, n: before.n, status: 'skipped', message: 'bez odkazu', url: before.url || '' }); continue; }
       try {
         const extracted = await extractUrl(before.url);
         const fresh = extracted.data || {};
@@ -43,17 +43,17 @@ export async function handler(event) {
         const changes = diff(before, merged);
         if (!changes.length) {
           unchanged++;
-          out.push({ id: row.id, n: before.n, status: 'unchanged' });
+          out.push({ id: row.id, n: before.n, status: 'unchanged', url: before.url });
           continue;
         }
         merged.history = [{ at: new Date().toISOString(), type: 'refresh', changes }, ...(Array.isArray(before.history) ? before.history : [])].slice(0, 30);
         if (!dryRun) await sql`UPDATE listings SET data = ${merged} WHERE id = ${row.id}`;
         updated++;
-        out.push({ id: row.id, n: merged.n || before.n, status: dryRun ? 'would_update' : 'updated', changes: changes.length });
+        out.push({ id: row.id, n: merged.n || before.n, status: dryRun ? 'would_update' : 'updated', changes: changes.length, url: before.url });
       } catch (e) {
         const code = Number(e.status || 0);
         if (code === 404 || code === 410) notFound++; else errors++;
-        out.push({ id: row.id, n: before.n, status: code === 404 || code === 410 ? 'not_found' : 'error', message: String(e?.message || e) });
+        out.push({ id: row.id, n: before.n, status: code === 404 || code === 410 ? 'not_found' : 'error', message: String(e?.message || e), url: before.url, removable: code === 404 || code === 410 });
       }
     }
     return json(200, { ok: true, dryRun, summary: { total: rows.length, updated, unchanged, errors, notFound }, items: out });

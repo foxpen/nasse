@@ -290,7 +290,7 @@ function renderCards(){
           <button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button>
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
-        <button class="score-pill ${scoreClass(d.score)}" type="button" onclick="event.stopPropagation();openCarScore(${d.id})" title="Rozkliknout skóre">${d.score}</button>
+        <button class="score-pill auto-score-pill ${scoreClass(d.score)}" type="button" onclick="event.stopPropagation();openCarScore(${d.id})" title="Rozkliknout skóre">${d.score}</button>
         ${selecting?`<span class="select-pill">${selected?'Vybráno':'Vybrat'}</span>`:''}
         ${img?`<img src="${esc(img)}" alt="Foto auta · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:""}
         <span class="pricechip">${czk(pCzk(d))}</span>
@@ -562,7 +562,7 @@ async function refreshAutoListings(){
     <h3>Aktualizace inzerátů</h3>
     <p class="hint" id="refresh-summary">Kontroluji uložená auta podle původních odkazů…</p>
     <div class="refresh-list" id="refresh-list"></div>
-    <div class="actions"><button class="btn-ghost" type="button" id="refresh-ok">Zavřít</button></div>
+    <div class="actions" id="refresh-actions"><button class="btn-ghost" type="button" id="refresh-ok">Zavřít</button></div>
   </div>`;
   document.body.appendChild(wrap);
   const close=()=>wrap.remove();
@@ -574,7 +574,27 @@ async function refreshAutoListings(){
     if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
     const s=j.summary||{};
     wrap.querySelector("#refresh-summary").textContent=`Aktualizováno ${s.updated||0} z ${s.total||0}. Beze změny ${s.unchanged||0}. Chyby ${s.errors||0}. Nenalezeno ${s.notFound||0}.`;
-    wrap.querySelector("#refresh-list").innerHTML=(j.items||[]).map(it=>`<div class="refresh-item"><b>${esc(it.n||'Auto')}</b><br><span>${esc(it.status)}${it.changes?` · ${it.changes} změn`:''}${it.message?` · ${esc(it.message)}`:''}</span></div>`).join("");
+    const items=j.items||[];
+    const removable=items.filter(it=>it.removable || it.status==="not_found");
+    wrap.querySelector("#refresh-list").innerHTML=items.map(it=>{
+      const url=safeUrl(it.url);
+      return `<div class="refresh-item"><b>${esc(it.n||'Auto')}</b><br><span>${esc(it.status)}${it.changes?` · ${it.changes} změn`:''}${it.message?` · ${esc(it.message)}`:''}</span>${url?`<div class="refresh-links"><a class="inline-link" href="${esc(url)}" target="_blank" rel="noopener">Ověřit inzerát</a></div>`:''}</div>`;
+    }).join("");
+    if(removable.length){
+      const actions=wrap.querySelector("#refresh-actions");
+      actions.insertAdjacentHTML("afterbegin", `<button class="btn-del" type="button" id="refresh-delete-missing">Smazat nenalezené (${removable.length})</button>`);
+      wrap.querySelector("#refresh-delete-missing").onclick=async()=>{
+        if(!confirm(`Opravdu smazat ${removable.length} nenalezených aut?`)) return;
+        let ok=0;
+        for(const item of removable){
+          const dr=await fetch(API+"/delete?id="+item.id,{method:"DELETE"});
+          if(dr.ok) ok++;
+        }
+        wrap.querySelector("#refresh-summary").textContent=`Smazáno ${ok} z ${removable.length} nenalezených aut.`;
+        window.dispatchEvent(new CustomEvent('nase:react',{detail:'delete-missing-auto'}));
+        loadData();
+      };
+    }
     window.dispatchEvent(new CustomEvent('nase:react',{detail:'refresh-auto'}));
     loadData();
   }catch(e){
@@ -616,15 +636,15 @@ function openDetail(id){
   const d=CARS.find(x=>x.id===id); if(!d) return;
   const url=safeUrl(d.url);
   const viewImgs=carImages(d);
-  const wrap=document.createElement("div"); wrap.className="modal-bg";
-  wrap.innerHTML=`<div class="modal detail-modal">
+  const wrap=document.createElement("div"); wrap.className="modal-bg detail-bg";
+  wrap.innerHTML=`<div class="modal detail-modal auto-detail-modal">
     <button class="modal-x" type="button" id="detail-x" aria-label="Zavřít">×</button>
     <div class="detail-top">
       <div><h3>${esc(d.n)}</h3><p class="hint">${esc(d.variant||'')} · ${esc(carMade(d))} · ${km(d.km||0)} km · ${d.ps||0} PS</p></div>
       <button class="map-score ${scoreClass(d.score)} score-detail-btn" type="button" id="detail-score">${d.score}</button>
     </div>
     <div class="detail-layout">
-      <div>
+      <div class="auto-detail-media">
         ${viewImgs.length?`<div class="gallery-main detail-gallery"><img id="detail-main" src="${esc(viewImgs[0])}" alt="Foto auta · ${esc(d.n)}">${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="detail-prev" aria-label="Předchozí fotka">‹</button><button class="gallery-nav next" type="button" id="detail-next" aria-label="Další fotka">›</button>`:''}</div>
         <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>`:`<div class="gallery-main detail-gallery"><div class="state">Bez fotky</div></div>`}
         <div class="detail-map-actions">
@@ -633,7 +653,7 @@ function openDetail(id){
           <button class="btn-ghost" type="button" id="detail-delete">Smazat</button>
         </div>
       </div>
-      <div class="detail-info">
+      <div class="detail-info auto-detail-info">
         <dl class="detail-dl">
           <div><dt>Cena</dt><dd>${czk(pCzk(d))}</dd></div>
           <div><dt>Cena EUR</dt><dd>${eur(pEur(d))}</dd></div>

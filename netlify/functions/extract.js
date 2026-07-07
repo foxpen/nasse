@@ -100,6 +100,9 @@ function imagesFrom(html, primary = '', limit = 30) {
 }
 
 function sautoGalleryImages(html, primary = '') {
+  const structured = [...String(html || '').matchAll(/"url"\s*:\s*"((?:https?:)?\/\/d19-a\.sdn\.cz\/d_19\/c_img_[^"]+\.(?:jpg|jpeg|png|webp))"/gi)]
+    .map(m => m[1]);
+  if (structured.length) return uniqueImages([primary, ...structured], 36);
   const imgs = imagesFrom(html, primary, 40)
     .filter(u => /sdn\.cz\/d_(?:18|19)\/c_img_/i.test(u))
     .filter(u => /\.(?:jpg|jpeg|webp)(?:\?|$)/i.test(u));
@@ -110,6 +113,64 @@ function normalizeMonthYear(value) {
   const m = String(value || '').match(/\b(0?[1-9]|1[0-2])\s*[/.]\s*((?:19|20)\d{2})\b/);
   if (m) return `${String(Number(m[1])).padStart(2, '0')}/${m[2]}`;
   return String(value || '').trim();
+}
+
+function firstMatch(source, patterns) {
+  for (const re of patterns) {
+    const m = String(source || '').match(re);
+    if (m?.[1]) return decodeHtml(m[1]);
+  }
+  return '';
+}
+
+function titleFromUrl(url) {
+  try {
+    const parts = new URL(url).pathname.split('/').filter(Boolean).map(x => decodeURIComponent(x));
+    const slug = [...parts].reverse().find(x => /[a-zA-Z]/.test(x) && !/^[a-f0-9]{12,}$/i.test(x) && !/^\d+$/.test(x)) || parts.pop() || '';
+    return slug
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b([a-f0-9]{12,}|\d{5,})\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  } catch {
+    return '';
+  }
+}
+
+function normalizeFuel(value) {
+  const s = String(value || '').toLowerCase();
+  if (/diesel|nafta/.test(s)) return 'diesel';
+  if (/hybrid/.test(s)) return 'hybrid';
+  if (/elektro|electric/.test(s)) return 'elektro';
+  if (/lpg/.test(s)) return 'lpg';
+  if (/cng/.test(s)) return 'cng';
+  if (/benz|petrol|skyactiv-g|t-gdi|\bgdi\b|tsi|tfsi/.test(s)) return 'benzin';
+  return value || '';
+}
+
+function autoFeatures(text) {
+  const source = String(text || '');
+  const feats = [];
+  const addIf = (re, label) => { if (re.test(source) && !feats.includes(label)) feats.push(label); };
+  addIf(/1\.\s*maj|prvn[ií]\s+majitel|1st owner/i, '1. majitel');
+  addIf(/servisn[ií]\s+kn|scheckheft|service history/i, 'servisní knížka');
+  addIf(/nehavar|unfallfrei/i, 'nehavarované');
+  addIf(/panorama|panoramat/i, 'panoramatická střecha');
+  addIf(/navigac|navigation|navi\b/i, 'navigace');
+  addIf(/adaptiv|ACC|abstandsregel/i, 'adaptivní tempomat');
+  addIf(/tempomat|cruise/i, 'tempomat');
+  addIf(/\bLED\b|matrix/i, 'LED světla');
+  addIf(/kamera|rear view|r[üu]ckfahrkamera|360/i, 'parkovací kamera');
+  addIf(/parkovac[ií]\s+senzor|parksensor|pdc/i, 'parkovací senzory');
+  addIf(/vyh[řr][ií]van|sitzheizung|lenkradheizung/i, 'vyhřívání');
+  addIf(/ta[žz]n[eé]|anh[aä]ngerkupplung|tow/i, 'tažné zařízení');
+  addIf(/keyless|bezkl[ií][čc]ov/i, 'keyless');
+  addIf(/carplay|android auto/i, 'Apple CarPlay / Android Auto');
+  addIf(/head.?up/i, 'head-up displej');
+  addIf(/totwinkel|blind spot|mrtv[eé]ho [uú]hlu/i, 'hlídání mrtvého úhlu');
+  addIf(/spurhalte|lane assist|j[ií]zdn[ií]ho pruhu/i, 'hlídání jízdního pruhu');
+  addIf(/DPH|MwSt/i, 'možný odpočet DPH');
+  return feats.slice(0, 14);
 }
 
 function srealityGalleryImages(html, primary = '') {
@@ -400,6 +461,73 @@ function parseSauto(url, html) {
   return { section: 'auto', data: { brand, n: title, variant, stav: /ojet|použit/i.test(text) ? 'ojeté' : 'nové', made: normalizeMonthYear(made), year: year || new Date().getFullYear(), km: km || 0, fuel, body: [transmission, body].filter(Boolean).join(' · '), awd, kw: kw || 0, ps: ps || 0, czk: czk || null, img: imgs[0] || img, imgs, feats: feats.slice(0, 12), url } };
 }
 
+function parseGermanAuto(url, html) {
+  const rawTitle = meta(html, 'og:title') || firstMatch(html, [/<title[^>]*>([\s\S]*?)<\/title>/i]) || titleFromUrl(url);
+  const title = decodeHtml(rawTitle)
+    .replace(/\s+Neuwagen Angebot.*/i, '')
+    .replace(/\s+\|\s+.*/i, '')
+    .replace(/\s+-\s*$/, '')
+    .trim() || titleFromUrl(url);
+  const desc = meta(html, 'og:description');
+  const text = stripHtml(html);
+  const joined = `${title} ${desc} ${text}`;
+  const imgs = imagesFrom(html, meta(html, 'og:image'), 36)
+    .filter(u => !/fav|favicon|energieeffizienz|logo/i.test(u));
+  const price = num(firstMatch(joined, [
+    /Unser\s+Gesamtpreis\D{0,40}([\d.\s]+),?\d*\s*€/i,
+    /Gesamtpreis\D{0,40}([\d.\s]+),?\d*\s*€/i,
+    /Preis\D{0,40}([\d.\s]+),?\d*\s*€/i,
+    /([\d.\s]{5,}),\d{2}\s*€/i
+  ]));
+  const km = num(firstMatch(joined, [
+    /(?:Kilometerstand|Laufleistung|km-stand|Mileage)\D{0,28}([\d.\s]+)\s*km/i,
+    /([\d.\s]{1,8})\s*km\b/i
+  ]));
+  const kw = num(firstMatch(joined, [
+    /(\d{2,3})\s*kW\b/i,
+    /Leistung\D{0,28}(\d{2,3})/i
+  ]));
+  const ps = num(firstMatch(joined, [/(\d{2,3})\s*(?:PS|HP)\b/i])) || (kw ? Math.round(kw * 1.35962) : null);
+  const made = firstMatch(joined, [
+    /(?:EZ|Erstzulassung|Zulassung|Baujahr|Neuzulassung)\D{0,36}((?:0?[1-9]|1[0-2])\s*[/.]\s*(?:19|20)\d{2})/i,
+    /(?:EZ|Erstzulassung|Zulassung|Baujahr)\D{0,36}((?:19|20)\d{2})/i
+  ]);
+  const year = num((made.match(/(19|20)\d{2}/) || joined.match(/\b(20\d{2})\b/) || [])[0]);
+  const fuel = normalizeFuel(firstMatch(joined, [/(Benzin|Diesel|Hybrid|Elektro|Electric|Petrol)/i]) || title);
+  const transmission = firstMatch(joined, [/(Automatik|Schaltgetriebe|DCT7|DCT|AT)\b/i]);
+  const body = firstMatch(joined, [/\b(SUV|Kombi|Limousine|Hatchback|Van|MPV)\b/i]) || (/CX-5|Sportage/i.test(title) ? 'SUV' : '');
+  const awd = /\b(AWD|4x4|4×4|4WD|Allrad)\b/i.test(joined);
+  const brand = (title.split(/\s+/)[0] || '').toLowerCase();
+  const variant = [body, transmission, awd ? '4×4' : 'FWD', fuel].filter(Boolean).join(' · ');
+  const isNew = /neuwagen|new car|tageszulassung/i.test(joined) && !/gebrauchtwagen|used/i.test(joined);
+  return { section: 'auto', data: {
+    brand, n: title, variant, stav: isNew ? 'nové' : 'ojeté',
+    made: normalizeMonthYear(made), year: year || new Date().getFullYear(),
+    km: km || 0, fuel, body: [transmission, body].filter(Boolean).join(' · '),
+    awd, kw: kw || 0, ps: ps || 0, price: price || null, czk: null,
+    img: imgs[0] || '', imgs, feats: autoFeatures(joined), url
+  } };
+}
+
+function parseB2BAuto(url, html) {
+  const title = titleFromUrl(url) || firstMatch(html, [/<title[^>]*>([\s\S]*?)<\/title>/i]) || 'Auto z B2B showroomu';
+  const cleanTitle = title.replace(/\bKia Kia\b/i, 'Kia').trim();
+  const kw = num((cleanTitle.match(/(\d{2,3})\s*kW/i) || [])[1]);
+  const fuel = normalizeFuel(cleanTitle);
+  const transmission = firstMatch(cleanTitle, [/(DCT7|DCT|AT|Automat)/i]);
+  const brand = (cleanTitle.split(/\s+/)[0] || '').toLowerCase();
+  const feats = autoFeatures(cleanTitle);
+  if (/ACC/i.test(cleanTitle) && !feats.includes('adaptivní tempomat')) feats.push('adaptivní tempomat');
+  if (/KEYLESS/i.test(cleanTitle) && !feats.includes('keyless')) feats.push('keyless');
+  const variant = [transmission, fuel].filter(Boolean).join(' · ');
+  return { section: 'auto', data: {
+    brand, n: cleanTitle, variant, stav: 'ojeté', made: '', year: new Date().getFullYear(),
+    km: 0, fuel, body: transmission, awd: /\bAWD|4x4|4WD|Allrad\b/i.test(cleanTitle),
+    kw: kw || 0, ps: kw ? Math.round(kw * 1.35962) : 0, price: null, czk: null,
+    img: '', imgs: [], feats: feats.slice(0, 10), url
+  } };
+}
+
 function parseBazos(url, html) {
   const title = meta(html, 'og:title');
   const desc = meta(html, 'og:description');
@@ -417,6 +545,8 @@ export async function extractUrl(url) {
   if (/bezrealitky\.cz/.test(host)) return parseBezrealitky(url, html);
   if (/sauto\.cz/.test(host)) return parseSauto(url, html);
   if (/bazos\.cz/.test(host)) return parseBazos(url, html);
+  if (/rahmen-automobile\.de/.test(host)) return parseGermanAuto(url, html);
+  if (/b2b-fahrzeuge\.de/.test(host)) return parseB2BAuto(url, html);
   const err = new Error('tento web extraktor neumí'); err.status = 422; err.host = host; throw err;
 }
 

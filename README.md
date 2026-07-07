@@ -2,15 +2,16 @@
 
 Soukromá webová aplikace pro výběr a porovnávání nemovitostí a aut. Běží jako statický frontend na Netlify, data drží v Neon Postgres a praktické věci kolem importu, dojezdu, aktualizací a fotek řeší Netlify Functions.
 
-Aktuální verze: `1.2.6`.
+Aktuální verze: `1.2.7`.
 
 ## Co umí
 
 - správa vlastního shortlistu domů, bytů a aut,
 - hromadné mazání vybraných nemovitostí i aut s potvrzovacím modalem,
-- Autíčko má vlastní skóre, detail s galerií, TOP metriky podle roku, nájezdu a výkonu a aktualizaci inzerátů,
+- Autíčko má vlastní skóre, detail s galerií, TOP metriky podle roku, nájezdu a výkonu a aktualizaci inzerátů s ověřením a mazáním nenalezených odkazů,
 - Autíčko počítá orientační měsíční náklady podle ročního nájezdu, paliva, servisu, pojištění, pneumatik a dálniční známky,
 - import nemovitostí ze `sreality.cz` a `bezrealitky.cz`,
+- import aut ze `sauto.cz`, `bazos.cz`, `rahmen-automobile.de` a základní fallback pro B2B showroom `b2b-fahrzeuge.de`,
 - samostatná pole pro adresu, název, užitnou plochu, pozemek, zahradu, terasu, balkon/lodžii, garáž, parkování, PENB, stav a kontakt,
 - deduplikovaná galerie fotek v detailu, šipky mezi fotkami a proxy cache obrázků přes Netlify funkci,
 - detail nemovitosti jako rozhodovací panel s fotkami, plusy, riziky, financemi, dojezdem a mapou,
