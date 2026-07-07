@@ -51,6 +51,14 @@
         <span class="cstat" id="stat-aut">Auta k porovnání</span>
         <span class="go">Otevřít <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
+
+      <a class="choice fin reveal" href="hospodareni.html" style="animation-delay:.40s">
+        <span class="cic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="8" rx="1"/><rect x="17" y="4" width="3" height="12" rx="1"/></svg></span>
+        <h2>Na&#353;e Hospoda&#345;en&#237;&#269;ko</h2>
+        <span class="cdesc">P&#345;&#237;jmy, v&#253;daje, mzdy, rozpo&#269;ty.</span>
+        <span class="cstat" id="stat-fin">Rodinn&#253; rozpo&#269;et</span>
+        <span class="go">Otev&#345;&#237;t <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
     </div>
 
     <p class="ob-foot reveal" style="animation-delay:.42s">
@@ -99,6 +107,11 @@ initThemeToggle();
     if(aut.length){
       document.getElementById('stat-aut').textContent = aut.length+' vozů';
     }
+  }catch(e){}
+  try{
+    const data=JSON.parse(localStorage.getItem('nase.finance.v1')||'null');
+    const el=document.getElementById('stat-fin');
+    if(el && data?.budgets?.length) el.textContent = data.budgets.length+' rozpočet'+(data.budgets.length<5?'y':'ů');
   }catch(e){}
 })();</script>
 </body>

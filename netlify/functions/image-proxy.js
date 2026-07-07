@@ -4,7 +4,12 @@ import { createHash } from 'node:crypto';
 const ALLOWED = [
   /(^|\.)sdn\.cz$/i,
   /^api\.bezrealitky\.cz$/i,
-  /(^|\.)bezrealitky\.cz$/i
+  /(^|\.)bezrealitky\.cz$/i,
+  /^pics\.carcalc\.de$/i,
+  /(^|\.)rahmen-automobile\.de$/i,
+  /(^|\.)b2b-fahrzeuge\.de$/i,
+  /(^|\.)sauto\.cz$/i,
+  /(^|\.)seznam\.cz$/i
 ];
 
 const CACHE_HEADERS = {
@@ -65,7 +70,10 @@ export async function handler(event) {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36',
         'accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
         'accept-language': 'cs,en;q=0.9',
-        'referer': url.hostname.includes('sdn.cz') ? 'https://www.sreality.cz/' : 'https://www.bezrealitky.cz/'
+        'referer': url.hostname.includes('sdn.cz') ? 'https://www.sreality.cz/'
+          : (url.hostname.includes('carcalc.de') || url.hostname.includes('rahmen-automobile.de') ? 'https://rahmen-automobile.de/'
+          : (url.hostname.includes('b2b-fahrzeuge.de') ? 'https://x.b2b-fahrzeuge.de/'
+          : (url.hostname.includes('sauto.cz') || url.hostname.includes('seznam.cz') ? 'https://www.sauto.cz/' : 'https://www.bezrealitky.cz/')))
       }
     });
     if (!res.ok) return { statusCode: res.status, body: 'image unavailable' };

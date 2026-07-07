@@ -50,6 +50,7 @@
     <nav class="switch" aria-label="Sekce">
       <a href="bydleni.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
       <a href="auta.html" class="active aut" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
+      <a href="hospodareni.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="8" rx="1"/><rect x="17" y="4" width="3" height="12" rx="1"/></svg>Hospoda&#345;en&#237;&#269;ko</a>
     </nav>
   </div>
 </div>
@@ -146,6 +147,7 @@ const I = {
 };
 
 const API = "/.netlify/functions";
+const IMAGE_API = location.protocol === "file:" ? "https://nase-bydlenicko.netlify.app/.netlify/functions" : API;
 let CARS = [];
 
 const km = n => n.toLocaleString('cs-CZ');
@@ -235,6 +237,10 @@ function isUsefulCarImage(url){
 function carImages(d){
   return (d.imgs&&d.imgs.length?d.imgs:[d.img]).filter(Boolean).map(safeUrl).filter(isUsefulCarImage);
 }
+function carImgSrc(url){
+  const clean=safeUrl(url);
+  return clean ? IMAGE_API + "/image-proxy?url=" + encodeURIComponent(clean) : "";
+}
 
 function renderPick(){
   CARS.forEach(d=>d.score=carScore(d));
@@ -280,7 +286,7 @@ function renderCards(){
   document.getElementById("cards").innerHTML = rows.map(d=>{
     const url = safeUrl(d.url);
     const cardImgs = carImages(d);
-    const img = cardImgs[0] || "";
+    const img = cardImgs[0] ? carImgSrc(cardImgs[0]) : "";
     const imgs = cardImgs.length;
     const selecting=compareMode || deleteMode;
     const selected=deleteMode ? selectedDelete.has(d.id) : selectedCompare.has(d.id);
@@ -299,7 +305,7 @@ function renderCards(){
         ${selecting?`<span class="select-pill">${selected?'Vybráno':'Vybrat'}</span>`:''}
         ${img?`<img src="${esc(img)}" alt="Foto auta · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:""}
         <span class="pricechip">${czk(pCzk(d))}</span>
-        ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openDetail(${d.id})">${imgs} fotek</button>`:''}
+        ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openGallery(${d.id})">${imgs} fotek</button>`:''}
       </div>
       <div class="body">
         <div class="ctitle">${esc(d.n)}</div>
@@ -635,10 +641,77 @@ function openCarScore(id){
   wrap.querySelector("#score-close").onclick=close;
 }
 
+function openGallery(id){
+  const item=CARS.find(x=>x.id===id);
+  if(!item) return;
+  const rawImgs=carImages(item);
+  const viewImgs=rawImgs.map(carImgSrc).filter(Boolean);
+  if(!viewImgs.length){ editCarPhotos(id); return; }
+  const wrap=document.createElement("div"); wrap.className="modal-bg gallery-bg";
+  wrap.innerHTML=`<div class="modal gallery-modal">
+    <button class="modal-x" type="button" id="gal-x" aria-label="ZavĹ™Ă­t">Ă—</button>
+    <h3>${esc(item.n)}</h3>
+    <div class="gallery-main"><img id="gal-main" src="${esc(viewImgs[0])}" alt="Foto auta Â· ${esc(item.n)}">${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="gal-prev" aria-label="PĹ™edchozĂ­ fotka">â€ą</button><button class="gallery-nav next" type="button" id="gal-next" aria-label="DalĹˇĂ­ fotka">â€ş</button>`:''}</div>
+    <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>
+    <div class="actions"><button class="btn-ghost" type="button" id="gal-edit">Upravit fotky</button><button class="btn-ghost" type="button" id="gal-close">ZavĹ™Ă­t</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#gal-x").onclick=close;
+  wrap.querySelector("#gal-close").onclick=close;
+  wrap.querySelector("#gal-edit").onclick=()=>{ close(); editCarPhotos(id); };
+  let photoIndex=0;
+  function setGalleryPhoto(i){
+    photoIndex=(i+viewImgs.length)%viewImgs.length;
+    wrap.querySelector("#gal-main").src=viewImgs[photoIndex];
+    const btns=[...wrap.querySelectorAll(".gallery-thumbs button")];
+    btns.forEach((x,idx)=>x.classList.toggle("on", idx===photoIndex));
+    btns[photoIndex]?.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"});
+  }
+  const prev=wrap.querySelector("#gal-prev"), next=wrap.querySelector("#gal-next");
+  if(prev) prev.onclick=()=>setGalleryPhoto(photoIndex-1);
+  if(next) next.onclick=()=>setGalleryPhoto(photoIndex+1);
+  wrap.querySelector(".gallery-thumbs").addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    setGalleryPhoto(Number(b.dataset.i)||0);
+  });
+}
+
+function editCarPhotos(id){
+  const d=CARS.find(x=>x.id===id);
+  if(!d) return;
+  const imgs=carImages(d);
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal">
+    <button class="modal-x" type="button" id="ph-x" aria-label="ZavĹ™Ă­t">Ă—</button>
+    <h3>Upravit fotky</h3>
+    <p class="hint">VloĹľ jednu URL fotky na Ĺ™Ăˇdek. PrvnĂ­ URL bude hlavnĂ­ fotka na kartÄ›.</p>
+    <label>URL fotek</label>
+    <textarea id="ph-urls" rows="9" placeholder="https://...">${esc(imgs.join("\n"))}</textarea>
+    <div class="actions"><button class="btn-ghost" type="button" id="ph-cancel">ZruĹˇit</button><button class="btn-add" type="button" id="ph-save">UloĹľit fotky</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#ph-x").onclick=close;
+  wrap.querySelector("#ph-cancel").onclick=close;
+  wrap.querySelector("#ph-save").onclick=async()=>{
+    const urls=wrap.querySelector("#ph-urls").value.split(/\n+/).map(x=>safeUrl(x.trim())).filter(isUsefulCarImage);
+    const unique=[...new Set(urls)].slice(0,30);
+    const patch={img:unique[0]||"", imgs:unique};
+    try{
+      const res=await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch})});
+      if(!res.ok) throw new Error("UloĹľenĂ­ fotek selhalo.");
+      Object.assign(d, patch);
+      close();
+      renderAll();
+    }catch(e){ alert(e.message || "UloĹľenĂ­ fotek selhalo."); }
+  };
+}
+
 function openDetail(id){
   const d=CARS.find(x=>x.id===id); if(!d) return;
   const url=safeUrl(d.url);
-  const viewImgs=carImages(d);
+  const viewImgs=carImages(d).map(carImgSrc).filter(Boolean);
   const wrap=document.createElement("div"); wrap.className="modal-bg detail-bg";
   wrap.innerHTML=`<div class="modal detail-modal auto-detail-modal">
     <button class="modal-x" type="button" id="detail-x" aria-label="Zavřít">×</button>
@@ -651,6 +724,8 @@ function openDetail(id){
         <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>`:`<div class="gallery-main detail-gallery"><button class="map-score ${scoreClass(d.score)} score-detail-btn detail-photo-score" type="button" id="detail-score">${d.score}</button><div class="state">Bez fotky</div></div>`}
         <div class="detail-map-actions">
           ${url?`<a class="btn-add" href="${esc(url)}" target="_blank" rel="noopener">Otevřít inzerát</a>`:''}
+          <button class="btn-ghost" type="button" id="detail-photos">Fotky</button>
+
           <button class="btn-ghost" type="button" id="detail-note">Poznámka</button>
           <button class="btn-ghost" type="button" id="detail-delete">Smazat</button>
         </div>
@@ -679,6 +754,7 @@ function openDetail(id){
   wrap.querySelector("#detail-x").onclick=close;
   wrap.querySelector("#detail-close").onclick=close;
   wrap.querySelector("#detail-score").onclick=()=>openCarScore(d.id);
+  wrap.querySelector("#detail-photos").onclick=()=>{ close(); editCarPhotos(d.id); };
   wrap.querySelector("#detail-note").onclick=()=>{ close(); editNote(d.id); };
   wrap.querySelector("#detail-delete").onclick=()=>{ close(); delById(d.id); };
   const thumbs=wrap.querySelector(".gallery-thumbs");

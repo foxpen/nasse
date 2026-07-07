@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naše Hospodařeníčko · rozpočet</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t=localStorage.getItem('nase.theme')||'system';if(t!=='system')document.documentElement.dataset.theme=t;})();</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-finance">
+<div class="topbar">
+  <div class="inner">
+    <a class="brand" href="index.html" aria-label="Zpět na rozcestník">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>
+      <span class="t">Naše</span>
+    </a>
+    <div class="spacer"></div>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Motiv: Systém"></button>
+    <nav class="switch" aria-label="Sekce">
+      <a href="bydleni.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>Bydleníčko</a>
+      <a href="auta.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Autíčko</a>
+      <a href="hospodareni.html" class="active fin" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="8" rx="1"/><rect x="17" y="4" width="3" height="12" rx="1"/></svg>Hospodařeníčko</a>
+    </nav>
+  </div>
+</div>
+
+<main>
+  <section class="finance-hero">
+    <div class="budget-card">
+      <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg> Měsíční rozpočet</div>
+      <div class="budget-row">
+        <label>Rozpočet <select id="budget-select"></select></label>
+        <button class="btn-ghost" type="button" id="budget-add">Nový</button>
+        <button class="btn-ghost" type="button" id="budget-copy">Duplikovat</button>
+        <button class="btn-ghost" type="button" id="budget-pin">PIN</button>
+      </div>
+      <h2 id="budget-title">Rodinný rozpočet</h2>
+      <p id="budget-sub">Příjmy, výdaje, mzdy a volné peníze v jednom přehledu.</p>
+    </div>
+    <div class="kpis finance-kpis" aria-label="Souhrn rozpočtu">
+      <div class="kpi"><div class="l">Příjmy</div><div class="v" id="kpi-income">0 Kč</div></div>
+      <div class="kpi"><div class="l">Výdaje</div><div class="v" id="kpi-expense">0 Kč</div></div>
+      <div class="kpi"><div class="l">Zůstatek</div><div class="v" id="kpi-balance">0 Kč</div></div>
+      <div class="kpi"><div class="l">Denní bezpečný limit</div><div class="v" id="kpi-daily">0 Kč</div></div>
+    </div>
+  </section>
+
+  <div class="finance-health" id="finance-health">
+    <div><strong id="health-title">Zdraví rozpočtu</strong><span id="health-note">Vyplň příjmy a výdaje.</span></div>
+    <div class="bar"><i id="health-bar"></i></div>
+  </div>
+
+  <section class="finance-grid">
+    <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/></svg>Členové domácnosti</div>
+      <div class="inline-form">
+        <input id="member-name" placeholder="Jméno člena">
+        <button class="btn-add" type="button" id="member-add">Přidat</button>
+      </div>
+      <div class="mini-list" id="member-list"></div>
+    </div>
+
+    <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>Příjem</div>
+      <div class="finance-form">
+        <select id="income-member"></select>
+        <input id="income-name" placeholder="Mzda, bonus, rodičák...">
+        <input id="income-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
+        <button class="btn-add" type="button" id="income-add">Přidat příjem</button>
+      </div>
+      <div class="mini-list" id="income-list"></div>
+    </div>
+
+    <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/></svg>Výdaj</div>
+      <div class="finance-form">
+        <select id="expense-category"></select>
+        <input id="expense-name" placeholder="Nájem, jídlo, školka...">
+        <input id="expense-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
+        <select id="expense-member"></select>
+        <button class="btn-add" type="button" id="expense-add">Přidat výdaj</button>
+      </div>
+      <div class="mini-list" id="expense-list"></div>
+    </div>
+
+    <div class="finance-panel salary-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4"/><path d="M15 9h2"/></svg>Kalkulačka mzdy</div>
+      <div class="salary-grid">
+        <label>Hrubá mzda <input id="salary-gross" type="number" value="50000" min="0" step="500"></label>
+        <label>Sleva / měsíc <input id="salary-discount" type="number" value="2570" min="0" step="100"></label>
+        <label>Srážky navíc <input id="salary-deductions" type="number" value="0" min="0" step="100"></label>
+        <label>Čistá ručně <input id="salary-net-manual" type="number" min="0" step="500" placeholder="volitelné"></label>
+      </div>
+      <div class="salary-result">
+        <div><span>Sociální</span><b id="salary-social">0 Kč</b></div>
+        <div><span>Zdravotní</span><b id="salary-health">0 Kč</b></div>
+        <div><span>Daň po slevě</span><b id="salary-tax">0 Kč</b></div>
+        <div class="total"><span>Čistá mzda</span><b id="salary-net">0 Kč</b></div>
+      </div>
+      <button class="btn-ghost" type="button" id="salary-to-income">Přidat jako příjem</button>
+      <p class="hint">Orientační výpočet pro zaměstnance: sociální 7,1 %, zdravotní 4,5 %, daň 15 %. Parametry a slevu můžeš upravit.</p>
+    </div>
+  </section>
+
+  <section class="finance-integrations">
+    <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-6 9 6"/><path d="M5 10v10h14V10"/></svg>Import z Bydlen&#237;&#269;ka</div>
+      <div class="integration-row">
+        <select id="import-home"></select>
+        <button class="btn-add" type="button" id="import-home-add">P&#345;idat spl&#225;tku</button>
+      </div>
+      <p class="hint" id="import-home-note">Na&#269;&#237;t&#225;m nemovitosti...</p>
+    </div>
+    <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Import z Aut&#237;&#269;ka</div>
+      <div class="integration-row">
+        <select id="import-car"></select>
+        <button class="btn-add" type="button" id="import-car-add">P&#345;idat provoz</button>
+      </div>
+      <p class="hint" id="import-car-note">Na&#269;&#237;t&#225;m auta...</p>
+    </div>
+    <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>Rychl&#233; v&#253;daje</div>
+      <div class="quick-expenses" id="quick-expenses"></div>
+    </div>
+  </section>
+
+  <section class="finance-split">
+    <div class="tablewrap">
+      <div class="th">Výdaje podle kategorií</div>
+      <div class="category-list" id="category-list"></div>
+    </div>
+    <div class="tablewrap">
+      <div class="th">Scénáře a poznámky</div>
+      <div class="scenario-box">
+        <textarea id="budget-notes" placeholder="Poznámky ke scénáři: hypotéka, mateřská, rezerva, plánované nákupy..."></textarea>
+        <button class="btn-ghost" type="button" id="budget-save-note">Uložit poznámku</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Lokální rodinný rozpočet · data se ukládají v tomto prohlížeči. Mzdová kalkulačka je orientační, před finálním rozhodnutím ověřit aktuální pravidla.
+  </footer>
+</main>
+
+<div class="modalback" id="pin-modal" hidden>
+  <div class="modal pin-modal" role="dialog" aria-modal="true" aria-labelledby="pin-title">
+    <button class="modal-x" type="button" id="pin-x" aria-label="Zavřít">×</button>
+    <h3 id="pin-title">PIN rozpočtu</h3>
+    <p class="hint" id="pin-hint">PIN chrání jen tento rozpočet v prohlížeči.</p>
+    <label>PIN <input id="pin-value" type="password" inputmode="numeric" maxlength="6" placeholder="4 nebo 6 číslic"></label>
+    <div class="actions">
+      <button class="btn-ghost" type="button" id="pin-remove">Bez PINu</button>
+      <button class="btn-add" type="button" id="pin-save">Uložit PIN</button>
+    </div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script src="app-utils.js"></script>
+<script>
+const { esc } = window.Nase;
+const STORE = 'nase.finance.v1';
+const SESSION = 'nase.finance.unlocked.';
+const CATEGORIES = ['Bydlení','Jídlo','Auto / doprava','Děti','Pojištění','Splátky','Zábava','Zdraví','Rezerva / investice','Ostatní'];
+const TAX = { social: .071, health: .045, income: .15 };
+const MORTGAGE = { rate: 4.94, years: 30, loanPct: 90, insurance: 0 };
+const CAR_COST = { kmYear: 12000, fuelPrice: 38, service: 1500, insurance: 1200, tires: true, highway: true };
+const QUICK_EXPENSES = [
+  ['Bydlen\u00ed','Energie',6000],
+  ['J\u00eddlo','J\u00eddlo a drogerie',16000],
+  ['Auto / doprava','MHD / doprava',2500],
+  ['D\u011bti','D\u011bti',5000],
+  ['Poji\u0161t\u011bn\u00ed','Poji\u0161t\u011bn\u00ed',2500],
+  ['Rezerva / investice','Rezerva',10000]
+];
+const money = n => (Math.round(Number(n)||0)).toLocaleString('cs-CZ') + ' Kč';
+const id = () => Date.now() + Math.floor(Math.random()*1000);
+let DATA = loadData();
+let activeId = DATA.activeId || DATA.budgets[0].id;
+let selectedBudget = null;
+let SOURCE = { homes: [], cars: [] };
+
+function loadData(){
+  try{
+    const parsed = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if(parsed?.budgets?.length) return parsed;
+  }catch(e){}
+  const first = {
+    id:id(), name:'Běžný měsíc', pin:'',
+    members:[{id:id()+1,name:'Já'}],
+    incomes:[], expenses:[], notes:'', createdAt:new Date().toISOString()
+  };
+  return { activeId:first.id, budgets:[first] };
+}
+function saveData(){ DATA.activeId = activeId; localStorage.setItem(STORE, JSON.stringify(DATA)); }
+function budget(){ return DATA.budgets.find(b=>b.id===activeId) || DATA.budgets[0]; }
+function isUnlocked(b){ return !b.pin || sessionStorage.getItem(SESSION+b.id)==='1'; }
+async function hashPin(pin){
+  if(!crypto?.subtle){
+    let h = 2166136261;
+    for(const ch of String(pin)){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    return 'fallback-' + (h >>> 0).toString(16);
+  }
+  const bytes = new TextEncoder().encode(String(pin));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function ensureUnlocked(b){
+  if(isUnlocked(b)) return true;
+  const pin = prompt('Zadej PIN pro rozpočet "'+b.name+'"');
+  if(!pin) return false;
+  if(await hashPin(pin) === b.pin){ sessionStorage.setItem(SESSION+b.id,'1'); return true; }
+  alert('PIN nesedí.');
+  return false;
+}
+function sum(rows){ return rows.reduce((a,x)=>a+(Number(x.amount)||0),0); }
+function currentTotals(){
+  const b = budget();
+  const income = sum(b.incomes), expense = sum(b.expenses), balance = income - expense;
+  return { income, expense, balance, savings: income ? Math.round(balance / income * 100) : 0, daily: Math.max(0, Math.floor(balance / 30)) };
+}
+function addExpense(category, name, amount, source){
+  amount = Math.round(Number(amount)||0);
+  if(!name || amount<=0) return false;
+  budget().expenses.push({id:id(), memberId:'', category, name, amount, source:source||''});
+  saveData();
+  renderAll();
+  return true;
+}
+function mortgagePayment(price){
+  price = Number(price)||0;
+  if(!price) return 0;
+  const p = price * (MORTGAGE.loanPct/100);
+  const r = MORTGAGE.rate/100/12;
+  const n = MORTGAGE.years*12;
+  const m = r===0 ? p/n : p*r/(1-Math.pow(1+r,-n));
+  return Math.round((m + MORTGAGE.insurance)/100)*100;
+}
+function carConsumption(d){
+  const raw = Number(d.consumption || d.spotreba || 0);
+  if(raw>0) return raw;
+  const fuel = String(d.fuel||'').toLowerCase();
+  if(/hybrid/.test(fuel)) return 4.8;
+  if(/diesel|nafta/.test(fuel)) return 5.8;
+  if(/elektro/.test(fuel)) return 0;
+  return Number(d.kw)>130 ? 8.2 : 6.8;
+}
+function carMonthlyCost(d){
+  const fuel = String(d.fuel||'').toLowerCase();
+  const fuelMonthly = /elektro/.test(fuel) ? 900 : (CAR_COST.kmYear/12) * (carConsumption(d)/100) * CAR_COST.fuelPrice;
+  const tires = CAR_COST.tires ? 450 : 0;
+  const highway = CAR_COST.highway ? Math.round(2440/12) : 0;
+  return Math.round(fuelMonthly + CAR_COST.service + CAR_COST.insurance + tires + highway);
+}
+function memberName(mid){
+  const b=budget();
+  return b.members.find(m=>m.id===mid)?.name || 'Společné';
+}
+function renderBudgetSelect(){
+  const sel=document.getElementById('budget-select');
+  sel.innerHTML = DATA.budgets.map(b=>`<option value="${b.id}" ${b.id===activeId?'selected':''}>${esc(b.name)}${b.pin?' · PIN':''}</option>`).join('');
+}
+function renderMembers(){
+  const b=budget();
+  const options = ['<option value="">Společné</option>'].concat(b.members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`)).join('');
+  document.getElementById('income-member').innerHTML = b.members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('') || '<option value="">Já</option>';
+  document.getElementById('expense-member').innerHTML = options;
+  document.getElementById('member-list').innerHTML = b.members.map(m=>`
+    <div class="mini-row"><strong>${esc(m.name)}</strong><button type="button" class="btn-del" onclick="deleteMember(${m.id})">×</button></div>`).join('') || '<p class="hint">Přidej členy domácnosti.</p>';
+}
+function renderLists(){
+  const b=budget();
+  document.getElementById('income-list').innerHTML = b.incomes.map(x=>`
+    <div class="mini-row"><span><strong>${esc(x.name)}</strong><small>${esc(memberName(x.memberId))}</small></span><b>${money(x.amount)}</b><button class="btn-del" type="button" onclick="deleteIncome(${x.id})">×</button></div>`).join('') || '<p class="hint">Zatím žádné příjmy.</p>';
+  document.getElementById('expense-list').innerHTML = b.expenses.map(x=>`
+    <div class="mini-row"><span><strong>${esc(x.name)}</strong><small>${esc(x.category)} · ${esc(memberName(x.memberId))}</small></span><b>${money(x.amount)}</b><button class="btn-del" type="button" onclick="deleteExpense(${x.id})">×</button></div>`).join('') || '<p class="hint">Zatím žádné výdaje.</p>';
+}
+function renderCategories(){
+  const b=budget();
+  const total=sum(b.expenses);
+  document.getElementById('category-list').innerHTML = CATEGORIES.map(cat=>{
+    const value = sum(b.expenses.filter(x=>x.category===cat));
+    const pct = total ? Math.round(value/total*100) : 0;
+    return `<div class="category-row"><div><strong>${esc(cat)}</strong><span>${pct}% z výdajů</span></div><b>${money(value)}</b><div class="bar"><i style="width:${pct}%"></i></div></div>`;
+  }).join('');
+}
+function renderQuickExpenses(){
+  document.getElementById('quick-expenses').innerHTML = QUICK_EXPENSES.map(([cat,name,amount]) => `
+    <button type="button" class="quick-expense" data-cat="${esc(cat)}" data-name="${esc(name)}" data-amount="${amount}">
+      <strong>${esc(name)}</strong><span>${esc(cat)} · ${money(amount)}</span>
+    </button>`).join('');
+}
+function renderImports(){
+  const homeSel = document.getElementById('import-home');
+  const carSel = document.getElementById('import-car');
+  homeSel.innerHTML = SOURCE.homes.length
+    ? SOURCE.homes.map((x,i)=>`<option value="${i}">${esc(x.name||x.n||'Nemovitost')} · ${money(mortgagePayment(x.dealPrice||x.price))}/měs</option>`).join('')
+    : '<option value="">\u017d\u00e1dn\u00e9 nemovitosti</option>';
+  carSel.innerHTML = SOURCE.cars.length
+    ? SOURCE.cars.map((x,i)=>`<option value="${i}">${esc(x.n||x.name||'Auto')} · ${money(carMonthlyCost(x))}/měs</option>`).join('')
+    : '<option value="">\u017d\u00e1dn\u00e1 auta</option>';
+  document.getElementById('import-home-note').textContent = SOURCE.homes.length ? `Připraveno ${SOURCE.homes.length} nemovitostí. Splátka je orientačně 90 % ceny, 4,94 %, 30 let.` : 'Nemovitosti se nepodařilo načíst nebo nejsou uložené.';
+  document.getElementById('import-car-note').textContent = SOURCE.cars.length ? `Připraveno ${SOURCE.cars.length} aut. Provoz počítá palivo, servis, pojištění, pneu a dálniční známku.` : 'Auta se nepodařilo načíst nebo nejsou uložená.';
+}
+async function loadSourceListings(){
+  try{
+    const res = await fetch('/.netlify/functions/list');
+    if(!res.ok) throw new Error('list failed');
+    const rows = await res.json();
+    SOURCE.homes = rows.filter(x=>x.section==='byd' && (x.status||'kept')!=='candidate');
+    SOURCE.cars = rows.filter(x=>x.section==='auto');
+  }catch(e){
+    SOURCE = { homes: [], cars: [] };
+  }
+  renderImports();
+}
+function renderKpis(){
+  const {income, expense, balance, savings, daily} = currentTotals();
+  document.getElementById('kpi-income').textContent = money(income);
+  document.getElementById('kpi-expense').textContent = money(expense);
+  document.getElementById('kpi-balance').textContent = money(balance);
+  document.getElementById('kpi-daily').textContent = money(daily);
+  document.getElementById('budget-title').textContent = budget().name;
+  document.getElementById('budget-sub').textContent = `${budget().members.length} členů · úspora ${savings}% · ${budget().pin?'chráněno PINem':'bez PINu'}`;
+  const bar = Math.max(0, Math.min(100, savings));
+  document.getElementById('health-bar').style.width = bar + '%';
+  document.getElementById('health-bar').className = savings < 5 ? 'bad' : (savings < 15 ? 'mid' : 'good');
+  document.getElementById('health-title').textContent = savings < 0 ? 'Rozpočet je v mínusu' : (savings < 15 ? 'Rozpočet je těsný' : 'Rozpočet dává prostor');
+  document.getElementById('health-note').textContent = savings < 0 ? `Chybí ${money(Math.abs(balance))} měsíčně.` : `Zbývá ${money(balance)} měsíčně, přibližně ${money(daily)} na den.`;
+}
+function renderSalary(){
+  const gross = Number(document.getElementById('salary-gross').value)||0;
+  const discount = Number(document.getElementById('salary-discount').value)||0;
+  const deductions = Number(document.getElementById('salary-deductions').value)||0;
+  const manual = Number(document.getElementById('salary-net-manual').value)||0;
+  const social = Math.round(gross*TAX.social);
+  const health = Math.round(gross*TAX.health);
+  const tax = Math.max(0, Math.round(gross*TAX.income) - discount);
+  const net = manual || Math.max(0, gross - social - health - tax - deductions);
+  document.getElementById('salary-social').textContent = money(social);
+  document.getElementById('salary-health').textContent = money(health);
+  document.getElementById('salary-tax').textContent = money(tax);
+  document.getElementById('salary-net').textContent = money(net);
+  return net;
+}
+function renderAll(){
+  const b=budget();
+  renderBudgetSelect();
+  renderMembers();
+  renderLists();
+  renderCategories();
+  renderKpis();
+  document.getElementById('budget-notes').value = b.notes || '';
+}
+window.deleteMember = function(mid){
+  const b=budget();
+  b.members = b.members.filter(m=>m.id!==mid);
+  b.incomes.forEach(x=>{ if(x.memberId===mid) x.memberId=''; });
+  b.expenses.forEach(x=>{ if(x.memberId===mid) x.memberId=''; });
+  saveData(); renderAll();
+};
+window.deleteIncome = function(iid){ const b=budget(); b.incomes=b.incomes.filter(x=>x.id!==iid); saveData(); renderAll(); };
+window.deleteExpense = function(eid){ const b=budget(); b.expenses=b.expenses.filter(x=>x.id!==eid); saveData(); renderAll(); };
+
+function wire(){
+  document.getElementById('expense-category').innerHTML = CATEGORIES.map(c=>`<option>${esc(c)}</option>`).join('');
+  renderQuickExpenses();
+  document.getElementById('quick-expenses').addEventListener('click', e=>{
+    const btn=e.target.closest('.quick-expense');
+    if(!btn) return;
+    const amount = Number(prompt('Částka za měsíc', btn.dataset.amount)) || 0;
+    addExpense(btn.dataset.cat, btn.dataset.name, amount, 'quick');
+  });
+  document.getElementById('budget-select').addEventListener('change', async e=>{
+    const next = DATA.budgets.find(b=>String(b.id)===e.target.value);
+    if(next && await ensureUnlocked(next)){ activeId=next.id; saveData(); renderAll(); }
+    else renderBudgetSelect();
+  });
+  document.getElementById('budget-add').addEventListener('click', ()=>{
+    const name = prompt('Název rozpočtu', 'Nový scénář');
+    if(!name) return;
+    const b={id:id(), name:name.trim(), pin:'', members:[{id:id()+1,name:'Já'}], incomes:[], expenses:[], notes:'', createdAt:new Date().toISOString()};
+    DATA.budgets.push(b); activeId=b.id; saveData(); renderAll();
+  });
+  document.getElementById('budget-copy').addEventListener('click', ()=>{
+    const src=budget();
+    const copy=JSON.parse(JSON.stringify(src));
+    copy.id=id(); copy.name=src.name+' · kopie'; copy.pin=''; copy.createdAt=new Date().toISOString();
+    DATA.budgets.push(copy); activeId=copy.id; saveData(); renderAll();
+  });
+  document.getElementById('budget-pin').addEventListener('click', ()=>openPinModal());
+  document.getElementById('member-add').addEventListener('click', ()=>{
+    const input=document.getElementById('member-name');
+    const name=input.value.trim(); if(!name) return;
+    budget().members.push({id:id(), name}); input.value=''; saveData(); renderAll();
+  });
+  document.getElementById('income-add').addEventListener('click', ()=>{
+    const name=document.getElementById('income-name').value.trim();
+    const amount=Number(document.getElementById('income-amount').value)||0;
+    if(!name || !amount) return;
+    budget().incomes.push({id:id(), memberId:Number(document.getElementById('income-member').value)||'', name, amount});
+    document.getElementById('income-name').value=''; document.getElementById('income-amount').value=''; saveData(); renderAll();
+  });
+  document.getElementById('expense-add').addEventListener('click', ()=>{
+    const name=document.getElementById('expense-name').value.trim();
+    const amount=Number(document.getElementById('expense-amount').value)||0;
+    if(!name || !amount) return;
+    budget().expenses.push({id:id(), memberId:Number(document.getElementById('expense-member').value)||'', category:document.getElementById('expense-category').value, name, amount});
+    document.getElementById('expense-name').value=''; document.getElementById('expense-amount').value=''; saveData(); renderAll();
+  });
+  document.getElementById('import-home-add').addEventListener('click', ()=>{
+    const d = SOURCE.homes[Number(document.getElementById('import-home').value)];
+    if(!d) return;
+    addExpense('BydlenĂ­', 'HypotĂ©ka: '+(d.name||d.n||'nemovitost'), mortgagePayment(d.dealPrice||d.price), 'bydleni:'+d.id);
+  });
+  document.getElementById('import-car-add').addEventListener('click', ()=>{
+    const d = SOURCE.cars[Number(document.getElementById('import-car').value)];
+    if(!d) return;
+    addExpense('Auto / doprava', 'Provoz auta: '+(d.n||d.name||'auto'), carMonthlyCost(d), 'auto:'+d.id);
+  });
+  ['salary-gross','salary-discount','salary-deductions','salary-net-manual'].forEach(x=>document.getElementById(x).addEventListener('input', renderSalary));
+  document.getElementById('salary-to-income').addEventListener('click', ()=>{
+    const net = renderSalary();
+    const memberId = Number(document.getElementById('income-member').value) || budget().members[0]?.id || '';
+    budget().incomes.push({id:id(), memberId, name:'Čistá mzda', amount:net});
+    saveData(); renderAll();
+  });
+  document.getElementById('budget-save-note').addEventListener('click', ()=>{ budget().notes=document.getElementById('budget-notes').value; saveData(); });
+  document.getElementById('pin-x').addEventListener('click', closePinModal);
+  document.getElementById('pin-remove').addEventListener('click', ()=>{ budget().pin=''; sessionStorage.removeItem(SESSION+budget().id); saveData(); closePinModal(); renderAll(); });
+  document.getElementById('pin-save').addEventListener('click', async ()=>{
+    const pin=document.getElementById('pin-value').value.trim();
+    if(!/^\d{4}$|^\d{6}$/.test(pin)){ alert('PIN musí mít 4 nebo 6 číslic.'); return; }
+    budget().pin = await hashPin(pin);
+    sessionStorage.setItem(SESSION+budget().id,'1');
+    saveData(); closePinModal(); renderAll();
+  });
+}
+function openPinModal(){ document.getElementById('pin-value').value=''; document.getElementById('pin-modal').hidden=false; document.getElementById('pin-value').focus(); }
+function closePinModal(){ document.getElementById('pin-modal').hidden=true; }
+
+(async function init(){
+  await window.naseAuthReady;
+  window.Nase.initThemeToggle();
+  wire();
+  renderSalary();
+  if(!(await ensureUnlocked(budget()))) activeId = DATA.budgets.find(b=>!b.pin)?.id || DATA.budgets[0].id;
+  renderAll();
+  loadSourceListings();
+})();
+</script>
+</body>
+</html>
