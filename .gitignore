@@ -4,3 +4,7 @@ node_modules/
 .netlify-deploy.zip
 .env
 .apify_token
+node_modules/
+__pycache__/
+*.pyc
+.env
