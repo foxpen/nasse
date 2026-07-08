@@ -348,6 +348,27 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
   .onboard{padding-bottom:130px;}
 }
 
+/* cíle & pokrok plánu */
+.choice .cprog{width:100%; height:8px; border-radius:999px; background:color-mix(in srgb, var(--fg) 9%, transparent); overflow:hidden; margin-top:12px;}
+.choice .cprog i{display:block; height:100%; width:0; border-radius:999px; background:var(--sec-byd); transition:width .5s var(--ease);}
+.choice.aut .cprog i{background:var(--sec-aut);}
+.choice.fin .cprog i{background:var(--sec-fin);}
+.cplabel{font-size:12.5px; font-weight:800; margin-top:6px; color:var(--muted-fg); font-variant-numeric:tabular-nums;}
+.ob-goalsrow{margin-top:20px;}
+.modal.goals-modal{max-width:920px;}
+.goals-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:14px; text-align:left;}
+.goals-col h4{font-size:15px; font-weight:800; margin-bottom:10px;}
+.goals-col.byd h4{color:var(--sec-byd);} .goals-col.aut h4{color:var(--sec-aut);} .goals-col.fin h4{color:var(--sec-fin);}
+.modal .goal{display:flex; align-items:center; gap:9px; padding:8px 10px; background:var(--bg); border:1px solid var(--line); border-radius:12px; margin:0 0 8px; font-size:14px; font-weight:650; color:var(--fg); cursor:pointer;}
+.modal .goal input{width:17px; height:17px; accent-color:var(--primary); flex:0 0 auto;}
+.modal .goal span{flex:1; min-width:0; overflow-wrap:anywhere;}
+.modal .goal:has(input:checked) span{text-decoration:line-through; color:var(--muted-fg);}
+.modal .goal .btn-del{width:26px; height:26px; padding:0; border-radius:999px; background:var(--surface); color:var(--fg); border:1px solid var(--line-2); box-shadow:none; font-size:14px; flex:0 0 auto;}
+.modal .goal-add{display:flex; gap:8px; margin-top:2px;}
+.modal .goal-add input{flex:1; min-width:0; font:inherit; color:var(--fg); background:var(--bg); border:1px solid var(--line-2); border-radius:10px; padding:8px 10px; min-height:42px;}
+@media (max-width:900px){ .goals-grid{grid-template-columns:1fr;} }
+.modalback{position:fixed; inset:0; z-index:1100; background:rgba(8,20,18,.55); display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; overflow:auto;}
+
 .ob-foot{margin-top:28px; font-size:12.5px; color:var(--muted-fg); font-weight:600; display:flex; align-items:center; justify-content:center; gap:7px;}
 .ob-foot svg{width:14px;height:14px;}
 @keyframes riseIn{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:none;}}

@@ -51,6 +51,7 @@ Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce:
 - Ikony jsou výhradně inline SVG `stroke="currentColor"` stroke-width 1.8–2, žádné emoji ani ikonfonty.
 - Intro/splash animace: každá stránka má overlay, který se hraje **jen jednou za session** (`sessionStorage['nase.intro.*']`) a respektuje `prefers-reduced-motion` (globální kill-switch v `styles.css` + kontroly v JS).
 - Destruktivní akce v Hospodaříčku používají undo toast (`showUndo()` v `hospodareni.html`), ne confirm.
+- Cíle plánu (progress bary na kartách rozcestníku) žijí v `localStorage['nase.goals.v1']` (`{v:1, byd:[{id,text,done}], aut:[], fin:[]}`); editor je modál „Upravit cíle plánu" na `index.html`.
 - Peníze formátuj `toLocaleString('cs-CZ')`; písmo Plus Jakarta Sans s `font-feature-settings: "tnum"`.
 - Počty vždy skloňuj přes `Nase.plural(n, '1 tvar', '2–4 tvar', '5+ tvar')` (např. vůz/vozy/vozů) — nikdy nelep pevnou koncovku k číslu. U vět se s počtem musí shodovat i sloveso („Připravena 1 nemovitost" vs. „Připraveno 5 nemovitostí").
 - Layout je fluidní — `main` nemá max-width; karty používají `auto-fill, minmax()`. Nezaváděj pevné šířky stránek.
