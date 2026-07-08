@@ -80,6 +80,7 @@
       </div>
       `;
     document.body.appendChild(gate);
+    document.documentElement.classList.add('gate-lock');
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const blobs = gate.querySelectorAll('.ag-blob');
@@ -135,6 +136,7 @@
         if (!res.ok) throw new Error(res.status === 401 ? 'Heslo nesedí.' : 'Přihlášení selhalo.');
         clearInterval(timer);
         gate.remove();
+        document.documentElement.classList.remove('gate-lock');
         done();
       } catch (e) {
         msg.textContent = e.message || 'Přihlášení selhalo.';
