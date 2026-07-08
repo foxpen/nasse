@@ -27,9 +27,7 @@
       icon: '<path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="8" rx="1"/><rect x="17" y="4" width="3" height="12" rx="1"/>' }
   ];
   const icon = (p, w) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-  const HANDS = '<path d="M4.5 11 C3.8 15 6 18.5 10 20 C9.2 18.3 9.1 17.2 9.9 16.3 C8.2 15.6 6.3 14.2 5.7 12"/><path d="M19.5 11 C20.2 15 18 18.5 14 20 C14.8 18.3 14.9 17.2 14.1 16.3 C15.8 15.6 17.7 14.2 18.3 12"/>';
-  const DOTS_MONO = '<circle cx="7.6" cy="7" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="5.2" r="1.7" fill="currentColor" stroke="none"/><circle cx="16.4" cy="7" r="1.7" fill="currentColor" stroke="none"/>';
-  const DOTS_COLOR = '<circle cx="7.6" cy="7" r="1.7" fill="#2DD4BF" stroke="none"/><circle cx="12" cy="5.2" r="1.7" fill="#38BDF8" stroke="none"/><circle cx="16.4" cy="7" r="1.7" fill="#FBBF24" stroke="none"/>';
+  const LOGO_IMG = '<img src="img/logo-mark.png" alt="">';
   const CHECK = '<path d="M20 6 9 17l-5-5"/>';
 
   function showLogin(message) {
@@ -43,7 +41,7 @@
       </defs></svg>
       <div class="ag-pitch">
         <span class="ag-lava" aria-hidden="true">${SECTIONS.map((s, i) => `<i class="ag-blob ${s.id}${i === 0 ? ' on' : ''}"></i>`).join('')}</span>
-        <div class="ag-head"><span class="ag-mark" aria-hidden="true">${icon(HANDS + DOTS_COLOR, 1.9)}</span><span class="ag-wm">Naše</span></div>
+        <div class="ag-head"><span class="ag-mark" aria-hidden="true">${LOGO_IMG}</span><span class="ag-wm">Naše</span></div>
         <div class="ag-tabs" role="tablist" aria-label="Sekce">
           ${SECTIONS.map((s, i) => `<button type="button" role="tab" aria-selected="${i === 0}" class="ag-tab${i === 0 ? ' on' : ''}" data-i="${i}" style="--sec:${s.color}">${icon(s.icon)}${s.tab}</button>`).join('')}
         </div>
@@ -52,7 +50,7 @@
       </div>
       <div class="ag-pane">
         <form class="auth-box" autocomplete="on">
-          <div class="auth-mark" aria-hidden="true">${icon(HANDS + DOTS_MONO, 1.9)}</div>
+          <div class="auth-mark" aria-hidden="true">${LOGO_IMG}</div>
           <h2>Vítej zpět</h2>
           <p>Pro pokračování zadej rodinné heslo.</p>
           <label for="auth-password">Heslo</label>
