@@ -416,7 +416,7 @@ html[data-theme="dark"] .auth-gate{
 .agl-top>*{pointer-events:auto;}
 .agl-hero{position:relative; z-index:2; flex:1; display:flex; align-items:center;
   padding:clamp(20px,4vw,48px) clamp(18px,5vw,72px); min-height:0; pointer-events:none;}
-.agl-copy{max-width:min(600px,52%); animation:agRise .6s var(--ease) .12s both; pointer-events:auto;}
+.agl-copy{max-width:min(560px,46%); animation:agRise .6s var(--ease) .12s both; pointer-events:auto;}
 .agl-copy h1{font-size:clamp(40px,5.6vw,76px); font-weight:800; letter-spacing:-.03em; line-height:1.05; color:var(--fg); text-wrap:balance;}
 .agl-lead{margin-top:16px; font-size:clamp(15px,1.6vw,18px); line-height:1.6; font-weight:600; color:var(--muted-fg); max-width:44ch; text-wrap:pretty;}
 .agl-actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:28px;}
@@ -433,7 +433,7 @@ html[data-theme="dark"] .auth-gate{
 .agl-note svg{width:14px; height:14px;}
 
 /* organický panel: láva + logo; po odemknutí se v něm zjeví login karta */
-.agl-visual{position:absolute; top:0; right:0; bottom:0; width:min(66%, 1180px); z-index:1;
+.agl-visual{position:absolute; top:0; right:0; bottom:0; width:min(72%, 1320px); z-index:1;
   clip-path:url(#agl-blob);
   background:linear-gradient(150deg,#0A403B 0%,#0C4B45 46%,#0A455C 100%);
   display:flex; align-items:center; justify-content:center; padding:clamp(18px,3vw,40px); padding-left:16%;
