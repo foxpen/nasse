@@ -27,6 +27,8 @@ Povinné env: `DATABASE_URL`/`NETLIFY_DATABASE_URL`, `APP_PASSWORD`/`NASE_PASSWO
 
 Při statickém náhledu funkce neběží → přihlášení projde do chybového stavu; bránu lze v konzoli obejít `document.getElementById('auth-gate').remove()` a stránka poběží s prázdnými daty. Sekce Hospodařeníčko funguje staticky celá (localStorage).
 
+Emoce, záměr a designový jazyk aplikace popisuje [design-brief.md](design-brief.md) — přečti si ho před návrhem čehokoli vizuálního.
+
 ## Architektura a konvence
 
 ### Theming (nejčastější past)
