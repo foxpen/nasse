@@ -36,68 +36,78 @@
     gate.id = 'auth-gate';
     gate.innerHTML = `
       <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
-        <clipPath id="ag-wave-v" clipPathUnits="objectBoundingBox"><path d="M0 0 H0.94 C1 0.14 0.88 0.32 0.94 0.5 C0.99 0.64 0.87 0.82 0.95 1 H0 Z"/></clipPath>
-        <clipPath id="ag-wave-h" clipPathUnits="objectBoundingBox"><path d="M0 0 H1 V0.9 C0.78 1 0.58 0.88 0.38 0.95 C0.22 1 0.1 0.92 0 0.96 Z"/></clipPath>
+        <clipPath id="agl-blob" clipPathUnits="objectBoundingBox">
+          <path d="M0.22 0 C0.14 0.08 0.18 0.16 0.26 0.23 C0.34 0.31 0.35 0.42 0.29 0.52 C0.24 0.61 0.16 0.66 0.13 0.76 C0.1 0.86 0.12 0.94 0.18 1 L1 1 L1 0 Z"/>
+        </clipPath>
       </defs></svg>
-      <div class="ag-pitch">
-        <span class="ag-lava" aria-hidden="true">${SECTIONS.map((s, i) => `<i class="ag-blob ${s.id}${i === 0 ? ' on' : ''}"></i>`).join('')}</span>
-        <div class="ag-head"><span class="ag-mark" aria-hidden="true">${LOGO_IMG}</span><span class="ag-wm">Naše</span></div>
-        <div class="ag-tabs" role="tablist" aria-label="Sekce">
-          ${SECTIONS.map((s, i) => `<button type="button" role="tab" aria-selected="${i === 0}" class="ag-tab${i === 0 ? ' on' : ''}" data-i="${i}" style="--sec:${s.color}">${icon(s.icon)}${s.tab}</button>`).join('')}
+      <div class="agl-fold">
+        <div class="agl-visual">
+          <span class="ag-lava" aria-hidden="true">${SECTIONS.map((s, i) => `<i class="ag-blob ${s.id}${i === 0 ? ' on' : ''}"></i>`).join('')}</span>
+          <form class="auth-box" autocomplete="on">
+            <div class="auth-mark" aria-hidden="true">${LOGO_IMG}</div>
+            <h2>Vítej zpět</h2>
+            <p>Pro pokračování zadej rodinné heslo.</p>
+            <label for="auth-password">Heslo</label>
+            <input id="auth-password" type="password" autocomplete="current-password">
+            <label class="auth-check"><input id="auth-remember" type="checkbox"> Zapamatovat na tomto zařízení</label>
+            <button type="submit">Odemknout</button>
+            <div class="auth-msg" id="auth-msg">${message || ''}</div>
+          </form>
+          <div class="agl-how" aria-hidden="true">
+            ${['fin', 'aut', 'byd'].map(id => { const s = SECTIONS.find(x => x.id === id); return `
+            <button type="button" class="agh-bub ${s.id}" data-go-auth>
+              <strong>${s.name}</strong>
+              <p>${s.desc}</p>
+            </button>`; }).join('')}
+          </div>
         </div>
-        <div class="ag-body" id="ag-body" aria-live="polite"></div>
-        <p class="ag-foot">Soukromý přehled · jen pro nás</p>
+        <header class="agl-top">
+          <span class="ag-mark" aria-hidden="true">${LOGO_IMG}</span><span class="agl-wm">Naše</span>
+          <button type="button" class="agl-mini" data-go-auth>Můj plán</button>
+        </header>
+        <section class="agl-hero">
+          <div class="agl-copy">
+            <h1>Plánujeme náš společný život.</h1>
+            <p class="agl-lead">Vše na jednom místě — bydlení, auto i rozpočet. Přehledně. Společně. S klidem.</p>
+            <div class="agl-actions">
+              <button type="button" class="agl-cta" data-go-auth>Otevřít můj plán</button>
+              <button type="button" class="agl-ghost" data-go-how>Jak to funguje ${icon('<path d="M5 12h14M13 6l6 6-6 6"/>', 2)}</button>
+            </div>
+            <p class="agl-note">${icon('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 2)} Vytvořeno pro nás · soukromý přehled</p>
+          </div>
+        </section>
       </div>
-      <div class="ag-pane">
-        <form class="auth-box" autocomplete="on">
-          <div class="auth-mark" aria-hidden="true">${LOGO_IMG}</div>
-          <h2>Vítej zpět</h2>
-          <p>Pro pokračování zadej rodinné heslo.</p>
-          <label for="auth-password">Heslo</label>
-          <input id="auth-password" type="password" autocomplete="current-password" autofocus>
-          <label class="auth-check"><input id="auth-remember" type="checkbox"> Zapamatovat na tomto zařízení</label>
-          <button type="submit">Odemknout</button>
-          <div class="auth-msg" id="auth-msg">${message || ''}</div>
-        </form>
-      </div>`;
+      `;
     document.body.appendChild(gate);
 
-    const body = gate.querySelector('#ag-body');
-    const tabs = gate.querySelectorAll('.ag-tab');
-    const bgs = gate.querySelectorAll('.ag-blob');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const blobs = gate.querySelectorAll('.ag-blob');
     let idx = 0;
     let timer = 0;
-    function fill(s) {
-      body.innerHTML = `
-        <span class="ag-ic">${icon(s.icon)}</span>
-        <h2>${s.name}</h2>
-        <p>${s.desc}</p>
-        <ul>${s.feats.map(f => `<li><span class="ag-dot">${icon(CHECK, 2.4)}</span>${f}</li>`).join('')}</ul>`;
+    if (!reduced) {
+      timer = setInterval(() => {
+        idx = (idx + 1) % blobs.length;
+        blobs.forEach((b, j) => b.classList.toggle('on', j === idx));
+        gate.style.setProperty('--gp', SECTIONS[idx].color);
+      }, 5200);
     }
-    function show(i) {
-      if (i === idx) return;
-      idx = i;
-      tabs.forEach((t, j) => { t.classList.toggle('on', j === i); t.setAttribute('aria-selected', String(j === i)); });
-      bgs.forEach((b, j) => b.classList.toggle('on', j === i));
-      gate.style.setProperty('--gp', SECTIONS[i].color);
-      if (reduced) { fill(SECTIONS[i]); return; }
-      body.classList.add('ag-out');
-      setTimeout(() => {
-        fill(SECTIONS[i]);
-        body.classList.remove('ag-out');
-        body.classList.add('ag-enter');
-        requestAnimationFrame(() => requestAnimationFrame(() => body.classList.remove('ag-enter')));
-      }, 240);
-    }
-    function arm() {
-      if (reduced) return;
-      clearInterval(timer);
-      timer = setInterval(() => show((idx + 1) % SECTIONS.length), 5200);
-    }
-    tabs.forEach(t => t.addEventListener('click', () => { show(Number(t.dataset.i)); arm(); }));
-    fill(SECTIONS[0]);
-    arm();
+    const how = gate.querySelector('.agl-how');
+    const openAuth = () => {
+      gate.classList.remove('how-open');
+      how.setAttribute('aria-hidden', 'true');
+      gate.classList.add('auth-open');
+      sessionStorage.setItem('nase.gate.auth', '1');
+      setTimeout(() => { const p = gate.querySelector('#auth-password'); if (p) p.focus(); }, 460);
+    };
+    const openHow = () => {
+      gate.classList.remove('auth-open');
+      gate.classList.add('how-open');
+      how.setAttribute('aria-hidden', 'false');
+      sessionStorage.removeItem('nase.gate.auth');
+    };
+    gate.querySelectorAll('[data-go-auth]').forEach(b => b.addEventListener('click', openAuth));
+    gate.querySelectorAll('[data-go-how]').forEach(b => b.addEventListener('click', openHow));
+    if (message || sessionStorage.getItem('nase.gate.auth') === '1') gate.classList.add('auth-open');
 
     const form = gate.querySelector('form');
     const msg = gate.querySelector('#auth-msg');

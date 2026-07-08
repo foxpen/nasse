@@ -381,8 +381,8 @@ footer{color:var(--muted-fg); font-size:13px; margin-top:40px; text-align:center
 @media (max-width:560px){ .grid{grid-template-columns:1fr;} .choices{grid-template-columns:1fr;} }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important; scroll-behavior:auto;} .card:hover,.pick:hover,.choice:hover{transform:none;} .reveal{opacity:1!important;} .intro,.splash{display:none!important;} }
 
-/* ---------- auth gate (split login: sekce vlevo, heslo vpravo) ---------- */
-.auth-gate{position:fixed; inset:0; z-index:2000; display:grid; grid-template-columns:1.05fr 1fr; background:var(--bg); overflow:auto;
+/* ---------- auth gate (landing + login v lávovém blobu) ---------- */
+.auth-gate{position:fixed; inset:0; z-index:2000; background:var(--bg); overflow-y:auto; scroll-behavior:smooth;
   --gp:#0F766E;
   --clay-prim:10px 14px 26px color-mix(in srgb, var(--gp) 38%, transparent), inset 5px 6px 13px rgba(255,255,255,.26), inset -7px -8px 15px rgba(0,0,0,.3);
   --clay-prim-press:inset 6px 7px 14px rgba(0,0,0,.4), inset -4px -5px 10px rgba(255,255,255,.16);
@@ -400,62 +400,91 @@ html[data-theme="dark"] .auth-gate{
   --clay-up:16px 20px 42px rgba(0,0,0,.55), inset 6px 7px 14px rgba(255,255,255,.05), inset -8px -9px 18px rgba(0,0,0,.5);
   --clay-in:inset 5px 6px 12px rgba(0,0,0,.5), inset -4px -5px 10px rgba(255,255,255,.05);}
 
-/* levý panel — živý přehled sekcí; pravou hranu tvaruje vlna (clip-path #ag-wave-v z auth.js) */
-.ag-pitch{position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:center; gap:22px;
-  width:calc(100% + 76px); clip-path:url(#ag-wave-v);
-  padding:clamp(28px,5vw,72px); padding-right:clamp(76px,10vw,150px);
-  background:linear-gradient(150deg,#0A403B 0%,#0C4B45 46%,#0A455C 100%); color:#fff;}
-/* lávová lampa — tři barvy sekcí pomalu plavou a přelévají se; aktivní se rozsvítí víc */
-.ag-lava{position:absolute; inset:0; pointer-events:none; filter:blur(64px) saturate(115%);}
-.ag-blob{position:absolute; border-radius:50%; opacity:.32; transition:opacity 1.4s var(--ease);}
-.ag-blob.on{opacity:.6;}
-.ag-blob.byd{width:54vmin; height:54vmin; left:-12%; top:-14%;
-  background:radial-gradient(circle at 35% 35%, #2DD4BF, #0F766E 72%); animation:agLava1 26s ease-in-out infinite;}
-.ag-blob.aut{width:48vmin; height:48vmin; right:-10%; top:24%;
-  background:radial-gradient(circle at 35% 35%, #38BDF8, #0369A1 72%); animation:agLava2 32s ease-in-out infinite;}
-.ag-blob.fin{width:46vmin; height:46vmin; left:16%; bottom:-16%;
-  background:radial-gradient(circle at 35% 35%, #FBBF24, #B45309 72%); animation:agLava3 38s ease-in-out infinite;}
-@keyframes agLava1{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(16vmin,13vmin) scale(1.14);} 66%{transform:translate(5vmin,27vmin) scale(.9);}}
-@keyframes agLava2{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(-15vmin,15vmin) scale(1.1);} 66%{transform:translate(-5vmin,-11vmin) scale(.92);}}
-@keyframes agLava3{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(15vmin,-13vmin) scale(1.08);} 66%{transform:translate(-11vmin,-5vmin) scale(.95);}}
-.ag-pitch::after{content:""; position:absolute; inset:0; pointer-events:none; opacity:.14; mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
-.ag-pitch>*:not(.ag-lava){position:relative; z-index:1;}
-.ag-head{display:flex; align-items:center; gap:12px; animation:agRise .55s var(--ease) .05s both;}
-.ag-mark{width:46px; height:46px; border-radius:14px; background:#F0F5F3; display:flex; align-items:center; justify-content:center;}
-.ag-mark svg{width:24px; height:24px;}
+/* horní řádek landing */
+.agl-top{display:flex; align-items:center; gap:12px; padding:clamp(16px,2.5vw,28px) clamp(18px,5vw,72px) 0; animation:agRise .55s var(--ease) .05s both;}
+.ag-mark{width:46px; height:46px; border-radius:14px; background:#F0F5F3; display:flex; align-items:center; justify-content:center; box-shadow:var(--sh-sm);}
 .ag-mark img{width:36px; height:36px; display:block;}
-.ag-wm{font-size:26px; font-weight:800; letter-spacing:-.02em;}
-.ag-tabs{display:flex; gap:8px; flex-wrap:wrap; animation:agRise .55s var(--ease) .12s both;}
-.ag-tab{font:inherit; font-size:13.5px; font-weight:800; display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.85);
-  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.16); border-radius:var(--r-pill); padding:9px 15px; min-height:40px;
-  cursor:pointer; transition:.22s var(--ease);}
-.ag-tab svg{width:16px; height:16px;}
-.ag-tab:hover{background:rgba(255,255,255,.22);}
-.ag-tab:active{transform:scale(.96);}
-.ag-tab.on{background:#fff; border-color:#fff; color:var(--sec); transform:translateY(-1px);}
-.ag-body{min-height:270px; animation:agRise .55s var(--ease) .2s both; transition:opacity .3s var(--ease), transform .3s var(--ease);}
-.ag-body.ag-out{opacity:0; transform:translateX(-26px);}
-.ag-body.ag-enter{opacity:0; transform:translateX(30px); transition:none;}
-.ag-ic{width:64px; height:64px; border-radius:20px; display:flex; align-items:center; justify-content:center;
-  background:rgba(255,255,255,.14); box-shadow:inset 0 0 0 1px rgba(255,255,255,.14); margin-bottom:14px;}
-.ag-ic svg{width:34px; height:34px;}
-.ag-body h2{font-size:clamp(26px,3.4vw,36px); font-weight:800; letter-spacing:-.02em; line-height:1.15; text-wrap:balance;}
-.ag-body p{margin-top:8px; font-size:15px; line-height:1.55; font-weight:600; color:rgba(255,255,255,.82); max-width:46ch; text-wrap:pretty;}
-.ag-body ul{list-style:none; display:flex; flex-direction:column; gap:11px; margin-top:18px; padding:0;}
-.ag-body li{display:flex; align-items:center; gap:11px; font-size:14.5px; font-weight:700; animation:agRise .5s var(--ease) both;}
-.ag-body li:nth-child(1){animation-delay:.05s} .ag-body li:nth-child(2){animation-delay:.13s}
-.ag-body li:nth-child(3){animation-delay:.21s} .ag-body li:nth-child(4){animation-delay:.29s}
-.ag-dot{flex:0 0 auto; width:24px; height:24px; border-radius:9px; background:rgba(255,255,255,.16); display:flex; align-items:center; justify-content:center;}
-.ag-dot svg{width:13px; height:13px;}
-.ag-foot{font-size:12px; font-weight:700; letter-spacing:.03em; color:rgba(255,255,255,.6); animation:agRise .55s var(--ease) .28s both;}
+.agl-wm{font-size:24px; font-weight:800; letter-spacing:-.02em; color:var(--fg);}
+.agl-mini{margin-left:auto; font:inherit; font-size:14px; font-weight:800; color:#fff; background:var(--gp); border:0; border-radius:var(--r-pill);
+  padding:10px 20px; min-height:42px; cursor:pointer; box-shadow:var(--clay-prim);
+  transition:transform .18s var(--ease), background-color .9s var(--ease), box-shadow .9s var(--ease);}
+.agl-mini:hover{transform:translateY(-2px);}
+
+/* první obrazovka: text vlevo, organický lávový panel teče přes celou pravou stranu */
+.agl-fold{position:relative; min-height:100dvh; display:flex; flex-direction:column; overflow:hidden;}
+.agl-top{position:relative; z-index:2;}
+.agl-hero{position:relative; z-index:2; flex:1; display:flex; align-items:center;
+  padding:clamp(20px,4vw,48px) clamp(18px,5vw,72px); min-height:0;}
+.agl-copy{max-width:min(600px,52%); animation:agRise .6s var(--ease) .12s both;}
+.agl-copy h1{font-size:clamp(40px,5.6vw,76px); font-weight:800; letter-spacing:-.03em; line-height:1.05; color:var(--fg); text-wrap:balance;}
+.agl-lead{margin-top:16px; font-size:clamp(15px,1.6vw,18px); line-height:1.6; font-weight:600; color:var(--muted-fg); max-width:44ch; text-wrap:pretty;}
+.agl-actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:28px;}
+.agl-cta{font:inherit; font-size:16px; font-weight:800; color:#fff; background:var(--gp); border:0; border-radius:var(--r-pill);
+  padding:16px 30px; min-height:54px; cursor:pointer; box-shadow:var(--clay-prim);
+  transition:transform .18s var(--ease), box-shadow .5s var(--ease), background-color .9s var(--ease);}
+.agl-cta:hover{transform:translateY(-2px);}
+.agl-cta:active{transform:none; box-shadow:var(--clay-prim-press);}
+.agl-ghost{display:inline-flex; align-items:center; gap:9px; font-weight:800; font-size:15px; color:var(--fg); background:var(--surface);
+  border:1px solid var(--line-2); border-radius:var(--r-pill); padding:15px 24px; min-height:54px; text-decoration:none; transition:.18s var(--ease);}
+.agl-ghost:hover{border-color:var(--primary); color:var(--primary);}
+.agl-ghost svg{width:16px; height:16px;}
+.agl-note{display:flex; align-items:center; gap:8px; margin-top:24px; font-size:13px; font-weight:700; color:var(--muted-fg);}
+.agl-note svg{width:14px; height:14px;}
+
+/* organický panel: láva + logo; po odemknutí se v něm zjeví login karta */
+.agl-visual{position:absolute; top:0; right:0; bottom:0; width:min(66%, 1180px); z-index:1;
+  clip-path:url(#agl-blob);
+  background:linear-gradient(150deg,#0A403B 0%,#0C4B45 46%,#0A455C 100%);
+  display:flex; align-items:center; justify-content:center; padding:clamp(18px,3vw,40px); padding-left:16%;
+  animation:agFade .8s var(--ease) both;}
+@keyframes agFade{from{opacity:0;} to{opacity:1;}}
+.agl-visual::after{content:""; position:absolute; inset:0; pointer-events:none; opacity:.14; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+/* lávová lampa — tři barvy sekcí pomalu plavou; aktivní se rozsvítí víc */
+.ag-lava{position:absolute; inset:0; pointer-events:none; filter:blur(54px) saturate(120%);}
+.ag-blob{position:absolute; border-radius:50%; opacity:.5; transition:opacity 1.4s var(--ease);}
+.ag-blob.on{opacity:.78;}
+.ag-blob.byd{width:78%; height:78%; left:-12%; top:-14%;
+  background:radial-gradient(circle at 35% 35%, #2DD4BF, #0F766E 72%); animation:agLava1 26s ease-in-out infinite;}
+.ag-blob.aut{width:66%; height:66%; right:-10%; top:24%;
+  background:radial-gradient(circle at 35% 35%, #38BDF8, #0369A1 72%); animation:agLava2 32s ease-in-out infinite;}
+.ag-blob.fin{width:62%; height:62%; left:16%; bottom:-16%;
+  background:radial-gradient(circle at 35% 35%, #FBBF24, #B45309 72%); animation:agLava3 38s ease-in-out infinite;}
+@keyframes agLava1{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(26%,22%) scale(1.14);} 66%{transform:translate(8%,44%) scale(.9);}}
+@keyframes agLava2{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(-26%,26%) scale(1.1);} 66%{transform:translate(-8%,-18%) scale(.92);}}
+@keyframes agLava3{0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(26%,-22%) scale(1.08);} 66%{transform:translate(-18%,-8%) scale(.95);}}
+.agl-visual .auth-box{position:absolute; z-index:2; opacity:0; visibility:hidden; transform:translateY(18px) scale(.95); transition:.45s var(--ease);}
+.auth-gate.auth-open .agl-visual .auth-box{opacity:1; visibility:visible; transform:none;}
 @keyframes agRise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 
-/* pravý panel — přihlášení */
-.ag-pane{display:flex; align-items:center; justify-content:center; padding:clamp(22px,4vw,56px); padding-left:clamp(48px,7vw,110px);}
-.auth-box{width:100%; max-width:392px; background:var(--surface); border:0; border-radius:28px;
-  box-shadow:var(--clay-up); padding:clamp(26px,3vw,38px); display:flex; flex-direction:column; gap:10px;
-  animation:agRise .6s var(--ease) .15s both;}
+/* „Jak to funguje" — obsah rozlitý přímo na lávě */
+.agl-how{position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; justify-content:center; gap:clamp(16px,2.4vh,26px);
+  padding:clamp(24px,4vw,60px); padding-left:clamp(70px,15%,170px); overflow-y:auto; color:#fff;
+  background:rgba(7,22,20,.34); text-shadow:0 1px 10px rgba(6,20,18,.45);
+  visibility:hidden; opacity:0; transition:opacity .4s var(--ease); pointer-events:none;}
+.auth-gate.how-open .agl-how{opacity:1;}
+.auth-gate.how-open .agl-how{visibility:visible; pointer-events:auto;}
+.agl-how>*{opacity:0; transform:translateY(16px); transition:opacity .45s var(--ease), transform .45s var(--ease);}
+.auth-gate.how-open .agl-how>*{opacity:1; transform:none;}
+.auth-gate.how-open .agl-how>*:nth-child(2){transition-delay:.07s;}
+.auth-gate.how-open .agl-how>*:nth-child(3){transition-delay:.14s;}
+.auth-gate.how-open .agl-how>*:nth-child(4){transition-delay:.21s;}
+.auth-gate.how-open .agl-how>*:nth-child(5){transition-delay:.28s;}
+.agl-how h2{font-size:clamp(24px,2.6vw,34px); font-weight:800; letter-spacing:-.02em;}
+.agh-row{display:flex; gap:15px; align-items:flex-start; max-width:52ch;}
+.agh-row.aut{margin-left:clamp(0px,3.5vw,48px);}
+.agh-row.fin{margin-left:clamp(0px,1.5vw,20px);}
+.agh-ic{flex:0 0 auto; width:46px; height:46px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.13);}
+.agh-ic svg{width:24px; height:24px;}
+.agh-row.byd .agh-ic{color:#2DD4BF;} .agh-row.aut .agh-ic{color:#38BDF8;} .agh-row.fin .agh-ic{color:#FBBF24;}
+.agh-row strong{display:block; font-size:17.5px; font-weight:800; letter-spacing:-.01em;}
+.agh-row p{margin-top:3px; font-size:13.5px; line-height:1.5; font-weight:600; color:rgba(255,255,255,.82); text-wrap:pretty;}
+.agh-feats{display:block; margin-top:6px; font-size:12px; font-weight:700; color:rgba(255,255,255,.6);}
+.agh-cta{align-self:flex-start; margin-top:2px;}
+
+/* login karta */
+.auth-box{width:min(88%,392px); background:var(--surface); border:0; border-radius:28px;
+  box-shadow:var(--clay-up); padding:clamp(24px,3vw,36px); display:flex; flex-direction:column; gap:10px;}
 .auth-mark{width:56px; height:56px; border-radius:18px; background:#F0F5F3; color:#fff; display:flex; align-items:center;
   justify-content:center; margin:0 auto 6px; box-shadow:var(--clay-prim); transition:box-shadow .9s var(--ease);}
 .auth-mark svg{width:28px; height:28px;}
@@ -475,15 +504,15 @@ html[data-theme="dark"] .auth-gate{
 .auth-box button[type=submit]:active{box-shadow:var(--clay-prim-press); transform:translateY(0);}
 .auth-box button:disabled{opacity:.72; cursor:wait; transform:none;}
 .auth-msg{min-height:18px; color:var(--warn); font-size:13px; font-weight:700;}
-@media (max-width:860px){
-  .auth-gate{display:block; overflow-y:auto;}
-  .ag-pitch{min-height:0; width:100%; clip-path:url(#ag-wave-h); justify-content:flex-start; gap:18px; padding:26px 20px 72px;}
-  .ag-body{min-height:0;}
-  .ag-pane{padding:20px 16px 44px;}
-}
-@media (max-width:480px){
-  .ag-tab{font-size:12px; padding:8px 11px; gap:6px; min-height:36px;}
-  .ag-tab svg{width:14px; height:14px;}
+@media (max-width:900px){
+  .agl-fold{min-height:0; display:block;}
+  .agl-hero{padding-top:24px; display:block;}
+  .agl-copy{max-width:100%;}
+  .agl-copy h1{font-size:clamp(34px,9vw,48px);}
+  .agl-visual{position:relative; inset:auto; width:100%; z-index:1; clip-path:none;
+    border-radius:34px; min-height:min(120vw,560px); margin-top:26px; padding-left:clamp(18px,3vw,40px);}
+  .agl-how{padding:22px 20px;}
+  .agh-row.aut,.agh-row.fin{margin-left:0;}
 }
 
 /* ---------- landing splash (první načtení) ---------- */
