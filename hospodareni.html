@@ -181,12 +181,29 @@
     <h3 id="pin-title">PIN rozpočtu</h3>
     <p class="hint" id="pin-hint">PIN chrání jen tento rozpočet v prohlížeči.</p>
     <label>PIN <input id="pin-value" type="password" inputmode="numeric" maxlength="6" placeholder="4 nebo 6 číslic"></label>
+    <div class="auth-msg" id="pin-msg"></div>
     <div class="actions">
       <button class="btn-ghost" type="button" id="pin-remove">Bez PINu</button>
       <button class="btn-add" type="button" id="pin-save">Uložit PIN</button>
     </div>
   </div>
 </div>
+
+<div class="modalback" id="ask-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+    <button class="modal-x" type="button" id="ask-x" aria-label="Zavřít"></button>
+    <h3 id="ask-title"></h3>
+    <p class="hint" id="ask-hint" hidden></p>
+    <label id="ask-label" for="ask-input"></label>
+    <input id="ask-input">
+    <div class="auth-msg" id="ask-msg"></div>
+    <div class="actions">
+      <button class="btn-ghost" type="button" id="ask-cancel">Zrušit</button>
+      <button class="btn-add" type="button" id="ask-ok">OK</button>
+    </div>
+  </div>
+</div>
+
 
 <nav class="tabbar" aria-label="Sekce">
   <a href="index.html"><img src="img/logo-mark.png" alt="">Přehled</a>
@@ -245,13 +262,51 @@ async function hashPin(pin){
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+let askResolve = null, askValidate = null;
+function askModal(opts){
+  return new Promise(resolve=>{
+    askResolve = resolve;
+    askValidate = opts.validate || null;
+    document.getElementById('ask-title').textContent = opts.title || '';
+    const hint = document.getElementById('ask-hint');
+    hint.hidden = !opts.hint; hint.textContent = opts.hint || '';
+    const label = document.getElementById('ask-label');
+    label.hidden = !opts.label; label.textContent = opts.label || '';
+    const inp = document.getElementById('ask-input');
+    inp.type = opts.type || 'text';
+    inp.inputMode = opts.inputMode || '';
+    inp.placeholder = opts.placeholder || '';
+    inp.value = opts.value != null ? opts.value : '';
+    document.getElementById('ask-ok').textContent = opts.ok || 'OK';
+    document.getElementById('ask-msg').textContent = opts.msg || '';
+    document.getElementById('ask-modal').hidden = false;
+    setTimeout(()=>{ inp.focus(); inp.select(); }, 40);
+  });
+}
+function askClose(val){
+  document.getElementById('ask-modal').hidden = true;
+  const r = askResolve; askResolve = null;
+  if(r) r(val);
+}
+function askConfirm(){
+  const inp = document.getElementById('ask-input');
+  if(askValidate){
+    const err = askValidate(inp.value);
+    if(err){ document.getElementById('ask-msg').textContent = err; inp.focus(); return; }
+  }
+  askClose(inp.value);
+}
 async function ensureUnlocked(b){
   if(isUnlocked(b)) return true;
-  const pin = prompt('Zadej PIN pro rozpočet "'+b.name+'"');
-  if(!pin) return false;
-  if(await hashPin(pin) === b.pin){ sessionStorage.setItem(SESSION+b.id,'1'); return true; }
-  alert('PIN nesedí.');
-  return false;
+  let err = '';
+  while(true){
+    const pin = await askModal({title:'Odemknout rozpočet', hint:'„'+b.name+'" je chráněný PINem.', label:'PIN',
+      type:'password', inputMode:'numeric', ok:'Odemknout', msg:err,
+      validate:v=>!v ? 'Zadej PIN.' : null});
+    if(pin == null) return false;
+    if(await hashPin(pin) === b.pin){ sessionStorage.setItem(SESSION+b.id,'1'); return true; }
+    err = 'PIN nesedí. Zkus to znovu.';
+  }
 }
 function sum(rows){ return rows.reduce((a,x)=>a+(Number(x.amount)||0),0); }
 function currentTotals(){
@@ -463,20 +518,24 @@ window.deleteExpense = function(eid){
 function wire(){
   document.getElementById('expense-category').innerHTML = CATEGORIES.map(c=>`<option>${esc(c)}</option>`).join('');
   renderQuickExpenses();
-  document.getElementById('quick-expenses').addEventListener('click', e=>{
+  document.getElementById('quick-expenses').addEventListener('click', async e=>{
     const btn=e.target.closest('.quick-expense');
     if(!btn) return;
-    const amount = Number(prompt('Částka za měsíc', btn.dataset.amount)) || 0;
-    addExpense(btn.dataset.cat, btn.dataset.name, amount, 'quick');
+    const val = await askModal({title:btn.dataset.name, label:'Částka za měsíc (Kč)', type:'number',
+      value:btn.dataset.amount, ok:'Přidat výdaj',
+      validate:v=>{ const n=Number(v); return (!v || !(n>0)) ? 'Zadej částku větší než 0.' : null; }});
+    if(val == null) return;
+    addExpense(btn.dataset.cat, btn.dataset.name, Number(val), 'quick');
   });
   document.getElementById('budget-select').addEventListener('change', async e=>{
     const next = DATA.budgets.find(b=>String(b.id)===e.target.value);
     if(next && await ensureUnlocked(next)){ activeId=next.id; saveData(); renderAll(); }
     else renderBudgetSelect();
   });
-  document.getElementById('budget-add').addEventListener('click', ()=>{
-    const name = prompt('Název rozpočtu', 'Nový scénář');
-    if(!name) return;
+  document.getElementById('budget-add').addEventListener('click', async ()=>{
+    const name = await askModal({title:'Nový rozpočet', label:'Název', value:'Nový scénář', ok:'Vytvořit',
+      validate:v=>!v.trim() ? 'Zadej název.' : null});
+    if(name == null || !name.trim()) return;
     const b={id:id(), name:name.trim(), pin:'', members:[{id:id()+1,name:'Já'}], incomes:[], expenses:[], notes:'', createdAt:new Date().toISOString()};
     DATA.budgets.push(b); activeId=b.id; saveData(); renderAll();
   });
@@ -528,13 +587,18 @@ function wire(){
   document.getElementById('pin-remove').addEventListener('click', ()=>{ budget().pin=''; sessionStorage.removeItem(SESSION+budget().id); saveData(); closePinModal(); renderAll(); });
   document.getElementById('pin-save').addEventListener('click', async ()=>{
     const pin=document.getElementById('pin-value').value.trim();
-    if(!/^\d{4}$|^\d{6}$/.test(pin)){ alert('PIN musí mít 4 nebo 6 číslic.'); return; }
+    if(!/^\d{4}$|^\d{6}$/.test(pin)){ document.getElementById('pin-msg').textContent='PIN musí mít 4 nebo 6 číslic.'; return; }
     budget().pin = await hashPin(pin);
     sessionStorage.setItem(SESSION+budget().id,'1');
     saveData(); closePinModal(); renderAll();
   });
 }
-function openPinModal(){ document.getElementById('pin-value').value=''; document.getElementById('pin-modal').hidden=false; document.getElementById('pin-value').focus(); }
+function openPinModal(){ document.getElementById('pin-value').value=''; document.getElementById('pin-msg').textContent=''; document.getElementById('pin-modal').hidden=false; document.getElementById('pin-value').focus(); }
+document.getElementById('ask-ok').addEventListener('click', askConfirm);
+document.getElementById('ask-cancel').addEventListener('click', ()=>askClose(null));
+document.getElementById('ask-x').addEventListener('click', ()=>askClose(null));
+document.getElementById('ask-modal').addEventListener('click', e=>{ if(e.target===document.getElementById('ask-modal')) askClose(null); });
+document.getElementById('ask-input').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); askConfirm(); } if(e.key==='Escape') askClose(null); });
 function closePinModal(){ document.getElementById('pin-modal').hidden=true; }
 
 (async function init(){

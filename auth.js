@@ -40,6 +40,7 @@
           <path d="M0.22 0 C0.14 0.08 0.18 0.16 0.26 0.23 C0.34 0.31 0.35 0.42 0.29 0.52 C0.24 0.61 0.16 0.66 0.13 0.76 C0.1 0.86 0.12 0.94 0.18 1 L1 1 L1 0 Z"/>
         </clipPath>
       </defs></svg>
+      <button type="button" class="ag-close" data-go-landing aria-label="Zpět na úvod"></button>
       <div class="agl-fold">
         <div class="agl-visual">
           <span class="ag-lava" aria-hidden="true">${SECTIONS.map((s, i) => `<i class="ag-blob ${s.id}${i === 0 ? ' on' : ''}"></i>`).join('')}</span>
@@ -107,6 +108,11 @@
     };
     gate.querySelectorAll('[data-go-auth]').forEach(b => b.addEventListener('click', openAuth));
     gate.querySelectorAll('[data-go-how]').forEach(b => b.addEventListener('click', openHow));
+    gate.querySelectorAll('[data-go-landing]').forEach(b => b.addEventListener('click', () => {
+      gate.classList.remove('auth-open', 'how-open');
+      how.setAttribute('aria-hidden', 'true');
+      sessionStorage.removeItem('nase.gate.auth');
+    }));
     if (message || sessionStorage.getItem('nase.gate.auth') === '1') gate.classList.add('auth-open');
 
     const form = gate.querySelector('form');
