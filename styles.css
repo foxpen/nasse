@@ -412,10 +412,11 @@ html[data-theme="dark"] .auth-gate{
 
 /* první obrazovka: text vlevo, organický lávový panel teče přes celou pravou stranu */
 .agl-fold{position:relative; min-height:100dvh; display:flex; flex-direction:column; overflow:hidden;}
-.agl-top{position:relative; z-index:2;}
+.agl-top{position:relative; z-index:2; pointer-events:none;}
+.agl-top>*{pointer-events:auto;}
 .agl-hero{position:relative; z-index:2; flex:1; display:flex; align-items:center;
-  padding:clamp(20px,4vw,48px) clamp(18px,5vw,72px); min-height:0;}
-.agl-copy{max-width:min(600px,52%); animation:agRise .6s var(--ease) .12s both;}
+  padding:clamp(20px,4vw,48px) clamp(18px,5vw,72px); min-height:0; pointer-events:none;}
+.agl-copy{max-width:min(600px,52%); animation:agRise .6s var(--ease) .12s both; pointer-events:auto;}
 .agl-copy h1{font-size:clamp(40px,5.6vw,76px); font-weight:800; letter-spacing:-.03em; line-height:1.05; color:var(--fg); text-wrap:balance;}
 .agl-lead{margin-top:16px; font-size:clamp(15px,1.6vw,18px); line-height:1.6; font-weight:600; color:var(--muted-fg); max-width:44ch; text-wrap:pretty;}
 .agl-actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:28px;}
@@ -441,8 +442,9 @@ html[data-theme="dark"] .auth-gate{
 .agl-visual::after{content:""; position:absolute; inset:0; pointer-events:none; opacity:.14; mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
 /* lávová lampa — tři barvy sekcí pomalu plavou; aktivní se rozsvítí víc */
-.ag-lava{position:absolute; inset:0; pointer-events:none; filter:blur(54px) saturate(120%);}
-.ag-blob{position:absolute; border-radius:50%; opacity:.5; transition:opacity 1.4s var(--ease);}
+.ag-lava{position:absolute; inset:0; pointer-events:none; filter:blur(54px) saturate(120%); transition:filter .9s var(--ease);}
+.ag-blob{position:absolute; border-radius:50%; opacity:.5;
+  transition:opacity 1.4s var(--ease), left 1s var(--ease), right 1s var(--ease), top 1s var(--ease), bottom 1s var(--ease), width 1s var(--ease), height 1s var(--ease);}
 .ag-blob.on{opacity:.78;}
 .ag-blob.byd{width:78%; height:78%; left:-12%; top:-14%;
   background:radial-gradient(circle at 35% 35%, #2DD4BF, #0F766E 72%); animation:agLava1 26s ease-in-out infinite;}
@@ -457,30 +459,29 @@ html[data-theme="dark"] .auth-gate{
 .auth-gate.auth-open .agl-visual .auth-box{opacity:1; visibility:visible; transform:none;}
 @keyframes agRise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 
-/* „Jak to funguje" — obsah rozlitý přímo na lávě */
-.agl-how{position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; justify-content:center; gap:clamp(16px,2.4vh,26px);
-  padding:clamp(24px,4vw,60px); padding-left:clamp(70px,15%,170px); overflow-y:auto; color:#fff;
-  background:rgba(7,22,20,.34); text-shadow:0 1px 10px rgba(6,20,18,.45);
-  visibility:hidden; opacity:0; transition:opacity .4s var(--ease); pointer-events:none;}
-.auth-gate.how-open .agl-how{opacity:1;}
+/* „Jak to funguje" — láva se srovná do tří koulí, každá je jedna sekce */
+.auth-gate.how-open .ag-lava{filter:blur(30px) saturate(125%);}
+.auth-gate.how-open .ag-blob{opacity:.85;}
+.auth-gate.how-open .ag-blob.fin{left:26%; bottom:52%; width:60%; height:36%;}
+.auth-gate.how-open .ag-blob.aut{right:30%; top:38%; width:42%; height:30%;}
+.auth-gate.how-open .ag-blob.byd{left:44%; top:56%; width:52%; height:34%;}
+.agl-how{position:absolute; inset:0; z-index:2; color:#fff; visibility:hidden; pointer-events:none;}
 .auth-gate.how-open .agl-how{visibility:visible; pointer-events:auto;}
-.agl-how>*{opacity:0; transform:translateY(16px); transition:opacity .45s var(--ease), transform .45s var(--ease);}
-.auth-gate.how-open .agl-how>*{opacity:1; transform:none;}
-.auth-gate.how-open .agl-how>*:nth-child(2){transition-delay:.07s;}
-.auth-gate.how-open .agl-how>*:nth-child(3){transition-delay:.14s;}
-.auth-gate.how-open .agl-how>*:nth-child(4){transition-delay:.21s;}
-.auth-gate.how-open .agl-how>*:nth-child(5){transition-delay:.28s;}
-.agl-how h2{font-size:clamp(24px,2.6vw,34px); font-weight:800; letter-spacing:-.02em;}
-.agh-row{display:flex; gap:15px; align-items:flex-start; max-width:52ch;}
-.agh-row.aut{margin-left:clamp(0px,3.5vw,48px);}
-.agh-row.fin{margin-left:clamp(0px,1.5vw,20px);}
-.agh-ic{flex:0 0 auto; width:46px; height:46px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.13);}
-.agh-ic svg{width:24px; height:24px;}
-.agh-row.byd .agh-ic{color:#2DD4BF;} .agh-row.aut .agh-ic{color:#38BDF8;} .agh-row.fin .agh-ic{color:#FBBF24;}
-.agh-row strong{display:block; font-size:17.5px; font-weight:800; letter-spacing:-.01em;}
-.agh-row p{margin-top:3px; font-size:13.5px; line-height:1.5; font-weight:600; color:rgba(255,255,255,.82); text-wrap:pretty;}
-.agh-feats{display:block; margin-top:6px; font-size:12px; font-weight:700; color:rgba(255,255,255,.6);}
-.agh-cta{align-self:flex-start; margin-top:2px;}
+/* textový blok má stejnou geometrii i animaci jako jeho koule → plavou spolu */
+.agh-bub{position:absolute; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font:inherit; background:none; border:0; color:#fff; cursor:pointer; text-align:center; padding:5%;
+  opacity:0; transition:opacity .55s var(--ease);}
+.auth-gate.how-open .agh-bub{opacity:1;}
+.auth-gate.how-open .agh-bub.aut{transition-delay:.14s;}
+.auth-gate.how-open .agh-bub.byd{transition-delay:.28s;}
+.agh-bub::before{content:""; position:absolute; inset:16% 12%; z-index:-1; border-radius:50%;
+  background:radial-gradient(closest-side, rgba(9,24,21,.48), transparent 80%);}
+.agh-bub strong{display:block; font-size:clamp(16px,1.5vw,21px); font-weight:800; letter-spacing:-.01em; text-shadow:0 1px 8px rgba(6,20,18,.6);}
+.agh-bub p{margin-top:5px; max-width:36ch; font-size:clamp(12px,1vw,14px); line-height:1.5; font-weight:700; color:rgba(255,255,255,.92);
+  text-shadow:0 1px 8px rgba(6,20,18,.6); text-wrap:pretty;}
+.agh-bub.fin{left:26%; bottom:52%; width:60%; height:36%; animation:agLava3 38s ease-in-out infinite;}
+.agh-bub.aut{right:30%; top:38%; width:42%; height:30%; animation:agLava2 32s ease-in-out infinite;}
+.agh-bub.byd{left:44%; top:56%; width:52%; height:34%; animation:agLava1 26s ease-in-out infinite;}
 
 /* login karta */
 .auth-box{width:min(88%,392px); background:var(--surface); border:0; border-radius:28px;
@@ -505,14 +506,13 @@ html[data-theme="dark"] .auth-gate{
 .auth-box button:disabled{opacity:.72; cursor:wait; transform:none;}
 .auth-msg{min-height:18px; color:var(--warn); font-size:13px; font-weight:700;}
 @media (max-width:900px){
-  .agl-fold{min-height:0; display:block;}
-  .agl-hero{padding-top:24px; display:block;}
+  .agl-fold{min-height:0; display:flex; flex-direction:column;}
+  .agl-top{order:1;}
+  .agl-hero{order:2; padding-top:20px; display:block;}
   .agl-copy{max-width:100%;}
   .agl-copy h1{font-size:clamp(34px,9vw,48px);}
-  .agl-visual{position:relative; inset:auto; width:100%; z-index:1; clip-path:none;
-    border-radius:34px; min-height:min(120vw,560px); margin-top:26px; padding-left:clamp(18px,3vw,40px);}
-  .agl-how{padding:22px 20px;}
-  .agh-row.aut,.agh-row.fin{margin-left:0;}
+  .agl-visual{order:3; position:relative; inset:auto; width:auto; z-index:1; clip-path:none;
+    border-radius:34px; min-height:min(120vw,560px); margin:4px 14px 26px; padding-left:clamp(18px,3vw,40px);}
 }
 
 /* ---------- landing splash (první načtení) ---------- */

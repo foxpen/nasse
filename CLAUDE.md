@@ -39,7 +39,7 @@ Sekce se přebarvují třídou na `<body>`: `theme-auto` (auta), `theme-finance`
 
 ### Autentizace
 
-Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce: GET na `/.netlify/functions/auth`, při neúspěchu vloží celoobrazovkovou bránu `#auth-gate` (split-screen: vlevo karusel sekcí s „lava lamp" pozadím, vpravo formulář hesla). Stránky čekají na `window.naseAuthReady` (promise) než volají API. Server (`netlify/functions/_lib/auth.js`) vydává HMAC-podepsanou cookie `nase_auth` (session 1 den / remember 180 dní). Barvy brány řídí proměnná `--gp` nastavovaná z JS podle aktivní sekce karuselu.
+Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce: GET na `/.netlify/functions/auth`, při neúspěchu vloží celoobrazovkovou bránu `#auth-gate` — landing stránku: vlevo titulek a CTA, vpravo organický panel (SVG `clip-path` přes celou výšku) s „lava lamp" pozadím tří sekčních barev. Stavy brány řídí třídy na gate: `auth-open` (v panelu se zjeví přihlašovací karta, klik „Otevřít můj plán"), `how-open` (láva se srovná do tří koulí = tří sekcí s popisem; textové bloky mají identickou geometrii i animaci jako koule, aby plavaly spolu). Stránky čekají na `window.naseAuthReady` (promise) než volají API. Server (`netlify/functions/_lib/auth.js`) vydává HMAC-podepsanou cookie `nase_auth` (session 1 den / remember 180 dní). Proměnná `--gp` (barva tlačítek) cykluje sekčními barvami spolu s důrazem lávy; `sessionStorage['nase.gate.auth']` po prvním kliku přeskakuje landing rovnou na kartu.
 
 ### Netlify Functions
 
