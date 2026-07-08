@@ -1,3 +1,5 @@
+<p align="center"><img src="img/logo.png" alt="Naše — dlaně nesoucí tři barevné tečky" width="480"></p>
+
 # Naše Bydleníčko
 
 Soukromá webová aplikace pro výběr a porovnávání nemovitostí a aut. Běží jako statický frontend na Netlify, data drží v Neon Postgres a praktické věci kolem importu, dojezdu, aktualizací a fotek řeší Netlify Functions.
