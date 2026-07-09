@@ -77,8 +77,8 @@
       <div class="col-label">Příjmová strana</div>
 
       <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>Příjem</div>
-        <div class="finance-form">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>Příjmy<b class="bt-total" id="income-total">0 Kč</b><button class="bt-add" type="button" data-toggle="income-form">+ Přidat</button></div>
+        <div class="finance-form" id="income-form" hidden>
           <select id="income-member"></select>
           <input id="income-name" placeholder="Mzda, bonus, rodičák...">
           <input id="income-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
@@ -88,7 +88,8 @@
       </div>
 
       <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4"/><path d="M15 9h2"/></svg>Kalkulačka mzdy</div>
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4"/><path d="M15 9h2"/></svg>Kalkulačka mzdy<button class="bt-add bt-caret" type="button" data-toggle="salary-body" aria-label="Rozbalit kalkulačku"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+        <div id="salary-body" hidden>
         <div class="salary-grid">
           <label>Hrubá mzda <input id="salary-gross" type="number" value="50000" min="0" step="500"></label>
           <label>Sleva / měsíc <input id="salary-discount" type="number" value="2570" min="0" step="100"></label>
@@ -103,6 +104,12 @@
         </div>
         <button class="btn-ghost" type="button" id="salary-to-income">Přidat jako příjem</button>
         <p class="hint">Orientační výpočet pro zaměstnance: sociální 7,1 %, zdravotní 4,5 %, daň 15 %. Parametry a slevu můžeš upravit.</p>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <div class="th">Výdaje podle kategorií</div>
+        <div class="category-list" id="category-list"></div>
       </div>
     </div>
 
@@ -110,8 +117,8 @@
       <div class="col-label">Výdajová strana</div>
 
       <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/></svg>Výdaj</div>
-        <div class="finance-form">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/></svg>Výdaje<b class="bt-total" id="expense-total">0 Kč</b><button class="bt-add" type="button" data-toggle="expense-form">+ Přidat</button></div>
+        <div class="finance-form" id="expense-form" hidden>
           <select id="expense-category"></select>
           <input id="expense-name" placeholder="Nájem, jídlo, školka...">
           <input id="expense-amount" type="number" min="0" step="100" placeholder="Kč / měsíc">
@@ -119,39 +126,26 @@
           <button class="btn-add" type="button" id="expense-add">Přidat výdaj</button>
         </div>
         <div class="mini-list" id="expense-list"></div>
+        <div class="quick-chips" id="quick-expenses"></div>
       </div>
 
       <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>Rychl&#233; v&#253;daje</div>
-        <div class="quick-expenses" id="quick-expenses"></div>
-      </div>
-
-      <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-6 9 6"/><path d="M5 10v10h14V10"/></svg>Import z Bydlen&#237;&#269;ka</div>
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Import z Bydleníčka a Autíčka</div>
         <div class="integration-row">
           <select id="import-home"></select>
-          <button class="btn-add" type="button" id="import-home-add">P&#345;idat spl&#225;tku</button>
+          <button class="btn-add" type="button" id="import-home-add">Splátka</button>
         </div>
-        <p class="hint" id="import-home-note">Na&#269;&#237;t&#225;m nemovitosti...</p>
-      </div>
-
-      <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1.6-4A2 2 0 0 1 8.5 6h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="1.5"/></svg>Import z Aut&#237;&#269;ka</div>
+        <p class="hint" id="import-home-note">Načítám nemovitosti...</p>
         <div class="integration-row">
           <select id="import-car"></select>
-          <button class="btn-add" type="button" id="import-car-add">P&#345;idat provoz</button>
+          <button class="btn-add" type="button" id="import-car-add">Provoz</button>
         </div>
-        <p class="hint" id="import-car-note">Na&#269;&#237;t&#225;m auta...</p>
+        <p class="hint" id="import-car-note">Načítám auta...</p>
       </div>
     </div>
   </section>
 
   <section class="finance-split">
-    <div class="tablewrap">
-      <div class="th">Výdaje podle kategorií</div>
-      <div class="category-list" id="category-list"></div>
-    </div>
-    <div class="finance-col">
       <div class="tablewrap">
         <div class="th">Scénáře a poznámky</div>
         <div class="scenario-box">
@@ -167,7 +161,6 @@
         </div>
         <div class="mini-list" id="member-list"></div>
       </div>
-    </div>
   </section>
 
   <footer>
@@ -365,6 +358,8 @@ function renderMembers(){
 }
 function renderLists(){
   const b=budget();
+  document.getElementById('income-total').textContent = money(sum(b.incomes));
+  document.getElementById('expense-total').textContent = money(sum(b.expenses));
   document.getElementById('income-list').innerHTML = b.incomes.map(x=>`
     <div class="mini-row"><span><strong>${esc(x.name)}</strong><small>${esc(memberName(x.memberId))}</small></span><b>${money(x.amount)}</b><button class="btn-del" type="button" onclick="deleteIncome(${x.id})">×</button></div>`).join('') || '<p class="hint">Zatím žádné příjmy.</p>';
   document.getElementById('expense-list').innerHTML = b.expenses.map(x=>`
@@ -373,17 +368,17 @@ function renderLists(){
 function renderCategories(){
   const b=budget();
   const total=sum(b.expenses);
-  document.getElementById('category-list').innerHTML = CATEGORIES.map(cat=>{
+  const rows = CATEGORIES.map(cat=>{
     const value = sum(b.expenses.filter(x=>x.category===cat));
-    const pct = total ? Math.round(value/total*100) : 0;
-    return `<div class="category-row"><div><strong>${esc(cat)}</strong><span>${pct}% z výdajů</span></div><b>${money(value)}</b><div class="bar"><i style="width:${pct}%"></i></div></div>`;
-  }).join('');
+    return {cat, value, pct: total ? Math.round(value/total*100) : 0};
+  }).filter(r=>r.value>0).sort((a,b2)=>b2.value-a.value);
+  document.getElementById('category-list').innerHTML = rows.length
+    ? rows.map(r=>`<div class="category-row"><div><strong>${esc(r.cat)}</strong><span>${r.pct}% z výdajů</span></div><b>${money(r.value)}</b><div class="bar"><i style="width:${r.pct}%"></i></div></div>`).join('')
+    : '<p class="hint" style="padding:0 0 8px">Zatím žádné výdaje k rozpadu.</p>';
 }
 function renderQuickExpenses(){
   document.getElementById('quick-expenses').innerHTML = QUICK_EXPENSES.map(([cat,name,amount]) => `
-    <button type="button" class="quick-expense" data-cat="${esc(cat)}" data-name="${esc(name)}" data-amount="${amount}">
-      <strong>${esc(name)}</strong><span>${esc(cat)} · ${money(amount)}</span>
-    </button>`).join('');
+    <button type="button" class="chip-exp" title="${esc(cat)}" data-cat="${esc(cat)}" data-name="${esc(name)}" data-amount="${amount}">+ ${esc(name)} · ${money(amount)}</button>`).join('');
 }
 function renderImports(){
   const homeSel = document.getElementById('import-home');
@@ -516,10 +511,16 @@ window.deleteExpense = function(eid){
 };
 
 function wire(){
+  document.querySelectorAll('[data-toggle]').forEach(btn=>btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.toggle);
+    target.hidden = !target.hidden;
+    btn.classList.toggle('open', !target.hidden);
+    if(!target.hidden){ const f = target.querySelector('input,select'); if(f) f.focus(); }
+  }));
   document.getElementById('expense-category').innerHTML = CATEGORIES.map(c=>`<option>${esc(c)}</option>`).join('');
   renderQuickExpenses();
   document.getElementById('quick-expenses').addEventListener('click', async e=>{
-    const btn=e.target.closest('.quick-expense');
+    const btn=e.target.closest('.chip-exp');
     if(!btn) return;
     const val = await askModal({title:btn.dataset.name, label:'Částka za měsíc (Kč)', type:'number',
       value:btn.dataset.amount, ok:'Přidat výdaj',

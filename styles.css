@@ -1035,7 +1035,22 @@ html[data-theme="dark"] .auth-gate{
 .finance-col{display:grid; gap:14px; align-content:start; min-width:0;}
 .col-label{font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-fg); padding:2px 2px 0;}
 .finance-panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px; box-shadow:var(--sh-sm);}
+/* hlavičky panelů: součet + malé přidávací tlačítko, sbalitelné bloky */
+.box-title .bt-total{margin-left:auto; font-size:14.5px; font-weight:950; color:var(--fg); font-variant-numeric:tabular-nums;}
+.bt-add{font:inherit; font-size:12.5px; font-weight:800; color:var(--primary); background:color-mix(in srgb, var(--primary) 12%, transparent);
+  border:0; border-radius:999px; padding:5px 12px; min-height:30px; cursor:pointer; margin-left:10px; flex:0 0 auto; transition:.18s var(--ease);}
+.bt-add:hover{background:color-mix(in srgb, var(--primary) 20%, transparent);}
+.bt-add.open{background:var(--primary); color:var(--surface);}
+.bt-caret{margin-left:auto; width:30px; padding:5px; display:inline-flex; align-items:center; justify-content:center;}
+.bt-caret svg{width:16px; height:16px; transition:transform .25s var(--ease);}
+.bt-caret.open svg{transform:rotate(180deg);}
+#income-form,#expense-form,#salary-body{margin-bottom:12px;}
+.quick-chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);}
+.chip-exp{font:inherit; font-size:12.5px; font-weight:750; color:var(--fg); background:var(--bg); border:1px solid var(--line);
+  border-radius:999px; padding:6px 12px; min-height:32px; cursor:pointer; transition:.18s var(--ease); font-variant-numeric:tabular-nums;}
+.chip-exp:hover{border-color:var(--primary); color:var(--primary);}
 .integration-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center;}
+.integration-row + .hint{margin-bottom:10px;}
 .integration-row select{min-width:0; width:100%; border-radius:10px; min-height:40px;}
 .quick-expenses{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
 .quick-expense{font:inherit; text-align:left; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:9px 10px; cursor:pointer; min-height:56px;}
