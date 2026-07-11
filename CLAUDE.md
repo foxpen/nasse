@@ -48,7 +48,7 @@ Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce:
 ### Frontend konvence
 
 - JS každé stránky je inline v jejím HTML; sdílené helpery v `app-utils.js` (`window.Nase`: `esc()`, `initThemeToggle()`); do HTML vkládaných šablon vždy `esc()`.
-- Ikony jsou výhradně inline SVG `stroke="currentColor"` stroke-width 1.8–2, žádné emoji ani ikonfonty.
+- Ikony jsou výhradně inline SVG `stroke="currentColor"` stroke-width 1.8–2, žádné emoji ani ikonfonty. Výjimka: ilustrační PNG dlaždice (hero obrázky `img/hero-*.jpg`, KPI ikony `img/kpi-*.png` v Hospodaříčku) — renderované 3D ilustrace dodává uživatel, do repa jdou zmenšené (~112 px, ořez + zaoblená alfa maska), originály zůstávají necommitované.
 - Intro/splash animace: každá stránka má overlay, který se hraje **jen jednou za session** (`sessionStorage['nase.intro.*']`) a respektuje `prefers-reduced-motion` (globální kill-switch v `styles.css` + kontroly v JS).
 - Destruktivní akce v Hospodaříčku používají undo toast (`showUndo()` v `hospodareni.html`), ne confirm.
 - Cíle plánu (progress bary na kartách rozcestníku) žijí v `localStorage['nase.goals.v1']` (`{v:1, byd:[{id,text,done}], aut:[], fin:[]}`); editor je modál „Upravit cíle plánu" na `index.html`.

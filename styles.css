@@ -1110,6 +1110,8 @@ html[data-theme="dark"] .auth-gate{
 .fkpi{display:flex; gap:12px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; box-shadow:var(--sh-sm); min-width:0;}
 .fk-ic{flex:0 0 auto; width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--primary) 13%, transparent); color:var(--primary);}
 .fk-ic svg{width:20px; height:20px;}
+.fk-ic.pic{background:transparent; width:46px; height:46px;}
+.fk-ic.pic img{width:100%; height:100%; object-fit:contain; border-radius:inherit; display:block;}
 .fkpi .l{font-size:12.5px; color:var(--muted-fg); font-weight:750;}
 .fkpi .v{font-size:22px; font-weight:800; letter-spacing:-.02em; margin-top:1px; font-variant-numeric:tabular-nums; white-space:nowrap;}
 .fkpi .d{display:flex; align-items:center; gap:4px; margin-top:2px; font-size:11.5px; font-weight:800; color:var(--muted-fg);}
