@@ -473,16 +473,18 @@ function renderPick(){
   const ep=d.dealPrice||d.price;
   const reasons=tipReasons(d);
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
-    <span class="badge">${I.star} Tip · nejlepší skóre</span>
+    <span class="badge">${I.star} Naše Bydleníčko</span>
     <button class="map-score ${scoreClass(d.score)} pick-score" type="button" onclick="event.preventDefault();event.stopPropagation();openScore(${d.id})">${d.score}</button>
-    <div>
-      <h2>${esc(d.n)}</h2>
-      <div class="pmeta">${esc(d.disp)} · ${esc(d.land||'bez doplněného pozemku')} · ${esc(readyLabel(d))}</div>
-      <div class="pick-reasons">${reasons.map(r=>`<span>${esc(r)}</span>`).join("") || `<span>nejlepší poměr aktuálních metrik</span>`}</div>
+    <h2 class="sec-claim">Plánujeme náš domov.</h2>
+    <div class="pick-offer">
+      <span class="po-label">Tip · nejlepší skóre</span>
+      <strong>${esc(d.n)}</strong>
+      <div class="po-meta">${esc(d.disp)} · ${esc(d.land||'bez doplněného pozemku')} · ${esc(readyLabel(d))}</div>
       <div class="prow">
         <span class="big">${czk(ep)} Kč</span>
         <span class="ppm"><b style="font-size:18px;">${czk(d.ppm)}</b> Kč/m²<br>${d.area} m² · ${d.car?fmtDuration(d.car):'?'} autem</span>
       </div>
+      <div class="pick-reasons">${reasons.map(r=>`<span>${esc(r)}</span>`).join("") || `<span>nejlepší poměr aktuálních metrik</span>`}</div>
     </div>`;
 }
 

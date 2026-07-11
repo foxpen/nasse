@@ -138,9 +138,26 @@ main{width:100%; margin:0 auto; padding:24px var(--pad) 80px;}
 
 /* ---------- hero ---------- */
 .hero{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:18px; margin-bottom:24px;}
-.pick{position:relative; overflow:hidden; background:var(--primary); color:#fff; border-radius:var(--r-lg); padding:28px 32px;
+.pick{position:relative; overflow:hidden; color:#fff; border-radius:var(--r-lg); padding:24px 26px;
+      background:
+        linear-gradient(100deg, var(--primary-700) 0%, color-mix(in srgb, var(--primary-700) 88%, transparent) 34%, color-mix(in srgb, var(--primary) 34%, transparent) 62%, transparent 100%),
+        url("img/hero-byd.jpg") right center/cover no-repeat, var(--primary);
       display:flex; flex-direction:column; justify-content:space-between; min-height:196px; cursor:pointer; transition:.25s var(--ease); text-decoration:none;}
-.pick.aut{background:var(--accent);}
+.pick.aut{background:
+        linear-gradient(100deg, var(--accent-700) 0%, color-mix(in srgb, var(--accent-700) 88%, transparent) 34%, color-mix(in srgb, var(--accent) 34%, transparent) 62%, transparent 100%),
+        url("img/hero-aut.jpg") right center/cover no-repeat, var(--accent);}
+.pick .sec-claim{font-size:clamp(22px,2.4vw,30px); font-weight:800; letter-spacing:-.02em; line-height:1.12; color:#fff; margin:12px 0 14px; text-wrap:balance;}
+.pick-offer{position:relative; z-index:1; margin-top:auto; background:var(--surface); color:var(--fg); border-radius:16px; padding:14px 16px; box-shadow:var(--sh-sm);}
+.pick-offer .po-label{display:block; font-size:11px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; color:var(--primary);}
+.pick.aut .pick-offer .po-label{color:var(--accent);}
+.pick-offer strong{display:block; font-size:18.5px; font-weight:800; letter-spacing:-.01em; line-height:1.2; margin-top:4px;}
+.pick-offer .po-meta{font-size:12.5px; font-weight:650; color:var(--muted-fg); margin-top:2px;}
+.pick-offer .prow{margin-top:10px;}
+.pick-offer .big{font-size:26px;}
+.pick-offer .ppm{color:var(--muted-fg); opacity:1;}
+.pick-offer .pick-reasons{margin-top:10px;}
+.pick-offer .pick-reasons span{background:color-mix(in srgb, var(--primary) 10%, transparent); color:var(--primary);}
+.pick.aut .pick-offer .pick-reasons span{background:color-mix(in srgb, var(--accent) 12%, transparent); color:var(--accent);}
 .pick.is-loading{cursor:default; transform:none!important;}
 .pick.is-loading .badge{background:rgba(255,255,255,.22);}
 .pick:hover{transform:translateY(-3px); box-shadow:var(--sh-lg);}
@@ -1012,7 +1029,10 @@ html[data-theme="dark"] .auth-gate{
 
 /* ---------- finance dashboard ---------- */
 .finance-hero{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(360px,.9fr); gap:18px; margin-bottom:18px;}
-.budget-card{position:relative; overflow:hidden; min-height:220px; border-radius:var(--r-lg); background:linear-gradient(135deg,var(--accent-700),var(--primary)); color:#fff; padding:24px; box-shadow:var(--sh-sm);}
+.budget-card{position:relative; overflow:hidden; min-height:220px; border-radius:var(--r-lg); color:#fff; padding:24px; box-shadow:var(--sh-sm);
+  background:
+    linear-gradient(100deg, var(--accent-700) 0%, color-mix(in srgb, var(--accent-700) 88%, transparent) 34%, color-mix(in srgb, var(--accent) 34%, transparent) 62%, transparent 100%),
+    url("img/hero-fin.jpg") right center/cover no-repeat, var(--accent);}
 .budget-card::after{content:""; position:absolute; right:-60px; top:-70px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.12);}
 .budget-card .badge{display:inline-flex; align-items:center; gap:7px; min-height:30px; border-radius:999px; padding:5px 10px; background:rgba(255,255,255,.18); font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.05em;}
 .budget-card .badge svg{width:15px; height:15px;}

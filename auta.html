@@ -260,16 +260,18 @@ function renderPick(){
   el.removeAttribute("target");
   el.removeAttribute("rel");
   el.innerHTML = `<div class="ring" aria-hidden="true"></div>
-    <span class="badge">${I.star} Tip · nejlepší skóre</span>
+    <span class="badge">${I.star} Naše Autíčko</span>
     <button class="map-score ${scoreClass(d.score)} pick-score" type="button" onclick="event.preventDefault();event.stopPropagation();openCarScore(${d.id})">${d.score}</button>
-    <div>
-      <h2>${esc(d.n)}</h2>
-      <div class="pmeta">${esc(d.variant)} · ${esc(carMade(d))} · ${km(d.km)} km · ${d.ps} PS</div>
-      <div class="pick-reasons">${reasons.map(r=>`<span>${esc(r)}</span>`).join("") || `<span>nejlepší poměr auta</span>`}</div>
+    <h2 class="sec-claim">Vybíráme chytře.</h2>
+    <div class="pick-offer">
+      <span class="po-label">Tip · nejlepší skóre</span>
+      <strong>${esc(d.n)}</strong>
+      <div class="po-meta">${esc(d.variant)} · ${esc(carMade(d))} · ${km(d.km)} km · ${d.ps} PS</div>
       <div class="prow">
         <span class="big">${czk(pCzk(d))}</span>
         <span class="ppm">≈ ${eur(pEur(d))}<br>${esc(d.stav)} · ${km(d.km)} km</span>
       </div>
+      <div class="pick-reasons">${reasons.map(r=>`<span>${esc(r)}</span>`).join("") || `<span>nejlepší poměr auta</span>`}</div>
     </div>`;
 }
 
