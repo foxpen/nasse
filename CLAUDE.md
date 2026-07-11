@@ -43,7 +43,7 @@ Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce:
 
 ### Netlify Functions
 
-`netlify/functions/*.js`, sdílené helpery v `_lib/` (`db.js` — neon klient, `auth.js`, `http.js`, `validate.js`). Redirect `/api/*` → `/.netlify/functions/*` v `netlify.toml`. Klíčové funkce: `list`, `add`, `update`, `delete`, `extract` (import inzerátů ze sreality/bezrealitky/sauto/bazoš/mobile.de), `refresh-listings`, `commute`/`recompute-commute` (Mapy.com API), `address-suggest`, `image-proxy` (cache fotek; klientsky ji cachuje i `sw.js` — jediné, co service worker dělá).
+`netlify/functions/*.js`, sdílené helpery v `_lib/` (`db.js` — neon klient, `auth.js`, `http.js`, `validate.js`). Redirect `/api/*` → `/.netlify/functions/*` v `netlify.toml`. Klíčové funkce: `list`, `add`, `update`, `delete`, `extract` (import inzerátů ze sreality/bezrealitky/sauto/bazoš/mobile.de), `refresh-listings`, `search-listings`/`search-cars` (hledání nových inzerátů dle filtru na sreality/sauto — modál „Hledat nové", filtr se pamatuje v `localStorage['nase.search.byd'|'nase.search.auto']`; obě mají ~8,5s rozpočet kvůli 10s limitu Netlify a vrací `timedOut` pro navazující běh), `commute`/`recompute-commute` (Mapy.com API), `address-suggest`, `image-proxy` (cache fotek; klientsky ji cachuje i `sw.js` — jediné, co service worker dělá).
 
 ### Frontend konvence
 

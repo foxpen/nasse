@@ -6,6 +6,8 @@ import { extractUrl } from './extract.js';
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 const MAPY_KEY = process.env.MAPY_API_KEY;
+// Netlify synchronní funkce má limit 10 s — extrakce se musí vejít do rozpočtu
+const TIME_BUDGET_MS = 8500;
 
 function slug(value) {
   return String(value || 'praha')
@@ -123,6 +125,7 @@ export async function handler(event) {
   if (unauthorized) return unauthorized;
   if (event.httpMethod !== 'POST') return json(405, { error: 'POST only' });
 
+  const startedAt = Date.now();
   try {
     const q = JSON.parse(event.body || '{}');
     const dryRun = Boolean(q.dryRun);
@@ -145,9 +148,11 @@ export async function handler(event) {
     const added = [];
     const errors = [];
     const filtered = [];
+    let timedOut = false;
 
     for (const url of limitedLinks) {
       if (added.length >= limit) break;
+      if (Date.now() - startedAt > TIME_BUDGET_MS) { timedOut = true; break; }
       if (existing.has(url)) continue;
       try {
         const extracted = await extractUrl(url);
@@ -172,7 +177,7 @@ export async function handler(event) {
       }
     }
 
-    return json(200, { dryRun, searchUrl: searchUrls[0] || '', searchUrls, found: limitedLinks.length, added, skipped: limitedLinks.length - added.length - errors.length - filtered.length, filtered, errors });
+    return json(200, { dryRun, searchUrl: searchUrls[0] || '', searchUrls, found: limitedLinks.length, added, skipped: limitedLinks.length - added.length - errors.length - filtered.length, filtered, errors, timedOut });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }

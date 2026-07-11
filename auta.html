@@ -100,6 +100,7 @@
       <option value="km">Nejméně najeto</option>
       <option value="power">Nejvýkonnější</option>
     </select>
+    <button class="btn-ghost" id="search-new" type="button">Hledat nové</button>
     <button class="btn-ghost" id="refresh-all" type="button">Aktualizovat inzeráty</button>
     <button class="btn-ghost" id="bulk-delete" type="button">Smazat</button>
     <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
@@ -890,6 +891,77 @@ document.getElementById("filters").addEventListener("click", e=>{
 });
 document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderCards(); renderTable(); });
 document.getElementById("refresh-all").addEventListener("click", refreshAutoListings);
+document.getElementById("search-new").addEventListener("click", openSearchNew);
+
+const SEARCH_FILTER_KEY = "nase.search.auto";
+function openSearchNew(){
+  let saved={};
+  try{ saved=JSON.parse(localStorage.getItem(SEARCH_FILTER_KEY)||"{}")||{}; }catch{ saved={}; }
+  const v=(key,fallback="")=>esc(saved[key]??fallback);
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal" style="max-width:560px">
+    <button class="modal-x" type="button" id="sn_x" aria-label="Zavřít">×</button>
+    <h3>Hledat nové inzeráty</h3>
+    <p class="hint">Prohledám sauto.cz podle filtru a nová auta rovnou uložím k ostatním. Filtr si pamatuju na příště.</p>
+    <div class="grid2"><div><label>Značka</label><input id="sn_brand" placeholder="Škoda" value="${v('brand')}"></div><div><label>Model</label><input id="sn_model" placeholder="Octavia" value="${v('model')}"></div></div>
+    <div class="grid2"><div><label>Cena od (Kč)</label><input id="sn_priceFrom" inputmode="numeric" value="${v('priceFrom')}"></div><div><label>Cena do (Kč)</label><input id="sn_priceTo" inputmode="numeric" value="${v('priceTo')}"></div></div>
+    <div class="grid2"><div><label>Rok výroby od</label><input id="sn_yearFrom" inputmode="numeric" placeholder="2018" value="${v('yearFrom')}"></div><div><label>Najeto max (km)</label><input id="sn_kmTo" inputmode="numeric" placeholder="150000" value="${v('kmTo')}"></div></div>
+    <div class="grid2"><div><label>Palivo</label><select id="sn_fuel" style="width:100%"><option value="">nezáleží</option><option value="benzin">benzin</option><option value="diesel">diesel</option><option value="hybrid">hybrid</option><option value="elektro">elektro</option></select></div><div><label>Kolik přidat najednou</label><select id="sn_limit" style="width:100%"><option value="3">3</option><option value="6">6</option><option value="9">9</option></select></div></div>
+    <div class="checks compact">
+      <label><input type="checkbox" id="sn_awd" ${saved.awd?'checked':''}> jen 4×4</label>
+      <label><input type="checkbox" id="sn_photos" ${saved.photosOnly===false?'':'checked'}> jen s fotkami</label>
+    </div>
+    <div class="msg" id="sn_msg"></div>
+    <div class="score-breakdown" id="sn_results" hidden></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="sn_cancel">Zavřít</button><button class="btn-add" type="button" id="sn_go">Hledat</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const g=id=>wrap.querySelector("#sn_"+id);
+  g("limit").value=String(saved.limit||6);
+  g("fuel").value=saved.fuel||"";
+  const close=()=>wrap.remove();
+  g("x").onclick=close; g("cancel").onclick=close;
+  const numVal=id=>{ const n=parseInt(g(id).value.replace(/\s/g,""),10); return Number.isFinite(n)&&n>0?n:""; };
+  g("go").onclick=async()=>{
+    const q={
+      brand:g("brand").value.trim(), model:g("model").value.trim(),
+      priceFrom:numVal("priceFrom"), priceTo:numVal("priceTo"),
+      yearFrom:numVal("yearFrom"), kmTo:numVal("kmTo"),
+      fuel:g("fuel").value, awd:g("awd").checked,
+      photosOnly:g("photos").checked,
+      limit:Number(g("limit").value)||6
+    };
+    localStorage.setItem(SEARCH_FILTER_KEY, JSON.stringify(q));
+    const btn=g("go"); btn.disabled=true; btn.textContent="Hledám…";
+    g("msg").textContent="Prohledávám sauto.cz… může to trvat i půl minuty.";
+    g("results").hidden=true;
+    try{
+      const r=await fetch(API+"/search-cars",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(q)});
+      const j=await r.json();
+      if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
+      const added=j.added||[], filtered=j.filtered||[], errs=j.errors||[];
+      const parts=[];
+      parts.push(added.length
+        ? Nase.plural(added.length, "Přidán 1 nový vůz.", `Přidány ${added.length} nové vozy.`, `Přidáno ${added.length} nových vozů.`)
+        : "Nic nového — vše z výsledků už máme, nebo nic neprošlo filtrem.");
+      if(filtered.length) parts.push(Nase.plural(filtered.length, "1 inzerát neprošel filtrem.", `${filtered.length} inzeráty neprošly filtrem.`, `${filtered.length} inzerátů neprošlo filtrem.`));
+      if(errs.length) parts.push(Nase.plural(errs.length, "1 se nepodařilo načíst.", `${errs.length} se nepodařilo načíst.`, `${errs.length} se nepodařilo načíst.`));
+      if(j.timedOut) parts.push("Časový limit — klikni na Hledat znovu, naváže se tam, kde to skončilo.");
+      g("msg").textContent=parts.join(" ");
+      const rows=[
+        ...added.map(x=>`<div class="score-row"><b>${esc(x.n)}</b><p>přidáno · <a class="inline-link" href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener">inzerát</a></p></div>`),
+        ...filtered.map(x=>`<div class="score-row"><b>${esc(x.n||x.url)}</b><p>vyřazeno · ${esc(x.reason)}</p></div>`)
+      ];
+      g("results").innerHTML=rows.join("");
+      g("results").hidden=!rows.length;
+      btn.disabled=false; btn.textContent="Hledat znovu";
+      if(added.length){ window.dispatchEvent(new CustomEvent('nase:react',{detail:'search-auto'})); await loadData(); }
+    }catch(e){
+      g("msg").textContent="Hledání selhalo: "+e.message;
+      btn.disabled=false; btn.textContent="Hledat";
+    }
+  };
+}
 document.getElementById("compare-mode").addEventListener("click", startCompare);
 document.getElementById("compare-open").addEventListener("click", renderCompare);
 document.getElementById("compare-clear").addEventListener("click", clearCompare);
