@@ -554,6 +554,20 @@ html[data-theme="dark"] .auth-gate{
 .agh-bub.fin{left:26%; bottom:52%; width:60%; height:36%; animation:agLava3 38s ease-in-out infinite;}
 .agh-bub.aut{right:30%; top:38%; width:42%; height:30%; animation:agLava2 32s ease-in-out infinite;}
 .agh-bub.byd{left:44%; top:56%; width:52%; height:34%; animation:agLava1 26s ease-in-out infinite;}
+/* tlačítko „Pusť si video" + popup přehrávač */
+.agh-video{position:absolute; left:55%; bottom:3.5%; transform:translateX(-50%); display:inline-flex; align-items:center; gap:8px;
+  font:inherit; font-size:13.5px; font-weight:800; color:#fff; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.34);
+  border-radius:999px; padding:9px 18px; min-height:42px; cursor:pointer; backdrop-filter:blur(6px);
+  opacity:0; transition:opacity .55s var(--ease) .4s, background-color .2s var(--ease);}
+.auth-gate.how-open .agh-video{opacity:1;}
+.agh-video:hover{background:rgba(255,255,255,.26);}
+.agh-video svg{width:15px; height:15px;}
+.ag-vidback{position:fixed; inset:0; z-index:60; background:rgba(8,16,14,.74); display:flex; align-items:center; justify-content:center; padding:20px;}
+.ag-vidback[hidden]{display:none;}
+.ag-vid{position:relative; width:min(920px,94vw);}
+.ag-vid video{width:100%; aspect-ratio:16/9; border-radius:18px; background:#000; box-shadow:0 30px 80px rgba(0,0,0,.5); display:block;}
+.ag-vid-x{position:absolute; top:-13px; right:-13px; z-index:1; width:36px; height:36px; border-radius:999px; border:0;
+  background:#fff; color:#12312B; font-size:20px; font-weight:900; line-height:1; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.35);}
 
 /* login karta */
 .auth-box{width:min(88%,392px); background:var(--surface); border:0; border-radius:28px;
@@ -599,7 +613,8 @@ html[data-theme="dark"] .auth-gate{
   .auth-gate.how-open .ag-blob.byd{left:6%; top:68%; width:88%; height:27%;}
   .agh-bub.fin{left:6%; top:6%; bottom:auto; width:88%; height:27%;}
   .agh-bub.aut{left:6%; right:auto; top:37%; width:88%; height:27%;}
-  .agh-bub.byd{left:6%; top:68%; width:88%; height:27%;}
+  .agh-bub.byd{left:6%; top:68%; width:88%; height:25%;}
+  .agh-video{left:50%; bottom:1%; font-size:12.5px; min-height:38px; padding:7px 15px;}
 }
 .ag-close{display:none; position:fixed; top:14px; right:14px; z-index:6; width:42px; height:42px; border-radius:999px;
   border:1px solid rgba(255,255,255,.25); background:rgba(10,26,23,.6); color:#fff; font:inherit; cursor:pointer;

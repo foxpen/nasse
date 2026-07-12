@@ -60,6 +60,7 @@
               <strong>${s.name}</strong>
               <p>${s.desc}</p>
             </button>`; }).join('')}
+            <button type="button" class="agh-video" data-video>${icon('<path d="M8 5.5v13l11-6.5Z"/>', 2)} Pusť si video · 38 s</button>
           </div>
         </div>
         <header class="agl-top">
@@ -77,6 +78,12 @@
             <p class="agl-note">${icon('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 2)} Vytvořeno pro nás · soukromý přehled</p>
           </div>
         </section>
+      </div>
+      <div class="ag-vidback" hidden>
+        <div class="ag-vid">
+          <button type="button" class="ag-vid-x" aria-label="Zavřít video">×</button>
+          <video src="img/jak-to-funguje.mp4" poster="img/jak-to-funguje-poster.jpg" controls playsinline preload="none"></video>
+        </div>
       </div>
       `;
     document.body.appendChild(gate);
@@ -109,6 +116,16 @@
     };
     gate.querySelectorAll('[data-go-auth]').forEach(b => b.addEventListener('click', openAuth));
     gate.querySelectorAll('[data-go-how]').forEach(b => b.addEventListener('click', openHow));
+    const vidBack = gate.querySelector('.ag-vidback');
+    const vid = vidBack.querySelector('video');
+    const closeVid = () => { vid.pause(); vidBack.hidden = true; };
+    gate.querySelector('[data-video]').addEventListener('click', () => {
+      vidBack.hidden = false;
+      vid.play().catch(() => {});
+    });
+    vidBack.querySelector('.ag-vid-x').addEventListener('click', closeVid);
+    vidBack.addEventListener('click', e => { if (e.target === vidBack) closeVid(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !vidBack.hidden) closeVid(); });
     gate.querySelectorAll('[data-go-landing]').forEach(b => b.addEventListener('click', () => {
       gate.classList.remove('auth-open', 'how-open');
       how.setAttribute('aria-hidden', 'true');
