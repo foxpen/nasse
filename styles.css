@@ -562,6 +562,22 @@ html[data-theme="dark"] .auth-gate{
 .auth-gate.how-open .agh-video{opacity:1;}
 .agh-video:hover{background:rgba(255,255,255,.26);}
 .agh-video svg{width:15px; height:15px;}
+/* jemné pulzování: sonarový kroužek + nádech záře, na hover se zklidní */
+.agh-video::after{content:""; position:absolute; inset:-3px; border-radius:inherit; pointer-events:none;
+  border:1.5px solid rgba(255,255,255,.55); opacity:0;}
+.auth-gate.how-open .agh-video::after{animation:aghPulse 2.8s ease-out infinite .9s;}
+.auth-gate.how-open .agh-video{animation:aghGlow 2.8s ease-in-out infinite .9s;}
+.agh-video:hover{animation-play-state:paused;}
+.agh-video:hover::after{animation-play-state:paused; opacity:0;}
+@keyframes aghPulse{
+  0%{transform:scale(1); opacity:.55;}
+  70%{transform:scale(1.16); opacity:0;}
+  100%{transform:scale(1.16); opacity:0;}
+}
+@keyframes aghGlow{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0);}
+  40%{box-shadow:0 0 22px 2px rgba(255,255,255,.18);}
+}
 .ag-vidback{position:fixed; inset:0; z-index:60; background:rgba(8,16,14,.74); display:flex; align-items:center; justify-content:center; padding:20px;}
 .ag-vidback[hidden]{display:none;}
 .ag-vid{position:relative; width:min(920px,94vw);}
