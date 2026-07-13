@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naše · demo upgradu (React Bits koncept)</title>
+<link rel="icon" href="favicon.png?v=3" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Demo koncept „upgradnuté" landing/rozcestníku podle skillu reactbits-web.
+   Efekty React Bits přepsané do vanilla JS/CSS (žádný build krok):
+   Aurora (WebGL pozadí) · SplitText · BlurText · ShinyText · Magnet · CountUp
+   · SpotlightCard + GlareHover · ClickSpark · Noise. Není nalinkované z aplikace. */
+:root{
+  --bg:#0A1413; --surface:#101D1B; --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.16);
+  --fg:#EDF4F2; --muted:#93A8A3;
+  --byd:#5DCAA5; --aut:#38BDF8; --fin:#FBBF24;
+  --byd-deep:#0F766E; --aut-deep:#0284C7; --fin-deep:#D97706;
+  --r:18px; --ease:cubic-bezier(.22,.61,.25,1);
+}
+*{margin:0; padding:0; box-sizing:border-box;}
+html,body{background:var(--bg); color:var(--fg); font-family:"Plus Jakarta Sans",system-ui,sans-serif; min-height:100%;}
+body{overflow-x:hidden;}
+
+/* ---- Aurora pozadí (1 WebGL na stránku, fixed, pod obsahem) ---- */
+.aurora-wrap{position:fixed; inset:0; z-index:-2;}
+.aurora-wrap canvas{width:100%; height:100%; display:block;}
+.aurora-fallback{position:fixed; inset:0; z-index:-2; display:none;
+  background:
+    radial-gradient(900px 520px at 18% 8%, color-mix(in srgb, var(--byd-deep) 34%, transparent), transparent 70%),
+    radial-gradient(820px 480px at 85% 22%, color-mix(in srgb, var(--aut-deep) 26%, transparent), transparent 70%),
+    radial-gradient(900px 560px at 55% 96%, color-mix(in srgb, var(--fin-deep) 24%, transparent), transparent 70%),
+    var(--bg);}
+.no-webgl .aurora-wrap{display:none;}
+.no-webgl .aurora-fallback{display:block;}
+/* kontrast obsahu nad aurorou */
+.veil{position:fixed; inset:0; z-index:-1; background:linear-gradient(180deg, rgba(10,20,19,.42), rgba(10,20,19,.16) 38%, rgba(10,20,19,.55) 88%);}
+/* filmové zrno */
+.grain{position:fixed; inset:-40px; z-index:5; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* ---- layout ---- */
+.top{display:flex; align-items:center; gap:12px; padding:22px clamp(18px,4vw,48px);}
+.top img{width:40px; height:40px;}
+.top .t{font-weight:800; font-size:19px; letter-spacing:-.01em;}
+.top .demo-badge{margin-left:auto; font-size:11.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--fin); border:1px solid color-mix(in srgb, var(--fin) 45%, transparent); border-radius:999px; padding:6px 13px;}
+main{max-width:1180px; margin:0 auto; padding:clamp(28px,5vh,64px) clamp(18px,4vw,48px) 80px;}
+
+/* ---- hero: SplitText + BlurText + CTA ---- */
+.hero{text-align:center; padding:clamp(18px,4vh,44px) 0 clamp(30px,5vh,56px);}
+.hero h1{font-size:clamp(38px,6.4vw,76px); font-weight:800; letter-spacing:-.035em; line-height:1.04; text-wrap:balance;}
+.hero h1 .ch{display:inline-block; opacity:0; transform:translateY(.55em); filter:blur(6px);
+  transition:opacity .5s var(--ease), transform .6s var(--ease), filter .6s var(--ease);}
+.hero h1 .ch.in{opacity:1; transform:none; filter:blur(0);}
+.hero h1 .accent{background:linear-gradient(100deg, var(--byd), var(--aut) 55%, var(--fin)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.hero .lead{max-width:56ch; margin:20px auto 0; font-size:clamp(15px,1.6vw,18.5px); font-weight:600; color:var(--muted);
+  opacity:0; filter:blur(8px); transform:translateY(10px); transition:all .9s var(--ease) .55s;}
+.hero.on .lead{opacity:1; filter:blur(0); transform:none;}
+.hero .actions{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:32px;
+  opacity:0; transform:translateY(12px); transition:all .7s var(--ease) .8s;}
+.hero.on .actions{opacity:1; transform:none;}
+.cta{position:relative; display:inline-flex; align-items:center; gap:10px; font:inherit; font-weight:800; font-size:16px;
+  color:#08211C; background:var(--byd); border:0; border-radius:999px; padding:16px 30px; cursor:pointer;
+  box-shadow:0 12px 34px color-mix(in srgb, var(--byd) 34%, transparent); transition:box-shadow .25s var(--ease); will-change:transform;}
+.cta:hover{box-shadow:0 16px 44px color-mix(in srgb, var(--byd) 48%, transparent);}
+.cta .shine{position:absolute; inset:0; border-radius:inherit; overflow:hidden; pointer-events:none;}
+.cta .shine::after{content:""; position:absolute; top:0; bottom:0; left:-70%; width:45%;
+  background:linear-gradient(105deg, transparent, rgba(255,255,255,.55), transparent); transform:skewX(-18deg);
+  animation:shine 3.4s var(--ease) infinite 1.6s;}
+@keyframes shine{0%{left:-70%;} 42%{left:130%;} 100%{left:130%;}}
+.ghost{display:inline-flex; align-items:center; gap:8px; font:inherit; font-weight:750; font-size:15px; color:var(--fg);
+  background:rgba(255,255,255,.06); border:1px solid var(--line-2); border-radius:999px; padding:15px 26px; cursor:pointer;
+  transition:background .2s var(--ease);}
+.ghost:hover{background:rgba(255,255,255,.12);}
+
+/* ---- CountUp statistiky ---- */
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:clamp(22px,4vh,42px) auto; max-width:860px;}
+.stat{background:color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter:blur(10px);
+  border:1px solid var(--line); border-radius:var(--r); padding:20px 16px; text-align:center;
+  opacity:0; transform:translateY(16px); transition:all .6s var(--ease);}
+.stat.in{opacity:1; transform:none;}
+.stat b{display:flex; align-items:baseline; justify-content:center; gap:3px; font-size:clamp(26px,3.4vw,38px); font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums;}
+.stat b i{font-style:normal; font-size:.55em; font-weight:800; color:var(--muted); margin-left:3px;}
+.stat span{display:block; margin-top:4px; font-size:12.5px; font-weight:750; color:var(--muted);}
+.stat:nth-child(1) b{color:var(--byd);} .stat:nth-child(2) b{color:var(--aut);} .stat:nth-child(3) b{color:var(--fin);}
+
+/* ---- SpotlightCard grid ---- */
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin-top:clamp(12px,3vh,28px);}
+.scard{--sc:var(--byd); position:relative; overflow:hidden; border-radius:22px; border:1px solid var(--line);
+  background:color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter:blur(10px);
+  padding:24px; cursor:pointer; text-decoration:none; color:var(--fg); display:block;
+  opacity:0; transform:translateY(24px); transition:opacity .6s var(--ease), transform .6s var(--ease), border-color .25s var(--ease);
+  will-change:transform;}
+.scard.in{opacity:1; transform:none;}
+.scard:hover{border-color:color-mix(in srgb, var(--sc) 55%, var(--line));}
+.scard.aut{--sc:var(--aut);} .scard.fin{--sc:var(--fin);}
+/* spotlight sledující kurzor */
+.scard::before{content:""; position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .35s var(--ease);
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%), color-mix(in srgb, var(--sc) 16%, transparent), transparent 65%);}
+.scard:hover::before{opacity:1;}
+/* glare přejezd */
+.scard::after{content:""; position:absolute; top:-60%; bottom:-60%; left:-80%; width:38%; pointer-events:none;
+  background:linear-gradient(105deg, transparent, rgba(255,255,255,.10), transparent); transform:skewX(-16deg);
+  transition:left .7s var(--ease);}
+.scard:hover::after{left:150%;}
+.scard .pic{height:150px; border-radius:14px; overflow:hidden; margin-bottom:18px;
+  background:color-mix(in srgb, var(--sc) 12%, transparent);}
+.scard .pic img{width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.02); transition:transform .8s var(--ease);}
+.scard:hover .pic img{transform:scale(1.09);}
+.scard h3{font-size:20px; font-weight:800; letter-spacing:-.01em; color:var(--sc);}
+.scard p{margin-top:7px; font-size:13.5px; line-height:1.55; font-weight:600; color:var(--muted);}
+.scard .go{display:inline-flex; align-items:center; gap:7px; margin-top:16px; font-size:13px; font-weight:800; color:var(--sc);}
+.scard .go svg{width:15px; height:15px; transition:transform .25s var(--ease);}
+.scard:hover .go svg{transform:translateX(4px);}
+
+/* ---- ClickSpark ---- */
+.spark{position:fixed; z-index:80; pointer-events:none; width:0; height:0;}
+.spark i{position:absolute; left:0; top:0; width:2.5px; height:11px; border-radius:2px; background:var(--sparkc,var(--byd));
+  transform:rotate(var(--a)) translateY(-6px); animation:sparkfly .5s var(--ease) forwards;}
+@keyframes sparkfly{to{transform:rotate(var(--a)) translateY(-30px) scaleY(.2); opacity:0;}}
+
+footer{margin-top:64px; text-align:center; font-size:12.5px; font-weight:650; color:var(--muted); line-height:1.8;}
+footer b{color:var(--fg);}
+
+@media (max-width:640px){ .stats{grid-template-columns:1fr 1fr;} .stats .stat:last-child{grid-column:1/-1;} }
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important; animation:none!important;}
+  .hero h1 .ch{opacity:1; transform:none; filter:none;}
+  .hero .lead,.hero .actions,.stat,.scard{opacity:1!important; transform:none!important; filter:none!important;}
+  .aurora-wrap{display:none;} .aurora-fallback{display:block;}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora-wrap" aria-hidden="true"><canvas id="aurora"></canvas></div>
+<div class="aurora-fallback" aria-hidden="true"></div>
+<div class="veil" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <img src="img/logo-mark.png" alt="">
+  <span class="t">Naše</span>
+  <span class="demo-badge">Demo · koncept upgradu</span>
+</header>
+
+<main>
+  <section class="hero" id="hero">
+    <h1 id="headline" aria-label="Plánujeme náš společný život."></h1>
+    <p class="lead">Bydlení, auto i rozpočet na jednom místě. Přehledně, společně, s klidem —
+      a teď i s pozadím, které dýchá jako lávová lampa.</p>
+    <div class="actions">
+      <button class="cta" id="cta" type="button">Otevřít můj plán<span class="shine" aria-hidden="true"></span></button>
+      <button class="ghost" type="button">Jak to funguje
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Souhrn plánu">
+    <div class="stat"><b><span data-count="3">0</span></b><span>společné sekce</span></div>
+    <div class="stat"><b><span data-count="12">0</span></b><span>nemovitostí ve výběru</span></div>
+    <div class="stat"><b><span data-count="45000">0</span><i>Kč</i></b><span>měsíční rozpočet</span></div>
+  </section>
+
+  <section class="cards" aria-label="Sekce">
+    <a class="scard byd" href="bydleni.html">
+      <div class="pic"><img src="img/hero-byd.jpg" alt=""></div>
+      <h3>Naše Bydleníčko</h3>
+      <p>Nemovitosti, které spolu zvažujeme — skóre, dojezdy a hypotéka vedle sebe, bez rozkopírovaných odkazů.</p>
+      <span class="go">Plánujeme náš domov <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="scard aut" href="auta.html">
+      <div class="pic"><img src="img/hero-aut.jpg" alt=""></div>
+      <h3>Naše Autíčko</h3>
+      <p>Auta z Česka i dovoz z EU v jednom přehledu — ceny v korunách, náklady na provoz a skóre výhodnosti.</p>
+      <span class="go">Vybíráme chytře <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="scard fin" href="hospodareni.html">
+      <div class="pic"><img src="img/hero-fin.jpg" alt=""></div>
+      <h3>Naše Hospodařeníčko</h3>
+      <p>Měsíční rozpočet, spořicí cíle a denní limit — čísla, která uklidňují, ne straší.</p>
+      <span class="go">Držíme rozpočet <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </section>
+
+  <footer>
+    <b>Demo efektů podle skillu reactbits-web</b> (vanilla přepis, žádný React ani build krok):<br>
+    Aurora pozadí (WebGL) · SplitText nadpis · BlurText podtitul · ShinyText + Magnet CTA · CountUp statistiky ·
+    SpotlightCard + GlareHover karty · ClickSpark · Noise zrno · vše s fallbackem pro reduced-motion a dotyková zařízení.
+  </footer>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var coarse = matchMedia('(pointer: coarse)').matches;
+
+  /* ---- SplitText: nadpis po znacích ---- */
+  var headline = document.getElementById('headline');
+  var parts = [['Plánujeme náš ', false], ['společný život', true], ['.', false]];
+  parts.forEach(function(part){
+    part[0].split('').forEach(function(chr){
+      var s = document.createElement('span');
+      s.className = 'ch' + (part[1] ? ' accent' : '');
+      s.textContent = chr === ' ' ? ' ' : chr;
+      headline.appendChild(s);
+    });
+  });
+  var chars = headline.querySelectorAll('.ch');
+  if (reduced) {
+    chars.forEach(function(c){ c.classList.add('in'); });
+    document.getElementById('hero').classList.add('on');
+  } else {
+    setTimeout(function(){
+      chars.forEach(function(c, i){ setTimeout(function(){ c.classList.add('in'); }, 120 + i * 32); });
+      document.getElementById('hero').classList.add('on');
+    }, 80);
+  }
+
+  /* ---- Aurora: jeden WebGL shader, DPR strop, pauza mimo okno ---- */
+  var canvas = document.getElementById('aurora');
+  var gl = !reduced && canvas.getContext('webgl', { antialias: false, alpha: false });
+  if (!gl) { document.documentElement.classList.add('no-webgl'); }
+  else {
+    var vsrc = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+    var fsrc = 'precision mediump float;uniform vec2 r;uniform float t;' +
+      'float blob(vec2 uv,vec2 c,float s){float d=length(uv-c);return exp(-d*d/(2.*s*s));}' +
+      'void main(){vec2 uv=gl_FragCoord.xy/r;uv.x*=r.x/r.y;' +
+      'vec3 bg=vec3(.039,.078,.075);' +
+      'vec2 c1=vec2(.3+.13*sin(t*.21),.78+.1*cos(t*.17));' +
+      'vec2 c2=vec2((r.x/r.y)-.35+.15*sin(t*.15+2.1),.6+.12*sin(t*.19+1.2));' +
+      'vec2 c3=vec2((r.x/r.y)*.5+.2*sin(t*.12+4.2),.18+.1*cos(t*.16+3.3));' +
+      'float b1=blob(uv,c1,.34),b2=blob(uv,c2,.3),b3=blob(uv,c3,.34);' +
+      'vec3 col=bg+vec3(.058,.463,.431)*b1*.8+vec3(.008,.518,.78)*b2*.62+vec3(.851,.467,.024)*b3*.55;' +
+      'col+=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)*.012;' +
+      'gl_FragColor=vec4(col,1.);}';
+    function sh(type, src){ var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
+    var prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vsrc));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fsrc));
+    gl.linkProgram(prog); gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'p');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var uR = gl.getUniformLocation(prog, 'r'), uT = gl.getUniformLocation(prog, 't');
+    var dpr = Math.min(devicePixelRatio || 1, coarse ? 1 : 1.5);
+    function resize(){
+      canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(uR, canvas.width, canvas.height);
+    }
+    addEventListener('resize', resize); resize();
+    var running = true, start = performance.now(), checked = false;
+    document.addEventListener('visibilitychange', function(){ running = !document.hidden; if (running) loop(); });
+    function loop(){
+      if (!running) return;
+      gl.uniform1f(uT, (performance.now() - start) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!checked) {
+        checked = true;
+        // softwarový WebGL někdy tiše renderuje černo — pak přepneme na CSS fallback
+        var px = new Uint8Array(4);
+        gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        if (px[0] + px[1] + px[2] === 0) {
+          running = false;
+          document.documentElement.classList.add('no-webgl');
+          return;
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  /* ---- reveal + CountUp přes IntersectionObserver ---- */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      var n = e.target.querySelector('[data-count]');
+      if (n && !n.dataset.done) {
+        n.dataset.done = '1';
+        var target = Number(n.dataset.count), t0 = performance.now(), dur = reduced ? 0 : 1400;
+        (function tick(now){
+          var p = dur ? Math.min(1, (now - t0) / dur) : 1;
+          var eased = 1 - Math.pow(1 - p, 3);
+          n.textContent = Math.round(target * eased).toLocaleString('cs-CZ');
+          if (p < 1) requestAnimationFrame(tick);
+        })(t0);
+      }
+      io.unobserve(e.target);
+    });
+  }, { threshold: .35 });
+  document.querySelectorAll('.stat, .scard').forEach(function(el, i){
+    el.style.transitionDelay = (i % 3) * 90 + 'ms';
+    io.observe(el);
+  });
+
+  /* ---- SpotlightCard: kurzorové efekty jen na jemném ukazateli ---- */
+  if (!coarse && !reduced) {
+    document.querySelectorAll('.scard').forEach(function(card){
+      card.addEventListener('mousemove', function(e){
+        var b = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - b.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - b.top) + 'px');
+      });
+    });
+    /* Magnet CTA */
+    var cta = document.getElementById('cta');
+    document.addEventListener('mousemove', function(e){
+      var b = cta.getBoundingClientRect();
+      var cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+      var dx = e.clientX - cx, dy = e.clientY - cy;
+      var d = Math.hypot(dx, dy);
+      if (d < 150) {
+        var pull = (1 - d / 150) * 10;
+        cta.style.transform = 'translate(' + (dx / d * pull) + 'px,' + (dy / d * pull) + 'px)';
+      } else cta.style.transform = '';
+    });
+  }
+
+  /* ---- ClickSpark ---- */
+  if (!reduced) {
+    var COLORS = ['#5DCAA5', '#38BDF8', '#FBBF24'];
+    document.addEventListener('click', function(e){
+      var w = document.createElement('span');
+      w.className = 'spark';
+      w.style.left = e.clientX + 'px'; w.style.top = e.clientY + 'px';
+      w.style.setProperty('--sparkc', COLORS[Math.floor(Math.random() * COLORS.length)]);
+      for (var i = 0; i < 8; i++) {
+        var ray = document.createElement('i');
+        ray.style.setProperty('--a', i * 45 + 'deg');
+        w.appendChild(ray);
+      }
+      document.body.appendChild(w);
+      setTimeout(function(){ w.remove(); }, 550);
+    });
+  }
+})();
+</script>
+</body>
+</html>
