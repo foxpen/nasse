@@ -107,7 +107,10 @@ main{max-width:1180px; margin:0 auto; padding:clamp(28px,5vh,64px) clamp(18px,4v
   transition:left .7s var(--ease);}
 .scard:hover::after{left:150%;}
 .scard .pic{height:150px; border-radius:14px; overflow:hidden; margin-bottom:18px;
-  background:color-mix(in srgb, var(--sc) 12%, transparent);}
+  background:color-mix(in srgb, var(--sc) 12%, transparent);
+  animation:picbob 7s ease-in-out infinite;}
+.scard.aut .pic{animation-delay:1.4s;} .scard.fin .pic{animation-delay:2.8s;}
+@keyframes picbob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);}}
 .scard .pic img{width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.02); transition:transform .8s var(--ease);}
 .scard:hover .pic img{transform:scale(1.09);}
 .scard h3{font-size:20px; font-weight:800; letter-spacing:-.01em; color:var(--sc);}
@@ -231,12 +234,21 @@ footer b{color:var(--fg);}
     var fsrc = 'precision mediump float;uniform vec2 r;uniform float t;' +
       'float blob(vec2 uv,vec2 c,float s){float d=length(uv-c);return exp(-d*d/(2.*s*s));}' +
       'void main(){vec2 uv=gl_FragCoord.xy/r;uv.x*=r.x/r.y;' +
+      /* zvlnění prostoru — láva se přelévá, ne jen posouvá */
+      'uv+=.05*vec2(sin(uv.y*2.6+t*.55),cos(uv.x*2.2+t*.45));' +
       'vec3 bg=vec3(.039,.078,.075);' +
-      'vec2 c1=vec2(.3+.13*sin(t*.21),.78+.1*cos(t*.17));' +
-      'vec2 c2=vec2((r.x/r.y)-.35+.15*sin(t*.15+2.1),.6+.12*sin(t*.19+1.2));' +
-      'vec2 c3=vec2((r.x/r.y)*.5+.2*sin(t*.12+4.2),.18+.1*cos(t*.16+3.3));' +
-      'float b1=blob(uv,c1,.34),b2=blob(uv,c2,.3),b3=blob(uv,c3,.34);' +
-      'vec3 col=bg+vec3(.058,.463,.431)*b1*.8+vec3(.008,.518,.78)*b2*.62+vec3(.851,.467,.024)*b3*.55;' +
+      'float a=r.x/r.y;' +
+      'vec2 c1=vec2(.3+.2*sin(t*.4),.78+.16*cos(t*.33));' +
+      'vec2 c2=vec2(a-.35+.24*sin(t*.3+2.1),.6+.2*sin(t*.37+1.2));' +
+      'vec2 c3=vec2(a*.5+.3*sin(t*.24+4.2),.18+.17*cos(t*.31+3.3));' +
+      'vec2 c4=vec2(a*.22+.26*sin(t*.45+1.7),.32+.2*sin(t*.5+5.1));' +
+      /* dýchající velikost skvrn */
+      'float b1=blob(uv,c1,.34*(1.+.16*sin(t*.6)));' +
+      'float b2=blob(uv,c2,.3*(1.+.16*sin(t*.7+2.)));' +
+      'float b3=blob(uv,c3,.34*(1.+.16*sin(t*.55+4.)));' +
+      'float b4=blob(uv,c4,.17*(1.+.2*sin(t*.8+1.)));' +
+      'vec3 col=bg+vec3(.058,.463,.431)*b1*.8+vec3(.008,.518,.78)*b2*.62+vec3(.851,.467,.024)*b3*.55+vec3(.365,.792,.647)*b4*.4;' +
+      'col*=1.+.06*sin(t*.9+uv.x*2.);' +
       'col+=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)*.012;' +
       'gl_FragColor=vec4(col,1.);}';
     function sh(type, src){ var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
