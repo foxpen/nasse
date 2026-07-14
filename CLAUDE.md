@@ -54,7 +54,7 @@ Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce:
 - Cíle plánu (progress bary na kartách rozcestníku) žijí v `localStorage['nase.goals.v1']` (`{v:1, byd:[{id,text,done}], aut:[], fin:[]}`); editor je modál „Upravit cíle plánu" na `index.html`.
 - Peníze formátuj `toLocaleString('cs-CZ')`; písmo Plus Jakarta Sans s `font-feature-settings: "tnum"`.
 - Počty vždy skloňuj přes `Nase.plural(n, '1 tvar', '2–4 tvar', '5+ tvar')` (např. vůz/vozy/vozů) — nikdy nelep pevnou koncovku k číslu. U vět se s počtem musí shodovat i sloveso („Připravena 1 nemovitost" vs. „Připraveno 5 nemovitostí").
-- Layout je fluidní — `main` nemá max-width; karty používají `auto-fill, minmax()`. Nezaváděj pevné šířky stránek.
+- Layout má `main{max-width:2000px; margin:0 auto}` (kvůli ultrawide monitorům, aby se karty nerozlévaly do stran); karty používají `auto-fill, minmax(320px,1fr)` — na 2000px šířce vychází ~5 karet na řádek.
 - `login-demo.html` je jen referenční demo (claymorphism), není nalinkované z aplikace.
 
 ### Verzování

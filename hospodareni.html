@@ -121,6 +121,19 @@
           <div class="category-list" id="category-list"></div>
         </div>
       </div>
+
+      <div class="tablewrap">
+        <div class="th th-flex">Spoření a poznámky<button class="bt-add" type="button" id="scenario-add" style="margin-left:auto">+ Nový cíl</button></div>
+        <div class="fin-tabs" role="tablist" aria-label="Spoření a poznámky">
+          <button type="button" class="on" data-fintab="scen" role="tab" aria-selected="true">Spořicí cíle</button>
+          <button type="button" data-fintab="note" role="tab" aria-selected="false">Poznámky</button>
+        </div>
+        <div class="scen-grid" id="tab-scen"></div>
+        <div class="scenario-box" id="tab-note" hidden>
+          <textarea id="budget-notes" placeholder="Poznámky k rozpočtu: hypotéka, mateřská, rezerva, plánované nákupy..."></textarea>
+          <button class="btn-ghost" type="button" id="budget-save-note">Uložit poznámku</button>
+        </div>
+      </div>
     </div>
 
     <div class="finance-col">
@@ -152,22 +165,7 @@
         </div>
         <p class="hint" id="import-car-note">Načítám auta...</p>
       </div>
-    </div>
-  </section>
 
-  <section class="finance-split">
-      <div class="tablewrap">
-        <div class="th th-flex">Spoření a poznámky<button class="bt-add" type="button" id="scenario-add" style="margin-left:auto">+ Nový cíl</button></div>
-        <div class="fin-tabs" role="tablist" aria-label="Spoření a poznámky">
-          <button type="button" class="on" data-fintab="scen" role="tab" aria-selected="true">Spořicí cíle</button>
-          <button type="button" data-fintab="note" role="tab" aria-selected="false">Poznámky</button>
-        </div>
-        <div class="scen-grid" id="tab-scen"></div>
-        <div class="scenario-box" id="tab-note" hidden>
-          <textarea id="budget-notes" placeholder="Poznámky k rozpočtu: hypotéka, mateřská, rezerva, plánované nákupy..."></textarea>
-          <button class="btn-ghost" type="button" id="budget-save-note">Uložit poznámku</button>
-        </div>
-      </div>
       <div class="finance-panel">
         <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/></svg>Členové domácnosti</div>
         <div class="inline-form member-form">
@@ -177,6 +175,12 @@
         </div>
         <div class="mini-list" id="member-list"></div>
       </div>
+
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 13 4-4 3 3 5-6"/></svg>Rychlý přehled</div>
+        <div class="quick-summary" id="quick-summary"></div>
+      </div>
+    </div>
   </section>
 
   <section class="finance-bottom">
@@ -196,10 +200,6 @@
           <tbody id="txn-list"></tbody>
         </table>
       </div>
-    </div>
-    <div class="finance-panel">
-      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 13 4-4 3 3 5-6"/></svg>Rychlý přehled</div>
-      <div class="quick-summary" id="quick-summary"></div>
     </div>
   </section>
 

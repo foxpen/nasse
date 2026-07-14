@@ -574,7 +574,22 @@ function renderPick(){
   const el = document.getElementById("pick");
   el.classList.remove("is-loading");
   const d = kept().slice().sort((a,b)=>(b.score-a.score)||((a.dealPrice||a.price)-(b.dealPrice||b.price))||(a.id-b.id))[0];
-  if(!d){ el.style.display="none"; return; }
+  if(!d){
+    el.style.display="";
+    el.href = "#";
+    el.onclick = e => { e.preventDefault(); document.getElementById("btn-add").click(); };
+    el.removeAttribute("target");
+    el.removeAttribute("rel");
+    el.innerHTML = `<div class="ring" aria-hidden="true"></div>
+      <span class="badge">${I.star} Naše Bydleníčko</span>
+      <h2 class="sec-claim">Plánujeme náš domov.</h2>
+      <div class="pick-offer">
+        <span class="po-label">Zatím žádné nemovitosti</span>
+        <strong>Přidej první inzerát</strong>
+        <div class="po-meta">Vlož odkaz ze sreality.cz nebo bezrealitky.cz, appka ho sama vyplní. Jakmile budeš mít pár nabídek, tady se ukáže tip na tu nejlepší.</div>
+      </div>`;
+    return;
+  }
   el.style.display="";
   el.href = "#";
   el.onclick = e => { e.preventDefault(); openDetail(d.id); };

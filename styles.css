@@ -105,7 +105,7 @@ a{color:inherit;}
 /* ---------- top bar + section switch ---------- */
 .topbar{position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--surface) 86%, transparent);
         backdrop-filter:saturate(160%) blur(12px); border-bottom:1px solid var(--line);}
-.topbar .inner{padding:12px var(--pad); display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+.topbar .inner{padding:12px var(--pad); display:flex; align-items:center; gap:16px; flex-wrap:wrap; max-width:2000px; margin:0 auto;}
 .brand{display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; letter-spacing:-.02em; text-decoration:none; color:var(--fg);}
 .brand .mark{width:34px; height:34px; border-radius:10px; background:#F0F5F3; color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:var(--sh-sm);}
 .brand .mark svg{width:20px; height:20px;}
@@ -144,7 +144,7 @@ a{color:inherit;}
 select{font:inherit; font-size:14px; font-weight:600; color:var(--fg); background:var(--surface);
        border:1px solid var(--line-2); border-radius:var(--r-pill); padding:9px 16px; min-height:42px; cursor:pointer;}
 
-main{width:100%; margin:0 auto; padding:24px var(--pad) 80px;}
+main{width:100%; max-width:2000px; margin:0 auto; padding:24px var(--pad) 80px;}
 
 /* ---------- hero ---------- */
 .hero{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:18px; margin-bottom:24px;}
@@ -200,7 +200,7 @@ main{width:100%; margin:0 auto; padding:24px var(--pad) 80px;}
 .table-toggle{min-height:40px; padding:8px 16px; font-size:13px;}
 
 /* ---------- card grid ---------- */
-.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:24px;}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:24px;}
 .card{background:var(--surface); border:1px solid var(--line); border-radius:16px; overflow:hidden;
       display:flex; flex-direction:column; cursor:pointer; box-shadow:var(--sh-sm); transition:.25s var(--ease), box-shadow .3s var(--ease);}
 .card:hover{transform:translateY(-4px); box-shadow:var(--sh-lg), 0 3px 10px color-mix(in srgb, var(--primary) 14%, transparent); border-color:var(--line-2);}
@@ -950,8 +950,11 @@ input.slider::-moz-range-thumb{
 .modal .msg{font-size:13px;font-weight:600;margin-top:10px;min-height:18px;}
 .modal .msg.err{color:var(--warn);}
 .modal .msg.ok{color:var(--primary);}
-.btn-ghost{font:inherit;font-size:14px;font-weight:700;background:transparent;border:1px solid var(--line-2);color:var(--fg);border-radius:var(--r-pill);padding:9px 16px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn-ghost{font:inherit;font-size:14px;font-weight:700;background:transparent;border:1px solid var(--line-2);color:var(--fg);border-radius:var(--r-pill);padding:9px 16px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:.15s var(--ease);}
 .btn-ghost svg{width:15px;height:15px;flex:none;}
+.btn-ghost:hover{border-color:var(--primary); background:color-mix(in srgb, var(--primary) 6%, transparent);}
+.theme-auto .btn-ghost:hover{border-color:var(--accent);}
+.theme-finance .btn-ghost:hover{border-color:var(--accent);}
 
 /* ---------- onboarding upgrade: photo tiles (taste-skill) ---------- */
 .ob-head{max-width:760px; margin:0 auto 30px; text-align:center;}
@@ -1206,7 +1209,6 @@ input.slider::-moz-range-thumb{
 .salary-result span{display:block; color:var(--muted-fg); font-size:12px; font-weight:850;}
 .salary-result b{display:block; margin-top:4px; font-size:18px; font-weight:950;}
 .salary-result .total{border-color:color-mix(in srgb,var(--primary) 45%, var(--line)); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 24%, transparent);}
-.finance-split{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px;}
 .category-list{display:grid; gap:10px; padding:14px;}
 .category-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; align-items:center;}
 .category-row strong{display:block; font-weight:950;}
@@ -1271,8 +1273,8 @@ input.slider::-moz-range-thumb{
 .scen .bar i{background:var(--primary);}
 .scen-pct{font-size:12px; color:var(--muted-fg); font-weight:750;}
 .scen .bt-add{margin-left:0; justify-self:start;}
-/* poslední transakce + rychlý přehled */
-.finance-bottom{display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:14px; margin-top:18px; align-items:start;}
+/* poslední transakce (rychlý přehled se přesunul do výdajového sloupce) */
+.finance-bottom{display:grid; grid-template-columns:1fr; gap:14px; margin-top:18px; align-items:start;}
 .txn-form{padding:0 14px 12px; grid-template-columns:1.4fr .7fr 1fr .8fr 1fr auto;}
 .finance-bottom .scroll{overflow-x:auto;}
 .txn-table{width:100%; border-collapse:collapse; font-size:13.5px;}
@@ -1320,7 +1322,7 @@ input.slider::-moz-range-thumb{
   padding:7px 14px; min-height:36px; cursor:pointer;}
 .app-toast button:hover{background:color-mix(in srgb, var(--bg) 30%, transparent);}
 @media (max-width:860px){
-  .finance-hero,.finance-health,.finance-split{grid-template-columns:1fr;}
+  .finance-hero,.finance-health{grid-template-columns:1fr;}
   .finance-columns{grid-template-columns:1fr;}
   .finance-form,.salary-grid,.salary-result{grid-template-columns:1fr;}
   .fin-kpis{grid-template-columns:1fr 1fr; gap:10px;}
@@ -1341,7 +1343,7 @@ input.slider::-moz-range-thumb{
 }
 @media (max-width:560px){
   main{padding-left:12px; padding-right:12px;}
-  .topbar .inner,.switch,.finance-hero,.finance-columns,.finance-split,.budget-card,.finance-panel{max-width:100%;}
+  .topbar .inner,.switch,.finance-hero,.finance-columns,.budget-card,.finance-panel{max-width:100%;}
   .integration-row,.quick-expenses{grid-template-columns:1fr; max-width:100%;}
   .member-form,.txn-form{grid-template-columns:1fr;}
   .donut-wrap{grid-template-columns:1fr;}
