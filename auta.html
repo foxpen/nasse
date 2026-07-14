@@ -868,7 +868,7 @@ function editNote(id){
   };
 }
 
-function fld(label,id,ph){ return `<label>${label}</label><input id="m_${id}" placeholder="${ph||''}">`; }
+function fld(label,id,ph,fmt){ return `<label>${label}</label><input id="m_${id}" placeholder="${ph||''}"${fmt?' class="fmt-thousands" inputmode="numeric"':''}>`; }
 function openAdd(){
   const wrap=document.createElement("div");
   wrap.className="modal-bg";
@@ -883,15 +883,16 @@ function openAdd(){
     <div class="grid2"><div>${fld("Značka","brand","mazda")}</div><div>${fld("Varianta / popis","variant","FWD · ojeté")}</div></div>
     <div class="grid2"><div><label>Stav</label><select id="m_stav" style="width:100%"><option value="ojeté">ojeté</option><option value="nové">nové</option></select></div><div><label>Pohon</label><select id="m_awd" style="width:100%"><option value="false">FWD</option><option value="true">4×4</option></select></div></div>
     <div class="grid2"><div>${fld("Rok / první registrace","made","05/2021")}</div><div>${fld("Rok pro řazení","year","2021")}</div></div>
-    <div class="grid2"><div>${fld("Najeto (km)","km")}</div><div>${fld("Výkon (kW)","kw")}</div></div>
+    <div class="grid2"><div>${fld("Najeto (km)","km",'',true)}</div><div>${fld("Výkon (kW)","kw")}</div></div>
     <div class="grid2"><div>${fld("Palivo","fuel","benzin")}</div><div>${fld("Převodovka / karoserie","body","automat · SUV")}</div></div>
-    <div class="grid2"><div>${fld("Cena (Kč) · české","czk")}</div><div>${fld("Cena (€) · zahraniční","price")}</div></div>
+    <div class="grid2"><div>${fld("Cena (Kč) · české","czk",'',true)}</div><div>${fld("Cena (€) · zahraniční","price",'',true)}</div></div>
     ${fld("Foto (URL)","img")}
     <label>Fotky galerie (jedna URL na řádek)</label><textarea id="m_imgs" rows="3" placeholder="https://...jpg"></textarea>
     ${fld("Vlastnosti (oddělené čárkou)","feats")}
     <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
   </div>`;
   document.body.appendChild(wrap);
+  Nase.wireThousandsAll(wrap);
   const close=()=>wrap.remove();
   const msg=wrap.querySelector("#m_msg");
   const g=id=>wrap.querySelector("#m_"+id).value.trim();
@@ -905,7 +906,7 @@ function openAdd(){
       const j=await r.json();
       if(!r.ok||j.error){ msg.className="msg err"; msg.textContent=j.error||"Nepovedlo se."; return; }
       const d=j.data||{};
-      const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!=="") el.value=v; };
+      const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!==""){ el.value=v; el.dispatchEvent(new Event("input")); } };
       set("n",d.n); set("brand",d.brand); set("variant",d.variant); set("made",d.made || d.firstRegistration); set("year",d.year); set("km",d.km);
       set("kw",d.kw); set("fuel",d.fuel); set("body",d.body); set("czk",d.czk); set("price",d.price); set("img",d.img);
       const imgs = Array.isArray(d.imgs) ? d.imgs : [];
@@ -920,9 +921,9 @@ function openAdd(){
     const kw=Number(g("kw"))||0;
     const data={ brand:(g("brand")||"").toLowerCase(), n:g("n"), variant:g("variant"),
       stav:wrap.querySelector("#m_stav").value, awd:wrap.querySelector("#m_awd").value==="true",
-      made:g("made"), year:Number(g("year"))||numFromMade(g("made"))||new Date().getFullYear(), km:Number(g("km").replace(/\s/g,''))||0,
+      made:g("made"), year:Number(g("year"))||numFromMade(g("made"))||new Date().getFullYear(), km:Nase.parseThousands(g("km"))||0,
       fuel:g("fuel")||"benzin", body:g("body"), kw, ps:kw?Math.round(kw*1.35962):0,
-      czk:g("czk")?Number(g("czk").replace(/\s/g,'')):null, price:g("price")?Number(g("price").replace(/\s/g,'')):null,
+      czk:g("czk")?Nase.parseThousands(g("czk")):null, price:g("price")?Nase.parseThousands(g("price")):null,
       img:g("img"), imgs:wrap.querySelector("#m_imgs").value.split(/\n+/).map(s=>s.trim()).filter(Boolean),
       feats:g("feats")?g("feats").split(",").map(s=>s.trim()).filter(Boolean):[], url:g("url") };
     if(!data.n){ msg.className="msg err"; msg.textContent="Vyplň aspoň název."; return; }

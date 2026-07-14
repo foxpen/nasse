@@ -128,7 +128,6 @@ export async function handler(event) {
   const startedAt = Date.now();
   try {
     const q = JSON.parse(event.body || '{}');
-    const dryRun = Boolean(q.dryRun);
     const limit = Math.max(1, Math.min(24, Number(q.limit) || 12));
     const types = Array.isArray(q.types) && q.types.length ? q.types.filter(t => ['byt', 'dum'].includes(t)) : [q.type === 'dum' ? 'dum' : 'byt'];
     const perType = Math.max(1, Math.ceil(limit / Math.max(1, types.length)));
@@ -143,15 +142,15 @@ export async function handler(event) {
       links.push(...detailLinks(html, perType * 3).filter(url => allowedByUrl(url, type, q)));
     }
     const limitedLinks = [...new Set(links)].slice(0, limit * 2);
-    const existingRows = dryRun ? [] : await sql`SELECT data FROM listings WHERE section = 'byd'`;
+    const existingRows = await sql`SELECT data FROM listings WHERE section = 'byd'`;
     const existing = new Set(existingRows.map(r => r.data?.url).filter(Boolean));
-    const added = [];
+    const candidates = [];
     const errors = [];
     const filtered = [];
     let timedOut = false;
 
     for (const url of limitedLinks) {
-      if (added.length >= limit) break;
+      if (candidates.length >= limit) break;
       if (Date.now() - startedAt > TIME_BUDGET_MS) { timedOut = true; break; }
       if (existing.has(url)) continue;
       try {
@@ -165,19 +164,13 @@ export async function handler(event) {
         }
         const clean = cleanListing('byd', data);
         if (!clean) throw new Error('neplatná data');
-        let id = null;
-        if (!dryRun) {
-          const rows = await sql`INSERT INTO listings (section, data) VALUES ('byd', ${clean}) RETURNING id`;
-          id = rows[0].id;
-          existing.add(url);
-        }
-        added.push({ id, n: clean.n, url });
+        candidates.push(clean);
       } catch (e) {
         errors.push({ url, message: String(e?.message || e) });
       }
     }
 
-    return json(200, { dryRun, searchUrl: searchUrls[0] || '', searchUrls, found: limitedLinks.length, added, skipped: limitedLinks.length - added.length - errors.length - filtered.length, filtered, errors, timedOut });
+    return json(200, { searchUrl: searchUrls[0] || '', searchUrls, found: limitedLinks.length, candidates, skipped: limitedLinks.length - candidates.length - errors.length - filtered.length, filtered, errors, timedOut });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }

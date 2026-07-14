@@ -64,7 +64,7 @@
       <label>Fixace <select id="m-fix"><option value="5.14">1 rok</option><option value="4.94" selected>3 roky</option><option value="5.14">5 let</option><option value="5.54">10 let</option></select></label>
       <label>Úrok <input id="m-rate" type="number" value="4.94" step="0.05" min="0" inputmode="decimal"> %</label>
       <label>Doba <input id="m-years" type="number" value="30" min="5" max="40" step="1"> let</label>
-      <label class="loan-slider">Půjčit <input id="m-loan" type="range" value="90" min="10" max="100" step="5"><b id="m-loan-out">90 %</b></label>
+      <label class="loan-slider">Půjčit <input id="m-loan" class="slider" type="range" value="90" min="10" max="100" step="5"><b id="m-loan-out">90 %</b></label>
       <label>Pojištění <input id="m-ins" type="number" value="0" min="0" step="100"> Kč/měs</label>
 </div>
 
@@ -116,27 +116,31 @@
     <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
   </div>
 
-  <section class="mortgage weights-panel" id="weights-panel" hidden>
+  <section class="settings-box weights-panel" id="weights-panel" hidden>
     <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9M4 6V3M12 21v-7M12 11V3M20 21v-4M20 14V3"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="13" r="2"/><circle cx="20" cy="16" r="2"/></svg>Váhy skóre</div>
-    <p class="hint" style="flex:1 1 100%; margin:0 0 2px;">Nastav, co je pro vás při výběru důležitější. Skóre se přepočítá hned a váhy se pamatují v tomto prohlížeči.</p>
-    <label class="loan-slider">Cena za m² <input id="w-price" type="range" min="0" max="30" step="1" value="22"><b id="w-price-out">22</b></label>
-    <label class="loan-slider">Užitná plocha <input id="w-area" type="range" min="0" max="30" step="1" value="13"><b id="w-area-out">13</b></label>
-    <label class="loan-slider">Zahrada/pozemek/terasa <input id="w-outdoor" type="range" min="0" max="30" step="1" value="17"><b id="w-outdoor-out">17</b></label>
-    <label class="loan-slider">Dojezd <input id="w-commute" type="range" min="0" max="30" step="1" value="22"><b id="w-commute-out">22</b></label>
-    <label class="loan-slider">Stav (hned / výstavba) <input id="w-ready" type="range" min="0" max="30" step="1" value="9"><b id="w-ready-out">9</b></label>
-    <label class="loan-slider">Měsíční splátka <input id="w-mort" type="range" min="0" max="30" step="1" value="13"><b id="w-mort-out">13</b></label>
-    <label class="loan-slider">PENB <input id="w-energy" type="range" min="0" max="30" step="1" value="4"><b id="w-energy-out">4</b></label>
+    <p class="hint">Nastav, co je pro vás při výběru důležitější. Skóre se přepočítá hned a váhy se pamatují v tomto prohlížeči.</p>
+    <div class="weight-rows">
+      <div class="weight-row"><label for="w-price">Cena za m²</label><input id="w-price" class="slider" type="range" min="0" max="30" step="1" value="22"><b id="w-price-out">22</b></div>
+      <div class="weight-row"><label for="w-area">Užitná plocha</label><input id="w-area" class="slider" type="range" min="0" max="30" step="1" value="13"><b id="w-area-out">13</b></div>
+      <div class="weight-row"><label for="w-outdoor">Zahrada / pozemek / terasa</label><input id="w-outdoor" class="slider" type="range" min="0" max="30" step="1" value="17"><b id="w-outdoor-out">17</b></div>
+      <div class="weight-row"><label for="w-commute">Dojezd</label><input id="w-commute" class="slider" type="range" min="0" max="30" step="1" value="22"><b id="w-commute-out">22</b></div>
+      <div class="weight-row"><label for="w-ready">Stav (hned / výstavba)</label><input id="w-ready" class="slider" type="range" min="0" max="30" step="1" value="9"><b id="w-ready-out">9</b></div>
+      <div class="weight-row"><label for="w-mort">Měsíční splátka</label><input id="w-mort" class="slider" type="range" min="0" max="30" step="1" value="13"><b id="w-mort-out">13</b></div>
+      <div class="weight-row"><label for="w-energy">PENB</label><input id="w-energy" class="slider" type="range" min="0" max="30" step="1" value="4"><b id="w-energy-out">4</b></div>
+    </div>
     <button class="btn-ghost" type="button" id="w-reset">Výchozí váhy</button>
   </section>
 
-  <section class="mortgage filters-panel" id="filters-panel" hidden>
+  <section class="settings-box filters-panel" id="filters-panel" hidden>
     <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtry (musí splňovat)</div>
-    <p class="hint" style="flex:1 1 100%; margin:0 0 2px;">Nastav tvrdé podmínky — nabídky, co je nesplní, se schovají ze všech přehledů i ze skóre.</p>
-    <label>Cena max (Kč) <input id="f-priceMax" type="number" inputmode="numeric" min="0" step="100000" placeholder="bez limitu"></label>
-    <label>Plocha min (m²) <input id="f-areaMin" type="number" inputmode="numeric" min="0" step="5" placeholder="bez limitu"></label>
-    <label>Dojezd autem max (min) <input id="f-carMax" type="number" inputmode="numeric" min="0" step="5" placeholder="bez limitu"></label>
-    <label class="check-inline"><input id="f-garden" type="checkbox"> musí mít zahradu/pozemek</label>
-    <label class="check-inline"><input id="f-garage" type="checkbox"> musí mít garáž</label>
+    <p class="hint">Nastav tvrdé podmínky — nabídky, co je nesplní, se schovají ze všech přehledů i ze skóre.</p>
+    <div class="filters-grid">
+      <label>Cena max (Kč) <input id="f-priceMax" type="text" class="fmt-thousands" inputmode="numeric" placeholder="bez limitu"></label>
+      <label>Plocha min (m²) <input id="f-areaMin" type="number" inputmode="numeric" min="0" step="5" placeholder="bez limitu"></label>
+      <label>Dojezd autem max (min) <input id="f-carMax" type="number" inputmode="numeric" min="0" step="5" placeholder="bez limitu"></label>
+      <label class="check-inline"><input id="f-garden" type="checkbox"> musí mít zahradu/pozemek</label>
+      <label class="check-inline"><input id="f-garage" type="checkbox"> musí mít garáž</label>
+    </div>
     <button class="btn-ghost" type="button" id="f-reset">Zrušit filtry</button>
   </section>
 
@@ -1182,78 +1186,147 @@ document.getElementById("search-new").addEventListener("click", openSearchNew);
 document.getElementById("bulk-delete").addEventListener("click", startBulkDelete);
 
 const SEARCH_FILTER_KEY = "nase.search.byd";
+const DISP_OPTIONS = ["1+kk","1+1","2+kk","2+1","3+kk","3+1","4+kk","4+1","5+kk","5+1","6+"];
+let searchCandidates = [];
+const selectedCandidates = new Set();
 function openSearchNew(){
   let saved={};
   try{ saved=JSON.parse(localStorage.getItem(SEARCH_FILTER_KEY)||"{}")||{}; }catch{ saved={}; }
   const types=Array.isArray(saved.types)?saved.types:["dum","byt"];
+  const savedDisp=new Set(String(saved.disp||"").split(",").map(s=>s.trim()).filter(Boolean));
   const v=(key,fallback="")=>esc(saved[key]??fallback);
+  searchCandidates=[]; selectedCandidates.clear();
   const wrap=document.createElement("div"); wrap.className="modal-bg";
-  wrap.innerHTML=`<div class="modal" style="max-width:560px">
+  wrap.innerHTML=`<div class="modal" style="max-width:640px">
     <button class="modal-x" type="button" id="sn_x" aria-label="Zavřít">×</button>
     <h3>Hledat nové inzeráty</h3>
-    <p class="hint">Prohledám sreality.cz podle filtru a nové nabídky rovnou uložím k ostatním. Filtr si pamatuju na příště.</p>
+    <p class="hint">Prohledám sreality.cz podle filtru. Výsledky si prohlédneš a sám vybereš, co se má přidat.</p>
     <label>Lokalita</label><input id="sn_locality" placeholder="Praha" value="${v('locality','Praha')}">
     <div class="checks compact">
       <label><input type="checkbox" id="sn_dum" ${types.includes('dum')?'checked':''}> domy</label>
       <label><input type="checkbox" id="sn_byt" ${types.includes('byt')?'checked':''}> byty</label>
       <label><input type="checkbox" id="sn_photos" ${saved.photosOnly===false?'':'checked'}> jen s fotkami</label>
     </div>
-    <div class="grid2"><div><label>Cena od (Kč)</label><input id="sn_priceFrom" inputmode="numeric" value="${v('priceFrom')}"></div><div><label>Cena do (Kč)</label><input id="sn_priceTo" inputmode="numeric" value="${v('priceTo')}"></div></div>
-    <div class="grid2"><div><label>Plocha od (m²)</label><input id="sn_areaFrom" inputmode="numeric" value="${v('areaFrom')}"></div><div><label>Dispozice</label><input id="sn_disp" placeholder="4+kk 5+1" value="${v('disp')}"></div></div>
-    <div class="grid2"><div><label>Max dojezd autem (min)</label><input id="sn_carTo" inputmode="numeric" value="${v('carTo')}" placeholder="pomalejší hledání"></div><div><label>Kolik přidat najednou</label><select id="sn_limit" style="width:100%"><option value="3">3</option><option value="6">6</option><option value="9">9</option></select></div></div>
+    <div class="grid2"><div><label>Cena od (Kč)</label><input id="sn_priceFrom" inputmode="numeric" class="fmt-thousands" value="${v('priceFrom')}"></div><div><label>Cena do (Kč)</label><input id="sn_priceTo" inputmode="numeric" class="fmt-thousands" value="${v('priceTo')}"></div></div>
+    <label>Plocha od (m²)</label><input id="sn_areaFrom" inputmode="numeric" class="fmt-thousands" value="${v('areaFrom')}" style="max-width:160px">
+    <label>Dispozice</label>
+    <div class="chip-select" id="sn_disp_chips">${DISP_OPTIONS.map(d=>`<button type="button" class="chip-toggle${savedDisp.has(d)?' on':''}" data-disp="${d}">${d}</button>`).join('')}</div>
+    <div class="grid2"><div><label>Max dojezd autem (min)</label><input id="sn_carTo" inputmode="numeric" value="${v('carTo')}" placeholder="pomalejší hledání"></div><div><label>Kolik hledat najednou</label><select id="sn_limit" style="width:100%"><option value="6">6</option><option value="9">9</option><option value="12">12</option></select></div></div>
     <div class="msg" id="sn_msg"></div>
-    <div class="score-breakdown" id="sn_results" hidden></div>
-    <div class="actions"><button class="btn-ghost" type="button" id="sn_cancel">Zavřít</button><button class="btn-add" type="button" id="sn_go">Hledat</button></div>
+    <div id="sn_results" hidden></div>
+    <div class="actions" id="sn_actions"><button class="btn-ghost" type="button" id="sn_cancel">Zavřít</button><button class="btn-add" type="button" id="sn_go">Hledat</button></div>
   </div>`;
   document.body.appendChild(wrap);
+  Nase.wireThousandsAll(wrap);
   const g=id=>wrap.querySelector("#sn_"+id);
   g("limit").value=String(saved.limit||6);
   const close=()=>wrap.remove();
   g("x").onclick=close; g("cancel").onclick=close;
-  const numVal=id=>{ const n=parseInt(g(id).value.replace(/\s/g,""),10); return Number.isFinite(n)&&n>0?n:""; };
-  g("go").onclick=async()=>{
+  g("disp_chips").addEventListener("click", e=>{
+    const b=e.target.closest(".chip-toggle"); if(!b) return;
+    b.classList.toggle("on");
+  });
+  const numVal=id=>{ const n=Nase.parseThousands(g(id).value); return n>0?n:""; };
+  function renderCandidatePreview(){
+    const box=g("results");
+    if(!searchCandidates.length){ box.hidden=true; return; }
+    box.hidden=false;
+    box.innerHTML=`<div class="cand-toolbar"><span>${selectedCandidates.size}/${searchCandidates.length} vybráno</span><button class="inline-link" type="button" id="sn_selall">vybrat vše</button><button class="inline-link" type="button" id="sn_selnone">zrušit výběr</button></div>
+      <div class="cand-list">${searchCandidates.map((c,i)=>{
+        const checked=selectedCandidates.has(i);
+        const img=c.img?imgSrc(c.img):"";
+        return `<label class="cand-item${checked?' checked':''}">
+          <input type="checkbox" data-i="${i}" ${checked?'checked':''}>
+          ${img?`<img src="${esc(img)}" alt="" loading="lazy">`:`<span class="cand-noimg">${I.house}</span>`}
+          <span class="cand-info">
+            <b>${esc(c.n)}</b>
+            <small>${esc(c.disp||'')} · ${czk(c.price)} Kč · ${c.area||0} m²</small>
+          </span>
+          <a class="inline-link" href="${esc(safeUrl(c.url))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">inzerát</a>
+        </label>`;
+      }).join("")}</div>`;
+    box.querySelector("#sn_selall").onclick=()=>{ searchCandidates.forEach((_,i)=>selectedCandidates.add(i)); renderCandidatePreview(); };
+    box.querySelector("#sn_selnone").onclick=()=>{ selectedCandidates.clear(); renderCandidatePreview(); };
+    box.querySelectorAll('input[type=checkbox][data-i]').forEach(cb=>{
+      cb.addEventListener("change", ()=>{
+        const i=Number(cb.dataset.i);
+        if(cb.checked) selectedCandidates.add(i); else selectedCandidates.delete(i);
+        renderCandidatePreview();
+      });
+    });
+  }
+  function renderActions(){
+    g("actions").innerHTML = searchCandidates.length
+      ? `<button class="btn-ghost" type="button" id="sn_cancel2">Zavřít</button><button class="btn-ghost" type="button" id="sn_again">Hledat znovu</button><button class="btn-add" type="button" id="sn_confirm">Přidat vybrané (${selectedCandidates.size})</button>`
+      : `<button class="btn-ghost" type="button" id="sn_cancel2">Zavřít</button><button class="btn-add" type="button" id="sn_go">Hledat</button>`;
+    const c2=wrap.querySelector("#sn_cancel2"); if(c2) c2.onclick=close;
+    const again=wrap.querySelector("#sn_again"); if(again) again.onclick=runSearch;
+    const goBtn=wrap.querySelector("#sn_go"); if(goBtn) goBtn.onclick=runSearch;
+    const confirm=wrap.querySelector("#sn_confirm"); if(confirm) confirm.onclick=confirmAdd;
+  }
+  async function runSearch(){
     const chosen=[]; if(g("dum").checked)chosen.push("dum"); if(g("byt").checked)chosen.push("byt");
     if(!chosen.length){ g("msg").textContent="Vyber aspoň domy, nebo byty."; return; }
+    const disp=[...wrap.querySelectorAll(".chip-toggle.on")].map(b=>b.dataset.disp).join(",");
     const q={
       locality:g("locality").value.trim()||"Praha",
       types:chosen,
       photosOnly:g("photos").checked,
       priceFrom:numVal("priceFrom"), priceTo:numVal("priceTo"),
-      areaFrom:numVal("areaFrom"), disp:g("disp").value.trim(),
+      areaFrom:numVal("areaFrom"), disp,
       carTo:numVal("carTo"),
       limit:Number(g("limit").value)||6
     };
     localStorage.setItem(SEARCH_FILTER_KEY, JSON.stringify(q));
     if(q.carTo) q.commuteDest=commuteDest;
-    const btn=g("go"); btn.disabled=true; btn.textContent="Hledám…";
+    const btn=wrap.querySelector("#sn_go")||wrap.querySelector("#sn_again");
+    if(btn){ btn.disabled=true; btn.textContent="Hledám…"; }
     g("msg").textContent="Prohledávám sreality.cz… může to trvat i půl minuty.";
+    searchCandidates=[]; selectedCandidates.clear();
     g("results").hidden=true;
     try{
       const r=await fetch(API+"/search-listings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(q)});
       const j=await r.json();
       if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
-      const added=j.added||[], filtered=j.filtered||[], errs=j.errors||[];
+      searchCandidates=j.candidates||[];
+      searchCandidates.forEach((_,i)=>selectedCandidates.add(i));
+      const filtered=j.filtered||[], errs=j.errors||[];
       const parts=[];
-      parts.push(added.length
-        ? Nase.plural(added.length, "Přidána 1 nová nemovitost.", `Přidány ${added.length} nové nemovitosti.`, `Přidáno ${added.length} nových nemovitostí.`)
+      parts.push(searchCandidates.length
+        ? Nase.plural(searchCandidates.length, "Nalezena 1 nová nemovitost k výběru.", `Nalezeny ${searchCandidates.length} nové nemovitosti k výběru.`, `Nalezeno ${searchCandidates.length} nových nemovitostí k výběru.`)
         : "Nic nového — vše z výsledků už máme, nebo nic neprošlo filtrem.");
       if(filtered.length) parts.push(Nase.plural(filtered.length, "1 inzerát neprošel filtrem.", `${filtered.length} inzeráty neprošly filtrem.`, `${filtered.length} inzerátů neprošlo filtrem.`));
       if(errs.length) parts.push(Nase.plural(errs.length, "1 se nepodařilo načíst.", `${errs.length} se nepodařilo načíst.`, `${errs.length} se nepodařilo načíst.`));
       if(j.timedOut) parts.push("Časový limit — klikni na Hledat znovu, naváže se tam, kde to skončilo.");
       g("msg").textContent=parts.join(" ");
-      const rows=[
-        ...added.map(x=>`<div class="score-row"><b>${esc(x.n)}</b><p>přidáno · <a class="inline-link" href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener">inzerát</a></p></div>`),
-        ...filtered.map(x=>`<div class="score-row"><b>${esc(x.n||x.url)}</b><p>vyřazeno · ${esc(x.reason)}</p></div>`)
-      ];
-      g("results").innerHTML=rows.join("");
-      g("results").hidden=!rows.length;
-      btn.disabled=false; btn.textContent="Hledat znovu";
-      if(added.length) await loadData();
+      renderCandidatePreview();
+      renderActions();
     }catch(e){
       g("msg").textContent="Hledání selhalo: "+e.message;
-      btn.disabled=false; btn.textContent="Hledat";
+      renderActions();
     }
-  };
+  }
+  async function confirmAdd(){
+    const items=[...selectedCandidates].map(i=>searchCandidates[i]).filter(Boolean);
+    if(!items.length){ g("msg").textContent="Nic není vybráno."; return; }
+    const confirmBtn=wrap.querySelector("#sn_confirm");
+    confirmBtn.disabled=true; confirmBtn.textContent="Přidávám…";
+    let ok=0, fail=0;
+    for(const data of items){
+      try{
+        const r=await fetch(API+"/add",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({section:"byd",data})});
+        if(!r.ok) throw 0;
+        ok++;
+      }catch(e){ fail++; }
+    }
+    g("msg").textContent = `Přidáno ${ok}${fail?`, chyby ${fail}`:''}.`;
+    searchCandidates=[]; selectedCandidates.clear();
+    g("results").hidden=true;
+    renderActions();
+    if(ok) await loadData();
+  }
+  renderActions();
+  g("go").onclick=runSearch;
 }
 
 async function refreshAllListings(){
@@ -1369,20 +1442,20 @@ function editStav(id){
     <p class="hint">${esc(item.n)}</p>
     <div class="checks">${checks}</div>
     <label>Domluvená cena (Kč)</label>
-    <input id="dealp" type="number" inputmode="numeric" placeholder="napiš usmlouvanou cenu" value="${item.dealPrice||''}">
+    <input id="dealp" type="text" class="fmt-thousands" inputmode="numeric" placeholder="napiš usmlouvanou cenu" value="${item.dealPrice||''}">
     <h4 style="margin:14px 0 2px;">Poznámky z prohlídky</h4>
     ${visitFields}
     <div class="msg" id="sv_msg"></div>
     <div class="actions"><button class="btn-ghost" type="button" id="sv_cancel">Zrušit</button><button class="btn-add" type="button" id="sv_save">Uložit</button></div>
   </div>`;
   document.body.appendChild(wrap);
+  Nase.wireThousandsAll(wrap);
   const close=()=>wrap.remove();
   wrap.querySelector("#sv_x").onclick=close;
   wrap.querySelector("#sv_cancel").onclick=close;
   wrap.querySelector("#sv_save").onclick=async()=>{
     const flags=Object.keys(FLAGS).filter(k=>wrap.querySelector("#fl_"+k).checked);
-    const dpRaw=wrap.querySelector("#dealp").value.replace(/\s/g,'');
-    const dealPrice=dpRaw?Number(dpRaw):null;
+    const dealPrice=Nase.parseThousands(wrap.querySelector("#dealp").value)||null;
     const visitNotes={};
     VISIT_FIELDS.forEach(vf=>{ visitNotes[vf.key]=wrap.querySelector("#vn_"+vf.key).value.trim(); });
     const msg=wrap.querySelector("#sv_msg"); msg.className="msg"; msg.textContent="Ukládám…";
@@ -1446,18 +1519,19 @@ document.getElementById("weights-toggle").addEventListener("click", e=>{
 
 const FILTER_KEYS = ["priceMax","areaMin","carMax"];
 function applyHardFiltersToInputs(){
-  FILTER_KEYS.forEach(k=>{ document.getElementById("f-"+k).value = hardFilters[k] || ""; });
+  FILTER_KEYS.forEach(k=>{ const el=document.getElementById("f-"+k); el.value = hardFilters[k] || ""; el.dispatchEvent(new Event("input")); });
   document.getElementById("f-garden").checked = Boolean(hardFilters.garden);
   document.getElementById("f-garage").checked = Boolean(hardFilters.garage);
 }
 function recalcHardFilters(){
-  FILTER_KEYS.forEach(k=>{ hardFilters[k] = Math.max(0, parseInt(document.getElementById("f-"+k).value) || 0); });
+  FILTER_KEYS.forEach(k=>{ hardFilters[k] = Nase.parseThousands(document.getElementById("f-"+k).value); });
   hardFilters.garden = document.getElementById("f-garden").checked;
   hardFilters.garage = document.getElementById("f-garage").checked;
   saveHardFilters();
   computeExtents(); renderPick(); renderKpis(); renderAll();
   if(mapWrap) renderMap();
 }
+Nase.wireThousandsAll(document);
 applyHardFiltersToInputs();
 [...FILTER_KEYS.map(k=>"f-"+k), "f-garden", "f-garage"].forEach(id=>{
   const el=document.getElementById(id);
@@ -1537,8 +1611,8 @@ function editNote(id){
   };
 }
 
-function fld(label,id,ph){ return `<div class="field-wrap" data-field="${id}"><label>${label}</label><input id="m_${id}" placeholder="${ph||''}"><small class="missing-note" hidden>Nebylo detekováno</small></div>`; }
-function editFld(label,id,value,type='text'){ return `<label>${label}</label><input id="e_${id}" type="${type}" value="${esc(value??'')}">`; }
+function fld(label,id,ph,fmt){ return `<div class="field-wrap" data-field="${id}"><label>${label}</label><input id="m_${id}" placeholder="${ph||''}"${fmt?' class="fmt-thousands" inputmode="numeric"':''}><small class="missing-note" hidden>Nebylo detekováno</small></div>`; }
+function editFld(label,id,value,type='text'){ const fmt=type==='thousands'; return `<label>${label}</label><input id="e_${id}" type="${fmt?'text':type}" ${fmt?'class="fmt-thousands" inputmode="numeric"':''} value="${esc(value??'')}">`; }
 function niceTitleFromImport(d){
   const type = d.t === "byt" ? "Byt" : "Dům";
   const rawAddress = String(d.origin || d.address || d.n || "").trim();
@@ -1561,8 +1635,8 @@ function openEditProperty(id){
     <h3>Upravit nemovitost</h3>
     <p class="hint">${esc(item.n)}</p>
     ${editFld("Název / lokalita","n",item.n)}
-    <div class="grid2"><div>${editFld("Cena (Kč)","price",item.price,'number')}</div><div>${editFld("Užitná plocha m²","area",item.area,'number')}</div></div>
-    <div class="grid2"><div>${editFld("Pozemek m²","plotArea",item.plotArea||0,'number')}</div><div>${editFld("Zahrada m²","gardenArea",item.gardenArea||0,'number')}</div></div>
+    <div class="grid2"><div>${editFld("Cena (Kč)","price",item.price,'thousands')}</div><div>${editFld("Užitná plocha m²","area",item.area,'number')}</div></div>
+    <div class="grid2"><div>${editFld("Pozemek m²","plotArea",item.plotArea||0,'thousands')}</div><div>${editFld("Zahrada m²","gardenArea",item.gardenArea||0,'thousands')}</div></div>
     ${editFld("Adresa / origin pro mapy","origin",item.origin||item.n)}
     <div class="grid2"><div>${editFld("Dojezd autem min","car",item.car||0,'number')}</div><div>${editFld("Dojezd MHD min","pt",item.pt||0,'number')}</div></div>
     <div class="grid2"><div>${editFld("PENB","en",item.en||'')}</div><div><label>Stav</label><select id="e_ready" style="width:100%"><option value="1" ${item.ready?'selected':''}>k nastěhování</option><option value="0" ${!item.ready?'selected':''}>ve výstavbě</option></select></div></div>
@@ -1578,14 +1652,15 @@ function openEditProperty(id){
     <div class="actions"><button class="btn-ghost" type="button" id="e_cancel">Zrušit</button><button class="btn-add" type="button" id="e_save">Uložit</button></div>
   </div>`;
   document.body.appendChild(wrap);
+  Nase.wireThousandsAll(wrap);
   const close=()=>wrap.remove();
   const g=k=>wrap.querySelector("#e_"+k).value.trim();
   wrap.querySelector("#e_x").onclick=close;
   wrap.querySelector("#e_cancel").onclick=close;
   wrap.querySelector("#e_save").onclick=async()=>{
     const patch={
-      n:g("n"), price:Number(g("price"))||null, area:Number(g("area"))||0,
-      plotArea:Number(g("plotArea"))||0, gardenArea:Number(g("gardenArea"))||0,
+      n:g("n"), price:Nase.parseThousands(g("price"))||null, area:Number(g("area"))||0,
+      plotArea:Nase.parseThousands(g("plotArea"))||0, gardenArea:Nase.parseThousands(g("gardenArea"))||0,
       origin:g("origin"), car:Number(g("car"))||0, pt:Number(g("pt"))||0,
       en:g("en"), ready:Number(wrap.querySelector("#e_ready").value), when:g("when"),
       terrace:wrap.querySelector("#e_terrace").checked, balcony:wrap.querySelector("#e_balcony").checked,
@@ -1739,9 +1814,9 @@ function openAdd(){
     ${fld("Název / lokalita","n")}
     ${fld("Adresa","origin")}
     <div class="grid2"><div><label>Typ</label><select id="m_t" style="width:100%"><option value="dum">dům</option><option value="byt">byt</option></select></div><div>${fld("Dispozice (popis)","disp","dům 4+kk · řadový")}</div></div>
-    <div class="grid2"><div>${fld("Cena (Kč)","price")}</div><div>${fld("Plocha (m²)","area")}</div></div>
+    <div class="grid2"><div>${fld("Cena (Kč)","price",'',true)}</div><div>${fld("Plocha (m²)","area")}</div></div>
     ${fld("Pozemek / zahrada (text)","land")}
-    <div class="grid2"><div>${fld("Pozemek m²","plotArea")}</div><div>${fld("Zahrada m²","gardenArea")}</div></div>
+    <div class="grid2"><div>${fld("Pozemek m²","plotArea",'',true)}</div><div>${fld("Zahrada m²","gardenArea",'',true)}</div></div>
     <div class="checks compact">
       <label><input type="checkbox" id="m_terrace"> terasa</label>
       <label><input type="checkbox" id="m_balcony"> balkon/lodžie</label>
@@ -1758,6 +1833,7 @@ function openAdd(){
     <div class="actions"><button class="btn-ghost" type="button" id="m_cancel">Zrušit</button><button class="btn-add" type="button" id="m_save">Uložit</button></div>
   </div>`;
   document.body.appendChild(wrap);
+  Nase.wireThousandsAll(wrap);
   const close=()=>wrap.remove();
   const msg=wrap.querySelector("#m_msg");
   const g=id=>wrap.querySelector("#m_"+id).value.trim();
@@ -1831,7 +1907,7 @@ function openAdd(){
         listedAt: d.listedAt || "",
         updatedAt: d.updatedAt || ""
       };
-      const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!=="") el.value=v; };
+      const set=(k,v)=>{ const el=wrap.querySelector("#m_"+k); if(el&&v!=null&&v!==""){ el.value=v; el.dispatchEvent(new Event("input")); } };
       set("origin",d.origin || d.address);
       set("n",niceTitleFromImport(d)); set("disp",d.disp); set("price",d.price); set("area",d.area); set("land",d.land);
       set("when",d.when); set("en",d.en); set("img",d.img); set("imgs",(d.imgs||[]).join("\n")); set("feats",(d.feats||[]).join(", "));
@@ -1851,9 +1927,9 @@ function openAdd(){
   };
   wrap.querySelector("#m_save").onclick=async()=>{
     const data={ n:g("n"), t:wrap.querySelector("#m_t").value, disp:g("disp"),
-      price:Number(g("price").replace(/\s/g,''))||null, area:Number(g("area").replace(/\s/g,''))||0,
+      price:Nase.parseThousands(g("price"))||null, area:Number(g("area").replace(/\s/g,''))||0,
       land:g("land"), ready:Number(wrap.querySelector("#m_ready").value), en:g("en"), when:g("when"),
-      plotArea:Number(g("plotArea"))||0, gardenArea:Number(g("gardenArea"))||0,
+      plotArea:Nase.parseThousands(g("plotArea"))||0, gardenArea:Nase.parseThousands(g("gardenArea"))||0,
       terrace:wrap.querySelector("#m_terrace").checked, balcony:wrap.querySelector("#m_balcony").checked,
       garage:wrap.querySelector("#m_garage").checked, parking:wrap.querySelector("#m_parking").checked,
       car:Number(g("car"))||0, pt:Number(g("pt"))||0, origin:g("origin") || (g("n").split(/[-–,]/)[0]||"").trim(),

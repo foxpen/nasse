@@ -33,6 +33,29 @@
     return n === 1 ? one : (n >= 2 && n <= 4 ? few : many);
   }
 
+  // "1000000" -> 1000000 (číslo bez mezer/textu)
+  function parseThousands(value) {
+    const n = Number(String(value == null ? '' : value).replace(/\D/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // živé formátování inputu na "1 000 000" při psaní
+  function wireThousands(input) {
+    if (!input || input.dataset.thousandsWired) return;
+    input.dataset.thousandsWired = '1';
+    const reformat = () => {
+      const raw = input.value.replace(/\D/g, '');
+      input.value = raw ? Number(raw).toLocaleString('cs-CZ') : '';
+    };
+    input.addEventListener('input', reformat);
+    reformat();
+  }
+
+  // zavolej po vlození modalu do DOM, obslouzi vsechny .fmt-thousands inputy najednou
+  function wireThousandsAll(root) {
+    (root || document).querySelectorAll('.fmt-thousands').forEach(wireThousands);
+  }
+
   function initThemeToggle() {
     const labels = { system: 'Systém', light: 'Světlý', dark: 'Tmavý' };
     const icons = {
@@ -115,5 +138,5 @@
     });
   }
 
-  window.Nase = { esc, jsstr, safeUrl, openUrl, plural, initThemeToggle, toast, confirmModal };
+  window.Nase = { esc, jsstr, safeUrl, openUrl, plural, initThemeToggle, toast, confirmModal, parseThousands, wireThousands, wireThousandsAll };
 })();
