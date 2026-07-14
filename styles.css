@@ -131,6 +131,11 @@ a{color:inherit;}
 .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:6px 0 18px;}
 .controls .spacer{flex:1 1 auto;}
 .controls-actions{display:flex; flex-wrap:wrap; gap:10px;}
+.ctl-group{display:flex; gap:10px; align-items:center;}
+.ctl-group+.ctl-group{padding-left:10px; border-left:1px solid var(--line);}
+.toggle-btn[aria-pressed="true"]{background:var(--primary); color:#fff; border-color:var(--primary);}
+.danger-toggle{color:#dc2626; border-color:#dc262655;}
+.danger-toggle:hover{border-color:#dc2626; background:color-mix(in srgb, #dc2626 10%, transparent);}
 .seg{display:inline-flex; gap:3px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-pill); padding:4px;}
 .seg button{font:inherit; font-size:14px; font-weight:600; color:var(--muted-fg); background:transparent;
             border:none; border-radius:var(--r-pill); padding:8px 16px; min-height:40px; cursor:pointer; transition:.2s var(--ease);}
@@ -945,7 +950,8 @@ input.slider::-moz-range-thumb{
 .modal .msg{font-size:13px;font-weight:600;margin-top:10px;min-height:18px;}
 .modal .msg.err{color:var(--warn);}
 .modal .msg.ok{color:var(--primary);}
-.btn-ghost{font:inherit;font-size:14px;font-weight:700;background:transparent;border:1px solid var(--line-2);color:var(--fg);border-radius:var(--r-pill);padding:9px 16px;cursor:pointer;min-height:44px;}
+.btn-ghost{font:inherit;font-size:14px;font-weight:700;background:transparent;border:1px solid var(--line-2);color:var(--fg);border-radius:var(--r-pill);padding:9px 16px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn-ghost svg{width:15px;height:15px;flex:none;}
 
 /* ---------- onboarding upgrade: photo tiles (taste-skill) ---------- */
 .ob-head{max-width:760px; margin:0 auto 30px; text-align:center;}
