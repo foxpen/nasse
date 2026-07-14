@@ -152,7 +152,11 @@ const I = {
   bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>',
   dot:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/></svg>',
   arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
-  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>'
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  note:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v13H6z"/><path d="M9 13h6M9 17h6"/></svg>',
+  trendDown:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>',
+  trendUp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>'
 };
 
 const API = "/.netlify/functions";
@@ -166,6 +170,19 @@ const pCzk = d => Number(d.czk)>0 ? Number(d.czk) : (Number(d.price)>0 ? Math.ro
 const pEur = d => Number(d.price)>0 ? Number(d.price) : (Number(d.czk)>0 ? Math.round(Number(d.czk)/RATE) : null);
 const czk = v => (v==null || Number(v)<=0 ? "?" : km(Number(v))+" Kč");
 const eur = v => (v==null || Number(v)<=0 ? "?" : km(Number(v))+" €");
+function fmtHistDate(iso){ try{ return new Date(iso).toLocaleDateString('cs-CZ'); }catch(e){ return ''; } }
+function priceHistoryRows(d){
+  const entries = Array.isArray(d.history) ? d.history : [];
+  const rows=[];
+  entries.forEach(e=>{
+    (e.changes||[]).forEach(c=>{
+      if((c.key==='czk'||c.key==='price') && c.from!=null && c.to!=null && c.from!==c.to){
+        rows.push({at:e.at, key:c.key, from:c.from, to:c.to});
+      }
+    });
+  });
+  return rows;
+}
 const { esc, jsstr, safeUrl } = window.Nase;
 const brandLabel = b => ({mazda:"Mazda",kia:"Kia",hyundai:"Hyundai",jeep:"Jeep"}[b]||b);
 const openUrl = window.Nase.openUrl;
@@ -308,8 +325,8 @@ function renderCards(){
           ${stavTag(d)}
         </div>
         <div class="del">
-          <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">📝 Poznámka</button>
-          <button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})">✕</button>
+          <button class="btn-note" type="button" onclick="event.stopPropagation();editNote(${d.id})">${I.note}Poznámka</button>
+          <button class="btn-del" type="button" onclick="event.stopPropagation();delById(${d.id})" aria-label="Smazat">${I.x}</button>
         </div>
         <span class="glyph" aria-hidden="true">${I.car}</span>
         <button class="score-pill auto-score-pill ${scoreClass(d.score)}" type="button" onclick="event.stopPropagation();openCarScore(${d.id})" title="Rozkliknout skóre">${d.score}</button>
@@ -438,12 +455,35 @@ async function loadData(){
   }
   refresh();
 }
-async function delById(id){
-  if(!confirm("Smazat tohle auto?")) return;
-  try{ const r=await fetch(API+"/delete?id="+id,{method:"DELETE"}); if(!r.ok) throw 0; }
-  catch(e){ alert("Smazání selhalo."); return; }
-  window.dispatchEvent(new CustomEvent('nase:react',{detail:'del'}));
-  loadData();
+const pendingDeletes = new Map();
+function delById(id){
+  const idx = CARS.findIndex(x=>x.id===id); if(idx===-1) return;
+  const pending = pendingDeletes.get(id);
+  if(pending) clearTimeout(pending.timer);
+  const item = pending ? pending.item : CARS[idx];
+  CARS.splice(idx,1);
+  refresh();
+  const timer = setTimeout(async ()=>{
+    pendingDeletes.delete(id);
+    try{
+      const r=await fetch(API+"/delete?id="+id,{method:"DELETE"});
+      if(!r.ok) throw 0;
+      window.dispatchEvent(new CustomEvent('nase:react',{detail:'del'}));
+    }catch(e){
+      Nase.toast("Smazání selhalo, obnovuji auto.", 'err');
+      CARS.push(item); refresh();
+    }
+  }, 5000);
+  pendingDeletes.set(id, {item, timer});
+  Nase.toast(`Smazáno: ${item.n}`, 'ok', {
+    duration: 5000,
+    actionLabel: 'Vrátit zpět',
+    onAction: ()=>{
+      const p=pendingDeletes.get(id); if(!p) return;
+      clearTimeout(p.timer); pendingDeletes.delete(id);
+      CARS.push(p.item); refresh();
+    }
+  });
 }
 
 function updateCompareBar(){
@@ -604,7 +644,8 @@ async function refreshAutoListings(){
       const actions=wrap.querySelector("#refresh-actions");
       actions.insertAdjacentHTML("afterbegin", `<button class="btn-del" type="button" id="refresh-delete-missing">Smazat nenalezené (${removable.length})</button>`);
       wrap.querySelector("#refresh-delete-missing").onclick=async()=>{
-        if(!confirm(`Opravdu smazat ${removable.length} nenalezených aut?`)) return;
+        const sure=await Nase.confirmModal({title:'Smazat nenalezené?', message:`Opravdu smazat ${removable.length} nenalezených aut? Tahle akce se uloží do databáze.`});
+        if(!sure) return;
         let ok=0;
         for(const item of removable){
           const dr=await fetch(API+"/delete?id="+item.id,{method:"DELETE"});
@@ -660,11 +701,11 @@ function openGallery(id){
   if(!viewImgs.length){ editCarPhotos(id); return; }
   const wrap=document.createElement("div"); wrap.className="modal-bg gallery-bg";
   wrap.innerHTML=`<div class="modal gallery-modal">
-    <button class="modal-x" type="button" id="gal-x" aria-label="ZavĹ™Ă­t">Ă—</button>
+    <button class="modal-x" type="button" id="gal-x" aria-label="Zavřít">×</button>
     <h3>${esc(item.n)}</h3>
-    <div class="gallery-main"><img id="gal-main" src="${esc(viewImgs[0])}" alt="Foto auta Â· ${esc(item.n)}">${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="gal-prev" aria-label="PĹ™edchozĂ­ fotka">â€ą</button><button class="gallery-nav next" type="button" id="gal-next" aria-label="DalĹˇĂ­ fotka">â€ş</button>`:''}</div>
+    <div class="gallery-main"><img id="gal-main" src="${esc(viewImgs[0])}" alt="Foto auta · ${esc(item.n)}">${viewImgs.length>1?`<button class="gallery-nav prev" type="button" id="gal-prev" aria-label="Předchozí fotka">‹</button><button class="gallery-nav next" type="button" id="gal-next" aria-label="Další fotka">›</button>`:''}</div>
     <div class="gallery-thumbs">${viewImgs.map((u,i)=>`<button type="button" class="${i===0?'on':''}" data-i="${i}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>
-    <div class="actions"><button class="btn-ghost" type="button" id="gal-edit">Upravit fotky</button><button class="btn-ghost" type="button" id="gal-close">ZavĹ™Ă­t</button></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="gal-edit">Upravit fotky</button><button class="btn-ghost" type="button" id="gal-close">Zavřít</button></div>
   </div>`;
   document.body.appendChild(wrap);
   const close=()=>wrap.remove();
@@ -694,12 +735,12 @@ function editCarPhotos(id){
   const imgs=carImages(d);
   const wrap=document.createElement("div"); wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal">
-    <button class="modal-x" type="button" id="ph-x" aria-label="ZavĹ™Ă­t">Ă—</button>
+    <button class="modal-x" type="button" id="ph-x" aria-label="Zavřít">×</button>
     <h3>Upravit fotky</h3>
-    <p class="hint">VloĹľ jednu URL fotky na Ĺ™Ăˇdek. PrvnĂ­ URL bude hlavnĂ­ fotka na kartÄ›.</p>
+    <p class="hint">Vlož jednu URL fotky na řádek. První URL bude hlavní fotka na kartě.</p>
     <label>URL fotek</label>
     <textarea id="ph-urls" rows="9" placeholder="https://...">${esc(imgs.join("\n"))}</textarea>
-    <div class="actions"><button class="btn-ghost" type="button" id="ph-cancel">ZruĹˇit</button><button class="btn-add" type="button" id="ph-save">UloĹľit fotky</button></div>
+    <div class="actions"><button class="btn-ghost" type="button" id="ph-cancel">Zrušit</button><button class="btn-add" type="button" id="ph-save">Uložit fotky</button></div>
   </div>`;
   document.body.appendChild(wrap);
   const close=()=>wrap.remove();
@@ -711,11 +752,11 @@ function editCarPhotos(id){
     const patch={img:unique[0]||"", imgs:unique};
     try{
       const res=await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch})});
-      if(!res.ok) throw new Error("UloĹľenĂ­ fotek selhalo.");
+      if(!res.ok) throw new Error("Uložení fotek selhalo.");
       Object.assign(d, patch);
       close();
       renderAll();
-    }catch(e){ alert(e.message || "UloĹľenĂ­ fotek selhalo."); }
+    }catch(e){ toast(e.message || "Uložení fotek selhalo.", 'err'); }
   };
 }
 
@@ -755,6 +796,12 @@ function openDetail(id){
           <div><dt>Stav</dt><dd>${esc(d.stav||'?')}</dd></div>
         </dl>
         ${(d.feats||[]).length?`<h4>Výbava / poznámky z inzerátu</h4><ul class="detail-feats">${d.feats.map(f=>`<li><span>${esc(f)}</span></li>`).join("")}</ul>`:''}
+        ${priceHistoryRows(d).length?`<h4>Historie ceny</h4><ul class="feats price-history">${priceHistoryRows(d).map(r=>{
+          const down = r.to < r.from;
+          const unit = r.key==='czk' ? 'Kč' : '€';
+          const fmt = n => n.toLocaleString('cs-CZ');
+          return `<li class="${down?'good':'bad'}">${down?I.trendDown:I.trendUp}<span>${fmtHistDate(r.at)} · ${fmt(r.from)} → ${fmt(r.to)} ${unit} (${down?'−':'+'}${fmt(Math.abs(r.to-r.from))} ${unit})</span></li>`;
+        }).join("")}</ul>`:''}
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
       </div>
     </div>

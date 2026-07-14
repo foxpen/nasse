@@ -60,5 +60,60 @@
     });
   }
 
-  window.Nase = { esc, jsstr, safeUrl, openUrl, plural, initThemeToggle };
+  let toastTimer = null;
+  function toast(message, type = 'ok', opts = {}) {
+    let t = document.getElementById('app-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'app-toast';
+      t.className = 'app-toast';
+      t.setAttribute('role', 'status');
+      t.setAttribute('aria-live', 'polite');
+      t.innerHTML = '<span id="app-toast-text"></span><button type="button" id="app-toast-action" hidden></button>';
+      document.body.appendChild(t);
+    }
+    t.classList.toggle('err', type === 'err');
+    t.querySelector('#app-toast-text').textContent = message;
+    const actionBtn = t.querySelector('#app-toast-action');
+    if (opts.actionLabel && opts.onAction) {
+      actionBtn.hidden = false;
+      actionBtn.textContent = opts.actionLabel;
+      actionBtn.onclick = () => { opts.onAction(); hideToast(); };
+    } else {
+      actionBtn.hidden = true;
+      actionBtn.onclick = null;
+    }
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, opts.duration || (type === 'err' ? 5000 : 3500));
+  }
+  function hideToast() {
+    const t = document.getElementById('app-toast');
+    if (t) t.classList.remove('on');
+  }
+
+  function confirmModal({ title = 'Opravdu?', message = '', confirmLabel = 'Ano, smazat', cancelLabel = 'Zrušit', danger = true } = {}) {
+    return new Promise(resolve => {
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-bg';
+      wrap.innerHTML = `<div class="modal" style="max-width:440px">
+        <button class="modal-x" type="button" id="cf-x" aria-label="Zavřít">×</button>
+        <h3>${esc(title)}</h3>
+        ${message ? `<p class="hint">${esc(message)}</p>` : ''}
+        <div class="actions">
+          <button class="btn-ghost" type="button" id="cf-cancel">${esc(cancelLabel)}</button>
+          <button class="${danger ? 'btn-add danger-action' : 'btn-add'}" type="button" id="cf-ok">${esc(confirmLabel)}</button>
+        </div>
+      </div>`;
+      document.body.appendChild(wrap);
+      const finish = value => { wrap.remove(); resolve(value); };
+      wrap.querySelector('#cf-x').onclick = () => finish(false);
+      wrap.querySelector('#cf-cancel').onclick = () => finish(false);
+      wrap.querySelector('#cf-ok').onclick = () => finish(true);
+      wrap.addEventListener('click', e => { if (e.target === wrap) finish(false); });
+      wrap.querySelector('#cf-ok').focus();
+    });
+  }
+
+  window.Nase = { esc, jsstr, safeUrl, openUrl, plural, initThemeToggle, toast, confirmModal };
 })();

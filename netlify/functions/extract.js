@@ -211,6 +211,26 @@ function srealityStructuredImages(html) {
   return [];
 }
 
+function srealityEnergyRating(html) {
+  try {
+    const scripts = [...String(html || '').matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)]
+      .map(m => m[1])
+      .filter(Boolean);
+    const raw = scripts.find(s => s.trim().startsWith('{"props"'));
+    if (!raw) return '';
+    const data = JSON.parse(raw);
+    const queries = data?.props?.pageProps?.dehydratedState?.queries || [];
+    for (const q of queries) {
+      const name = q?.state?.data?.params?.energyEfficiencyRating?.name;
+      const m = String(name || '').match(/^([A-G])\b/);
+      if (m) return m[1];
+    }
+  } catch {
+    return '';
+  }
+  return '';
+}
+
 function interestingFacts(text, desc) {
   const source = `${desc || ''} ${text || ''}`;
   const checks = [
@@ -372,7 +392,7 @@ function parseSreality(url, html) {
     n: loc, t, disp: (t === 'dum' ? 'dům ' : 'byt ') + (dispM ? dispM[1] : ''), price, area,
     land: plotArea ? `pozemek ${plotArea} m²` : '', plotArea, gardenArea,
     terrace: /terasa/i.test(joined), balcony: /balk[oó]n|lod[zž]ie/i.test(joined), garage: /gar[aá][zž]/i.test(joined), parking: /parkov[aá]n[ií]|parkovac/i.test(joined),
-    ready: vystavba ? 0 : 1, when: novostavba ? 'novostavba' : (vystavba ? 've výstavbě' : ''), en: '', car: 0, pt: 0,
+    ready: vystavba ? 0 : 1, when: novostavba ? 'novostavba' : (vystavba ? 've výstavbě' : ''), en: srealityEnergyRating(html), car: 0, pt: 0,
     origin: loc.split('-')[0].trim(), img, imgs,
     feats: [...interestingFacts(text, desc), listedAt ? 'Vytvořeno / zveřejněno: ' + listedAt : '', updatedAt ? 'Poslední úprava: ' + updatedAt : ''].filter(Boolean).slice(0, 10),
     listedAt, updatedAt, contact: [agency, phone].filter(Boolean).join(' · '), url

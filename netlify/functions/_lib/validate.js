@@ -113,5 +113,19 @@ export function cleanPatch(patch) {
   if ('lon' in patch) out.lon = num(patch.lon);
   if ('en' in patch) out.en = str(patch.en).slice(0, 4);
   if ('when' in patch) out.when = str(patch.when);
+  if ('rating' in patch) {
+    const r = patch.rating && typeof patch.rating === 'object' ? patch.rating : {};
+    const clamp = v => Math.max(0, Math.min(5, num(v) || 0));
+    out.rating = { a: clamp(r.a), b: clamp(r.b) };
+  }
+  if ('visitNotes' in patch) {
+    const v = patch.visitNotes && typeof patch.visitNotes === 'object' ? patch.visitNotes : {};
+    out.visitNotes = {
+      hluk: str(v.hluk).slice(0, 300),
+      sousede: str(v.sousede).slice(0, 300),
+      stav: str(v.stav).slice(0, 300),
+      poplatky: str(v.poplatky).slice(0, 300)
+    };
+  }
   return out;
 }
