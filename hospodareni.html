@@ -110,20 +110,20 @@
           <div class="total"><span>Čistá mzda</span><b id="salary-net">0 Kč</b></div>
         </div>
         <button class="btn-ghost" type="button" id="salary-to-income">Přidat jako příjem</button>
-        <p class="hint">Orientační výpočet pro zaměstnance: sociální 7,1 %, zdravotní 4,5 %, daň 15 %. Parametry a slevu můžeš upravit.</p>
+        <p class="hint">Orientační výpočet pro zaměstnance (2026): sociální 7,1 %, zdravotní 4,5 %, daň 15 % (23 % nad 146 901 Kč/měs.), zaokrouhleno dle zákona. Parametry a slevu můžeš upravit.</p>
         </div>
       </div>
 
-      <div class="tablewrap">
-        <div class="th">Výdaje podle kategorií</div>
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l7.5 4.3"/></svg>Výdaje podle kategorií</div>
         <div class="donut-wrap">
           <svg class="donut" id="cat-donut" viewBox="0 0 120 120" role="img" aria-label="Rozpad výdajů podle kategorií"></svg>
           <div class="category-list" id="category-list"></div>
         </div>
       </div>
 
-      <div class="tablewrap">
-        <div class="th th-flex">Spoření a poznámky<button class="bt-add" type="button" id="scenario-add" style="margin-left:auto">+ Nový cíl</button></div>
+      <div class="finance-panel">
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>Spoření a poznámky<button class="bt-add" type="button" id="scenario-add">+ Nový cíl</button></div>
         <div class="fin-tabs" role="tablist" aria-label="Spoření a poznámky">
           <button type="button" class="on" data-fintab="scen" role="tab" aria-selected="true">Spořicí cíle</button>
           <button type="button" data-fintab="note" role="tab" aria-selected="false">Poznámky</button>
@@ -150,6 +150,7 @@
         </div>
         <div class="mini-list" id="expense-list"></div>
         <div class="quick-chips" id="quick-expenses"></div>
+        <button class="btn-ghost quick-edit-btn" type="button" id="quick-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg>Upravit výchozí částky</button>
       </div>
 
       <div class="finance-panel">
@@ -175,17 +176,12 @@
         </div>
         <div class="mini-list" id="member-list"></div>
       </div>
-
-      <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 13 4-4 3 3 5-6"/></svg>Rychlý přehled</div>
-        <div class="quick-summary" id="quick-summary"></div>
-      </div>
     </div>
   </section>
 
   <section class="finance-bottom">
-    <div class="tablewrap">
-      <div class="th th-flex">Poslední transakce<b class="bt-total" id="txn-total"></b><button class="bt-add" type="button" data-toggle="txn-form">+ Přidat útratu</button></div>
+    <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/></svg>Poslední transakce<b class="bt-total" id="txn-total"></b><button class="bt-add" type="button" data-toggle="txn-form">+ Přidat útratu</button></div>
       <div class="finance-form txn-form" id="txn-form" hidden>
         <input id="txn-name" placeholder="Kaufland, benzín, lékárna...">
         <input id="txn-amount" type="number" min="0" step="10" placeholder="Kč">
@@ -218,6 +214,19 @@
     <div class="actions">
       <button class="btn-ghost" type="button" id="pin-remove">Bez PINu</button>
       <button class="btn-add" type="button" id="pin-save">Uložit PIN</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalback" id="quick-edit-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="quick-edit-title">
+    <button class="modal-x" type="button" id="quick-edit-x" aria-label="Zavřít"></button>
+    <h3 id="quick-edit-title">Výchozí částky rychlých výdajů</h3>
+    <p class="hint">Uprav orientační měsíční částky pro tlačítka rychlého přidání výdaje. Při přidávání jde částka vždy ještě upravit.</p>
+    <div class="quick-edit-grid" id="quick-edit-grid"></div>
+    <div class="actions">
+      <button class="btn-ghost" type="button" id="quick-edit-reset">Výchozí hodnoty</button>
+      <button class="btn-add" type="button" id="quick-edit-save">Uložit</button>
     </div>
   </div>
 </div>
@@ -271,10 +280,10 @@ const INCOME_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg>';
 const ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
 const ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
-const TAX = { social: .071, health: .045, income: .15 };
+const TAX = { social: .071, health: .045, income: .15, income2: .23, band2Monthly: 146901 };
 const MORTGAGE = { rate: 4.94, years: 30, loanPct: 90, insurance: 0 };
 const CAR_COST = { kmYear: 12000, fuelPrice: 38, service: 1500, insurance: 1200, tires: true, highway: true };
-const QUICK_EXPENSES = [
+const QUICK_EXPENSES_DEFAULT = [
   ['Bydlen\u00ed','Energie',6000],
   ['J\u00eddlo','J\u00eddlo a drogerie',16000],
   ['Auto / doprava','MHD / doprava',2500],
@@ -282,6 +291,15 @@ const QUICK_EXPENSES = [
   ['Poji\u0161t\u011bn\u00ed','Poji\u0161t\u011bn\u00ed',2500],
   ['Rezerva / investice','Rezerva',10000]
 ];
+const QUICK_STORE = 'nase.finance.quickexpenses.v1';
+function loadQuickExpenses(){
+  try{
+    const parsed = JSON.parse(localStorage.getItem(QUICK_STORE) || 'null');
+    if(Array.isArray(parsed) && parsed.length) return parsed;
+  }catch(e){}
+  return QUICK_EXPENSES_DEFAULT.map(x=>x.slice());
+}
+let QUICK_EXPENSES = loadQuickExpenses();
 const money = n => (Math.round(Number(n)||0)).toLocaleString('cs-CZ') + ' Kč';
 const id = () => Date.now() + Math.floor(Math.random()*1000);
 let DATA = loadData();
@@ -580,20 +598,6 @@ function renderScenarios(){
     </div>`;
   }).join('') : '<p class="hint">Zatím žádné spořicí cíle. Založ třeba „Dovolená" nebo „Nové auto" přes „+ Nový cíl".</p>';
 }
-function renderQuickSummary(){
-  const t=currentTotals();
-  const b=budget();
-  const rows=[
-    ['Rozpočet (příjmy)', money(t.income)],
-    ['Pravidelné výdaje', money(sum(b.expenses))],
-    ['Útraty tento měsíc', money(t.txnExpense)],
-    ['Zbývá do konce měsíce', money(t.balance)],
-    ['Úspora', `${money(Math.max(0,t.balance))} (${Math.max(0,t.savings)} %)`]
-  ];
-  const prev=lastMonth();
-  if(prev) rows.push([`Minulý měsíc (${esc(prev.label)})`, `zbylo ${money(prev.balance)}`]);
-  document.getElementById('quick-summary').innerHTML = rows.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('');
-}
 async function closeMonth(){
   const b=budget();
   const t=currentTotals();
@@ -618,9 +622,13 @@ function renderSalary(){
   const discount = Number(document.getElementById('salary-discount').value)||0;
   const deductions = Number(document.getElementById('salary-deductions').value)||0;
   const manual = Number(document.getElementById('salary-net-manual').value)||0;
-  const social = Math.round(gross*TAX.social);
-  const health = Math.round(gross*TAX.health);
-  const tax = Math.max(0, Math.round(gross*TAX.income) - discount);
+  const social = Math.ceil(gross*TAX.social);
+  const health = Math.ceil(gross*TAX.health);
+  const taxBase = gross>100 ? Math.ceil(gross/100)*100 : Math.ceil(gross);
+  const taxBeforeDiscount = taxBase <= TAX.band2Monthly
+    ? taxBase*TAX.income
+    : TAX.band2Monthly*TAX.income + (taxBase-TAX.band2Monthly)*TAX.income2;
+  const tax = Math.max(0, Math.ceil(taxBeforeDiscount - discount));
   const net = manual || Math.max(0, gross - social - health - tax - deductions);
   document.getElementById('salary-social').textContent = money(social);
   document.getElementById('salary-health').textContent = money(health);
@@ -637,7 +645,6 @@ function renderAll(){
   renderKpis();
   renderTxns();
   renderScenarios();
-  renderQuickSummary();
   document.getElementById('budget-notes').value = b.notes || '';
 }
 let undoRestore = null;
@@ -822,6 +829,31 @@ function wire(){
       validate:v=>{ const n=Number(v); return (!v || !(n>0)) ? 'Zadej částku větší než 0.' : null; }});
     if(val == null) return;
     addExpense(btn.dataset.cat, btn.dataset.name, Number(val), 'quick');
+  });
+  function renderQuickEdit(){
+    document.getElementById('quick-edit-grid').innerHTML = QUICK_EXPENSES.map(([cat,name,amount],i)=>`
+      <label>${esc(name)} <span class="hint-inline">(${esc(cat)})</span><input type="number" min="0" step="100" data-idx="${i}" value="${amount}"></label>`).join('');
+  }
+  document.getElementById('quick-edit').addEventListener('click', ()=>{
+    renderQuickEdit();
+    document.getElementById('quick-edit-modal').hidden = false;
+  });
+  document.getElementById('quick-edit-x').addEventListener('click', ()=>{ document.getElementById('quick-edit-modal').hidden = true; });
+  document.getElementById('quick-edit-modal').addEventListener('click', e=>{ if(e.target===document.getElementById('quick-edit-modal')) document.getElementById('quick-edit-modal').hidden = true; });
+  document.getElementById('quick-edit-save').addEventListener('click', ()=>{
+    document.querySelectorAll('#quick-edit-grid input').forEach(inp=>{
+      const i = Number(inp.dataset.idx);
+      QUICK_EXPENSES[i][2] = Math.max(0, Math.round(Number(inp.value)||0));
+    });
+    localStorage.setItem(QUICK_STORE, JSON.stringify(QUICK_EXPENSES));
+    renderQuickExpenses();
+    document.getElementById('quick-edit-modal').hidden = true;
+  });
+  document.getElementById('quick-edit-reset').addEventListener('click', ()=>{
+    QUICK_EXPENSES = QUICK_EXPENSES_DEFAULT.map(x=>x.slice());
+    localStorage.removeItem(QUICK_STORE);
+    renderQuickEdit();
+    renderQuickExpenses();
   });
   document.getElementById('budget-select').addEventListener('change', async e=>{
     const next = DATA.budgets.find(b=>String(b.id)===e.target.value);
