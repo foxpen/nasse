@@ -57,7 +57,7 @@
 </div>
 
 <main>
-  <section class="hero" id="hero" hidden>
+  <section class="hero reveal" id="hero" hidden>
     <a class="pick aut" id="pick" aria-label="Tip · nejlepší auto"></a>
     <div class="kpis" aria-label="Souhrn">
       <div class="kpi"><div class="l">Aut</div><div class="v" id="kpi-count">·</div></div>
@@ -67,7 +67,7 @@
     </div>
   </section>
 
-  <div class="settings-panel auto-settings" id="auto-settings" hidden>
+  <div class="settings-panel auto-settings reveal" id="auto-settings" hidden style="animation-delay:.06s">
     <div class="mortgage car-costs" id="car-costs">
       <div class="box-title">Náklady auta</div>
       <label>Ročně <input id="c-km-year" type="number" value="12000" min="1000" step="1000"> km</label>
@@ -100,9 +100,11 @@
       <option value="km">Nejméně najeto</option>
       <option value="power">Nejvýkonnější</option>
     </select>
-    <button class="btn-ghost" id="search-new" type="button">Hledat nové</button>
-    <button class="btn-ghost" id="refresh-all" type="button">Aktualizovat inzeráty</button>
-    <button class="btn-ghost" id="bulk-delete" type="button">Smazat</button>
+    <div class="controls-actions">
+      <button class="btn-ghost" id="search-new" type="button">Hledat nové</button>
+      <button class="btn-ghost" id="refresh-all" type="button">Aktualizovat inzeráty</button>
+      <button class="btn-ghost" id="bulk-delete" type="button">Smazat</button>
+    </div>
     <button class="btn-add" id="btn-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Přidat</button>
   </div>
 
@@ -193,6 +195,7 @@ let MINCOST=0, MAXCOST=1;
 let compareMode=false;
 const selectedCompare = new Set();
 let deleteMode=false;
+let cardsRenderedOnce=false;
 const selectedDelete = new Set();
 const defaultCostSettings={kmYear:12000,fuelPrice:38,service:1500,insurance:1200,tires:true,highway:true};
 let costSettings = {...defaultCostSettings, ...JSON.parse(localStorage.getItem("nase.carCosts") || "{}")};
@@ -311,14 +314,16 @@ function renderCards(){
   CARS.forEach(d=>d.score=carScore(d));
   let rows = sortRows(CARS.filter(d=> filter==="all"||d.brand===filter));
   document.getElementById("count").textContent = rows.length + (rows.length===1?" auto":(rows.length<5?" auta":" aut"));
-  document.getElementById("cards").innerHTML = rows.map(d=>{
+  document.getElementById("cards").innerHTML = rows.map((d,i)=>{
     const url = safeUrl(d.url);
     const cardImgs = carImages(d);
     const img = cardImgs[0] ? carImgSrc(cardImgs[0]) : "";
     const imgs = cardImgs.length;
     const selecting=compareMode || deleteMode;
     const selected=deleteMode ? selectedDelete.has(d.id) : selectedCompare.has(d.id);
-    return `<article class="card${d.win?' best':''}${selecting?' compare-select':''}${selected?' selected':''}" tabindex="0" role="button" aria-label="${esc(d.n)}, ${czk(pCzk(d))}"
+    const revealClass = cardsRenderedOnce ? '' : ' reveal';
+    const revealStyle = cardsRenderedOnce ? '' : ` style="animation-delay:${Math.min(i*40,400)}ms"`;
+    return `<article class="card${d.win?' best':''}${selecting?' compare-select':''}${selected?' selected':''}${revealClass}" tabindex="0" role="button" aria-label="${esc(d.n)}, ${czk(pCzk(d))}"${revealStyle}
         onclick="${deleteMode?`toggleDelete(${d.id})`:(compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`)}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${deleteMode?`toggleDelete(${d.id})`:(compareMode?`toggleCompare(${d.id})`:`openDetail(${d.id})`)}}">
       <div class="media byt">
         <div class="corner">
@@ -356,6 +361,7 @@ function renderCards(){
       </div>
     </article>`;
   }).join("");
+  cardsRenderedOnce = true;
 }
 
 function renderTable(){
