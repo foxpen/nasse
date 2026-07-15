@@ -1,0 +1,16 @@
+{
+  "name": "Naše",
+  "short_name": "Naše",
+  "description": "Naše Bydleníčko, Autíčko a Hospodařeníčko – rodinný přehled nemovitostí, aut a rozpočtu.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F4F7F6",
+  "theme_color": "#0F766E",
+  "lang": "cs",
+  "icons": [
+    { "src": "img/logo-mark.png", "sizes": "449x449", "type": "image/png", "purpose": "any" },
+    { "src": "favicon.png", "sizes": "64x64", "type": "image/png", "purpose": "any" }
+  ]
+}

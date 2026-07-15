@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Naše Hospodařeníčko · rozpočet</title>
 <link rel="icon" href="favicon.png?v=3" type="image/png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#D97706">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -70,6 +72,9 @@
         <button class="btn-ghost" type="button" id="budget-copy">Duplikovat</button>
         <button class="btn-ghost" type="button" id="budget-pin">PIN</button>
         <button class="btn-ghost" type="button" id="month-close">+ Nový měsíc</button>
+        <button class="btn-ghost" type="button" id="budget-export">Export zálohy</button>
+        <button class="btn-ghost" type="button" id="budget-import">Import zálohy</button>
+        <input type="file" id="budget-import-file" accept="application/json" hidden>
       </div>
     </div>
   </section>
@@ -115,7 +120,7 @@
       </div>
 
       <div class="finance-panel">
-        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l7.5 4.3"/></svg>Výdaje podle kategorií</div>
+        <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l7.5 4.3"/></svg>Výdaje podle kategorií<button class="bt-add" type="button" id="limits-open">Limity</button></div>
         <div class="donut-wrap">
           <svg class="donut" id="cat-donut" viewBox="0 0 120 120" role="img" aria-label="Rozpad výdajů podle kategorií"></svg>
           <div class="category-list" id="category-list"></div>
@@ -181,6 +186,11 @@
 
   <section class="finance-bottom">
     <div class="finance-panel">
+      <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>Vývoj v čase</div>
+      <div class="trend-wrap" id="trend-wrap"></div>
+    </div>
+
+    <div class="finance-panel">
       <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/></svg>Poslední transakce<b class="bt-total" id="txn-total"></b><button class="bt-add" type="button" data-toggle="txn-form">+ Přidat útratu</button></div>
       <div class="finance-form txn-form" id="txn-form" hidden>
         <input id="txn-name" placeholder="Kaufland, benzín, lékárna...">
@@ -214,6 +224,19 @@
     <div class="actions">
       <button class="btn-ghost" type="button" id="pin-remove">Bez PINu</button>
       <button class="btn-add" type="button" id="pin-save">Uložit PIN</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalback" id="limits-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="limits-title">
+    <button class="modal-x" type="button" id="limits-x" aria-label="Zavřít"></button>
+    <h3 id="limits-title">Limity na kategorie výdajů</h3>
+    <p class="hint">Nastav měsíční limit pro kategorie, kde chceš hlídat útraty. Prázdné pole = bez limitu.</p>
+    <div class="quick-edit-grid" id="limits-grid"></div>
+    <div class="actions">
+      <button class="btn-ghost" type="button" id="limits-reset">Zrušit limity</button>
+      <button class="btn-add" type="button" id="limits-save">Uložit</button>
     </div>
   </div>
 </div>
@@ -257,7 +280,7 @@
 <script src="auth.js"></script>
 <script src="app-utils.js"></script>
 <script>
-const { esc, plural } = window.Nase;
+const { esc, plural, confirmModal, toast } = window.Nase;
 const STORE = 'nase.finance.v2';
 const LEGACY_STORE = 'nase.finance.v1';
 const SESSION = 'nase.finance.unlocked.';
@@ -280,15 +303,19 @@ const INCOME_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg>';
 const ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
 const ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
+const I_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.6 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/><path d="M12 17h.01"/></svg>';
 const TAX = { social: .071, health: .045, income: .15, income2: .23, band2Monthly: 146901 };
 const MORTGAGE = { rate: 4.94, years: 30, loanPct: 90, insurance: 0 };
 const CAR_COST = { kmYear: 12000, fuelPrice: 38, service: 1500, insurance: 1200, tires: true, highway: true };
 const QUICK_EXPENSES_DEFAULT = [
+  ['Bydlen\u00ed','N\u00e1jem',15000],
   ['Bydlen\u00ed','Energie',6000],
   ['J\u00eddlo','J\u00eddlo a drogerie',16000],
   ['Auto / doprava','MHD / doprava',2500],
   ['D\u011bti','D\u011bti',5000],
   ['Poji\u0161t\u011bn\u00ed','Poji\u0161t\u011bn\u00ed',2500],
+  ['Rezerva / investice','Spo\u0159en\u00ed',3000],
+  ['Rezerva / investice','Investice',2000],
   ['Rezerva / investice','Rezerva',10000]
 ];
 const QUICK_STORE = 'nase.finance.quickexpenses.v1';
@@ -315,6 +342,7 @@ function normalizeBudget(b){
   b.scenarios = b.scenarios||[];
   b.history = b.history||[];
   b.notes = b.notes||'';
+  b.categoryLimits = b.categoryLimits||{};
   return b;
 }
 function loadData(){
@@ -477,12 +505,18 @@ function renderCategories(){
   const total=sum(spend);
   const rows = CATEGORIES.map(cat=>{
     const value = sum(spend.filter(x=>x.category===cat));
-    return {cat, value, pct: total ? Math.round(value/total*100) : 0};
+    const limit = Number(b.categoryLimits[cat])||0;
+    return {cat, value, limit, over: limit>0 && value>limit, pct: total ? Math.round(value/total*100) : 0};
   }).filter(r=>r.value>0).sort((a,b2)=>b2.value-a.value);
   document.getElementById('category-list').innerHTML = rows.length
-    ? rows.map(r=>`<div class="cat-leg"><span class="cat-dot" style="background:${catColor(r.cat)}" aria-hidden="true"></span><strong>${esc(r.cat)}</strong><b class="amt">${money(r.value)}</b><span class="pct">${r.pct} %</span></div>`).join('')
+    ? rows.map(r=>`<div class="cat-leg${r.over?' over':''}"><span class="cat-dot" style="background:${r.over?'#ef4444':catColor(r.cat)}" aria-hidden="true"></span><strong>${esc(r.cat)}</strong><b class="amt">${money(r.value)}${r.limit?` <span class="cat-limit">/ ${money(r.limit)}</span>`:''}</b>${r.over?`<span class="cat-over-tag">${I_WARN} přes limit</span>`:`<span class="pct">${r.pct} %</span>`}</div>`).join('')
     : '<p class="hint" style="padding:0 0 8px">Zatím žádné výdaje k rozpadu.</p>';
   renderDonut(rows, total);
+}
+function renderLimitsGrid(){
+  const b=budget();
+  document.getElementById('limits-grid').innerHTML = CATEGORIES.map(cat=>`
+    <label>${esc(cat)}<input type="number" min="0" step="500" data-cat="${esc(cat)}" value="${b.categoryLimits[cat]||''}" placeholder="bez limitu"></label>`).join('');
 }
 function renderDonut(rows, total){
   const svg = document.getElementById('cat-donut');
@@ -598,6 +632,43 @@ function renderScenarios(){
     </div>`;
   }).join('') : '<p class="hint">Zatím žádné spořicí cíle. Založ třeba „Dovolená" nebo „Nové auto" přes „+ Nový cíl".</p>';
 }
+function renderTrend(){
+  const b = budget();
+  const t = currentTotals();
+  const rows = b.history.map(h=>({label:h.label, income:h.income, expense:h.expense, balance:h.balance}));
+  rows.push({label:'Aktuální', income:t.income, expense:t.expense, balance:t.balance});
+  const wrap = document.getElementById('trend-wrap');
+  if(rows.length < 2){
+    wrap.innerHTML = '<p class="hint">Uzavři aspoň jeden měsíc přes „+ Nový měsíc", ať se tu ukáže vývoj v čase.</p>';
+    return;
+  }
+  const W=680, H=220, padL=64, padR=16, padT=16, padB=28;
+  const maxVal = Math.max(1, ...rows.flatMap(r=>[r.income, r.expense]));
+  const n = rows.length;
+  const x = i => padL + (W-padL-padR) * (n===1?0:i/(n-1));
+  const y = v => H-padB - (H-padT-padB) * (Math.max(0,v)/maxVal);
+  const linePath = key => rows.map((r,i)=>`${i===0?'M':'L'}${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`).join(' ');
+  const dots = key => rows.map((r,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.5"></circle>`).join('');
+  const labels = rows.map((r,i)=>`<text x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle" class="trend-label">${esc(r.label)}</text>`).join('');
+  const yTicks = [0, 0.5, 1].map(f=>{
+    const val = Math.round(maxVal*f);
+    const yy = y(val).toFixed(1);
+    return `<line x1="${padL}" x2="${W-padR}" y1="${yy}" y2="${yy}" class="trend-grid"></line><text x="${padL-8}" y="${Number(yy)+4}" text-anchor="end" class="trend-ytick">${money(val)}</text>`;
+  }).join('');
+  wrap.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" class="trend-svg" role="img" aria-label="Vývoj příjmů a výdajů v čase">
+      ${yTicks}
+      <path d="${linePath('income')}" class="trend-line income"></path>
+      <path d="${linePath('expense')}" class="trend-line expense"></path>
+      <g class="trend-dots income">${dots('income')}</g>
+      <g class="trend-dots expense">${dots('expense')}</g>
+      ${labels}
+    </svg>
+    <div class="trend-legend">
+      <span class="trend-leg income">Příjmy</span>
+      <span class="trend-leg expense">Výdaje</span>
+    </div>`;
+}
 async function closeMonth(){
   const b=budget();
   const t=currentTotals();
@@ -645,6 +716,7 @@ function renderAll(){
   renderKpis();
   renderTxns();
   renderScenarios();
+  renderTrend();
   document.getElementById('budget-notes').value = b.notes || '';
 }
 let undoRestore = null;
@@ -855,6 +927,26 @@ function wire(){
     renderQuickEdit();
     renderQuickExpenses();
   });
+  document.getElementById('limits-open').addEventListener('click', ()=>{
+    renderLimitsGrid();
+    document.getElementById('limits-modal').hidden = false;
+  });
+  document.getElementById('limits-x').addEventListener('click', ()=>{ document.getElementById('limits-modal').hidden = true; });
+  document.getElementById('limits-modal').addEventListener('click', e=>{ if(e.target===document.getElementById('limits-modal')) document.getElementById('limits-modal').hidden = true; });
+  document.getElementById('limits-save').addEventListener('click', ()=>{
+    const limits = {};
+    document.querySelectorAll('#limits-grid input').forEach(inp=>{
+      const v = Math.max(0, Math.round(Number(inp.value)||0));
+      if(v>0) limits[inp.dataset.cat] = v;
+    });
+    budget().categoryLimits = limits;
+    saveData(); renderAll();
+    document.getElementById('limits-modal').hidden = true;
+  });
+  document.getElementById('limits-reset').addEventListener('click', ()=>{
+    budget().categoryLimits = {};
+    saveData(); renderLimitsGrid(); renderAll();
+  });
   document.getElementById('budget-select').addEventListener('change', async e=>{
     const next = DATA.budgets.find(b=>String(b.id)===e.target.value);
     if(next && await ensureUnlocked(next)){ activeId=next.id; saveData(); renderAll(); }
@@ -922,6 +1014,47 @@ function wire(){
     sessionStorage.setItem(SESSION+budget().id,'1');
     saveData(); closePinModal(); renderAll();
   });
+  document.getElementById('budget-export').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hospodarenicko-zaloha-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast('Záloha stažena.');
+  });
+  document.getElementById('budget-import').addEventListener('click', ()=>{
+    document.getElementById('budget-import-file').click();
+  });
+  document.getElementById('budget-import-file').addEventListener('change', async e=>{
+    const file = e.target.files[0];
+    e.target.value = '';
+    if(!file) return;
+    let parsed;
+    try{
+      parsed = JSON.parse(await file.text());
+      if(!parsed || !Array.isArray(parsed.budgets) || !parsed.budgets.length) throw new Error('bad shape');
+    }catch(err){
+      toast('Neplatný soubor zálohy.', 'err');
+      return;
+    }
+    const ok = await confirmModal({
+      title:'Nahradit všechna data zálohou?',
+      message:'Import přepíše všechny rozpočty v tomto prohlížeči souborem „'+file.name+'". Jde vrátit zpět tlačítkem Vrátit zpět.',
+      confirmLabel:'Nahradit daty ze zálohy', cancelLabel:'Zrušit'
+    });
+    if(!ok) return;
+    const prevData = JSON.parse(JSON.stringify(DATA));
+    parsed.budgets.forEach(normalizeBudget);
+    DATA = parsed;
+    activeId = DATA.activeId || DATA.budgets[0].id;
+    saveData(); renderAll(); loadSourceListings();
+    showUndo('Data nahrazena zálohou „'+file.name+'".', ()=>{
+      DATA = prevData;
+      activeId = DATA.activeId || DATA.budgets[0].id;
+    });
+  });
 }
 function openPinModal(){ document.getElementById('pin-value').value=''; document.getElementById('pin-msg').textContent=''; document.getElementById('pin-modal').hidden=false; document.getElementById('pin-value').focus(); }
 document.getElementById('ask-ok').addEventListener('click', askConfirm);
@@ -934,6 +1067,9 @@ function closePinModal(){ document.getElementById('pin-modal').hidden=true; }
 (async function init(){
   await window.naseAuthReady;
   window.Nase.initThemeToggle();
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  }
   wire();
   renderSalary();
   if(!(await ensureUnlocked(budget()))) activeId = DATA.budgets.find(b=>!b.pin)?.id || DATA.budgets[0].id;

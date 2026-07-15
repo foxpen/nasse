@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Naše Bydleníčko · nemovitosti</title>
 <link rel="icon" href="favicon.png?v=3" type="image/png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F766E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -269,6 +271,7 @@ function computeExtents(){
   MAXMORT = morts.length ? Math.max(...morts) : 1;
 }
 
+let lastDataSignature = '';
 async function loadData(){
   const grid = document.getElementById("cards");
   const pick=document.getElementById("pick");
@@ -284,6 +287,7 @@ async function loadData(){
     const res = await fetch(API+"/list?section=byd");
     if(!res.ok) throw new Error("HTTP "+res.status);
     DATA = await res.json();
+    lastDataSignature = JSON.stringify(DATA);
     DATA.forEach(d=>{ if(d.n) d.n=d.n.replace(/—/g,'·'); normalizeProperty(d); });
   }catch(e){
     ["hero","mortgage","commute-settings","tablewrap"].forEach(id=>document.getElementById(id).hidden=true);
@@ -2022,6 +2026,23 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 window.naseAuthReady.then(loadData);
+
+async function pollForUpdates(){
+  if(document.querySelector('.modal-bg')) return;
+  if(compareMode || deleteMode) return;
+  try{
+    const res = await fetch(API+"/list?section=byd");
+    if(!res.ok) return;
+    const rows = await res.json();
+    const sig = JSON.stringify(rows);
+    if(sig === lastDataSignature) return;
+    lastDataSignature = sig;
+    DATA = rows;
+    DATA.forEach(d=>{ if(d.n) d.n=d.n.replace(/—/g,'·'); normalizeProperty(d); });
+    computeExtents(); renderPick(); renderKpis(); renderAll();
+  }catch(e){}
+}
+setInterval(pollForUpdates, 20000);
 </script>
 </body>
 </html>

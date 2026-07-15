@@ -10,6 +10,8 @@
 <meta property="og:image" content="/img/logo-og.jpg">
 <meta property="og:type" content="website">
 <link rel="icon" href="favicon.png?v=3" type="image/png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F766E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -142,6 +144,9 @@ function initThemeToggle(){
   document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.addEventListener("click",()=>{ mode=mode==="system"?"light":(mode==="light"?"dark":"system"); apply(mode); }));
 }
 initThemeToggle();
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
 </script>
 <script>(async function(){
   const plural=window.Nase.plural;
