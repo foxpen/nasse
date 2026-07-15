@@ -1,8 +1,14 @@
-import { neon } from '@neondatabase/serverless';
+import { getDatabase } from '@netlify/database';
 
-const url = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
-export const sql = url
-  ? neon(url)
-  : () => {
-      throw new Error('DATABASE_URL nebo NETLIFY_DATABASE_URL není nastavená');
-    };
+// @netlify/database si sam vyresi spravne read-write pripojeni k produkcni
+// vetvi - rucni cteni DATABASE_URL/NETLIFY_DATABASE_URL davalo jen read-only
+// connection string a zapisy (INSERT/UPDATE/DELETE) padaly na permission denied.
+let sqlFn;
+try {
+  sqlFn = getDatabase().sql;
+} catch (e) {
+  sqlFn = () => {
+    throw new Error('Pripojeni k databazi selhalo: ' + (e?.message || e));
+  };
+}
+export const sql = sqlFn;

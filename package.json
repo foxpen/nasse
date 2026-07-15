@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@neondatabase/serverless": "^0.9.5",
     "@netlify/blobs": "^10.7.9",
-    "@neondatabase/serverless": "^0.9.5"
+    "@netlify/database": "^1.1.0"
   },
   "devDependencies": {
     "netlify-cli": "^26.1.0"
