@@ -568,7 +568,7 @@ let lastDataSignature = '';
 async function loadData(){
   try{
     const res = await fetch(API+"/list?section=auto");
-    if(!res.ok) throw new Error("HTTP "+res.status);
+    if(!res.ok){ let m="HTTP "+res.status; try{ const j=await res.json(); if(j.error) m=j.error; }catch(e){} throw new Error(m); }
     const rows = await res.json();
     lastDataSignature = JSON.stringify(rows);
     CARS = rows;
@@ -694,7 +694,7 @@ function confirmBulkDelete(){
     const msg=wrap.querySelector("#bd-msg"); msg.className="msg"; msg.textContent="Mažu vybraná auta...";
     let ok=0, fail=0;
     for(const item of items){
-      try{ const r=await fetch(API+"/delete?id="+item.id,{method:"DELETE"}); if(!r.ok) throw new Error("HTTP "+r.status); ok++; }
+      try{ const r=await fetch(API+"/delete?id="+item.id,{method:"DELETE"}); if(!r.ok){ let m="HTTP "+r.status; try{ const j=await r.json(); if(j.error) m=j.error; }catch(e){} throw new Error(m); } ok++; }
       catch(e){ fail++; }
     }
     window.dispatchEvent(new CustomEvent('nase:react',{detail:'bulk-delete-auto'}));
@@ -982,7 +982,7 @@ function editNote(id){
     const msg=wrap.querySelector("#nm_msg"); msg.className="msg"; msg.textContent="Ukládám…";
     try{
       const r=await fetch(API+"/note",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,note})});
-      if(!r.ok) throw new Error("HTTP "+r.status);
+      if(!r.ok){ let m="HTTP "+r.status; try{ const j=await r.json(); if(j.error) m=j.error; }catch(e){} throw new Error(m); }
       window.dispatchEvent(new CustomEvent('nase:react',{detail:'note'}));
       close(); loadData();
     }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
@@ -1051,7 +1051,7 @@ function openAdd(){
     msg.className="msg"; msg.textContent="Ukládám…";
     try{
       const r=await fetch(API+"/add",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({section:"auto",data})});
-      if(!r.ok) throw new Error("HTTP "+r.status);
+      if(!r.ok){ let m="HTTP "+r.status; try{ const j=await r.json(); if(j.error) m=j.error; }catch(e){} throw new Error(m); }
       window.dispatchEvent(new CustomEvent('nase:react',{detail:'add'}));
       close(); loadData();
     }catch(e){ msg.className="msg err"; msg.textContent="Uložení selhalo: "+e.message; }
