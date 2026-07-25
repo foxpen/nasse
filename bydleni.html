@@ -47,6 +47,53 @@
     <button class="tab" id="tab-cand" type="button">K roztřídění <span class="cnt" id="cnt-cand"></span></button>
   </div>
 
+  <section class="findpanel" id="findpanel" hidden>
+    <div class="fp-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Hledat na portálech</h3>
+      <span class="fp-sub">Zadej kritéria a dej Projet. Nálezy se sem uloží se skóre shody a spočítaným dojezdem.</span>
+    </div>
+
+    <div class="fp-grid">
+      <label>Cíl dojezdu<input id="f-dest" placeholder="Arkády Pankrác, Praha"></label>
+      <label>Dojezd max <i>min autem</i><input id="f-max" type="number" min="5" max="180" step="5"></label>
+      <label>Cena od <i>mil. Kč</i><input id="f-pmin" type="number" min="0" step="0.1" inputmode="decimal"></label>
+      <label>Cena do <i>mil. Kč</i><input id="f-pmax" type="number" min="0" step="0.1" inputmode="decimal"></label>
+      <label>Plocha od <i>m²</i><input id="f-amin" type="number" min="0" step="5"></label>
+      <label>Plocha do <i>m²</i><input id="f-amax" type="number" min="0" step="5"></label>
+    </div>
+
+    <div class="fp-rows">
+      <div class="fp-row"><span class="fp-l">Typ</span><div class="chipset" id="f-typ"></div></div>
+      <div class="fp-row"><span class="fp-l">Dispozice</span><div class="chipset" id="f-disp"></div></div>
+      <div class="fp-row"><span class="fp-l">Stav</span><div class="chipset" id="f-stav"></div></div>
+      <div class="fp-row"><span class="fp-l">Zdroje</span><div class="chipset" id="f-zdroje"></div></div>
+      <div class="fp-row"><span class="fp-l">Kraje</span><div class="chipset" id="f-kraje"></div></div>
+    </div>
+
+    <details class="fp-adv">
+      <summary>Pokročilé</summary>
+      <div class="fp-grid">
+        <label>Pozemek od <i>m² (domy)</i><input id="f-land" type="number" min="0" step="10"></label>
+        <label>PSČ pro bazoš <i>střed okruhu</i><input id="f-psc" inputmode="numeric"></label>
+        <label>Hloubka <i>stran na zdroj</i><input id="f-pages" type="number" min="1" max="20" step="1"></label>
+        <label>Uložit od skóre <i>0 až 100</i><input id="f-score" type="number" min="0" max="100" step="5"></label>
+        <label>Uložit nejvýš <i>nejlepších</i><input id="f-max-save" type="number" min="1" max="200" step="5"></label>
+      </div>
+      <div class="fp-checks">
+        <label><input type="checkbox" id="f-osobni"> jen osobní vlastnictví (byty)</label>
+        <label><input type="checkbox" id="f-bezchat"> vynechat chaty a chalupy</label>
+      </div>
+    </details>
+
+    <div class="fp-actions">
+      <button class="btn-add" type="button" id="f-run"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l14 8-14 8z"/></svg>Projet</button>
+      <button class="btn-ghost" type="button" id="f-stop" hidden>Zastavit</button>
+      <span class="fp-status" id="f-status"></span>
+    </div>
+    <div class="fp-bar" id="f-bar" hidden><i id="f-bar-i"></i></div>
+    <div class="fp-log" id="f-log" hidden></div>
+  </section>
+
   <section class="hero" id="hero">
     <a class="pick" id="pick" aria-label="Tip · nejlepší poměr cena za metr"></a>
     <div class="kpis" aria-label="Souhrn">
@@ -65,6 +112,7 @@
     </div>
     <div class="spacer"></div>
     <select id="sort" aria-label="Řazení">
+      <option value="score">Nejvyšší shoda</option>
       <option value="ppm">Nejlepší cena/m²</option>
       <option value="price">Nejnižší cena</option>
       <option value="area">Největší plocha</option>
@@ -87,7 +135,7 @@
   <div class="sec-head">
     <h3>Nabídky</h3>
     <span class="count" id="count"></span>
-    <span class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně do Arkád Pankrác (mimo špičku)</span>
+    <span class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/></svg>Dojezd orientačně na <span id="dest-note">Arkády Pankrác</span> (mimo špičku)</span>
   </div>
   <div class="grid" id="cards"></div>
 
@@ -95,15 +143,15 @@
     <div class="th">Srovnávací tabulka</div>
     <div class="scroll">
       <table>
-        <thead><tr><th>Nemovitost</th><th>Typ</th><th>Cena</th><th>Plocha</th><th>Cena/m²</th><th>Pankrác · auto</th><th>Pankrác · MHD</th><th>Stav</th><th>PENB</th></tr></thead>
+        <thead><tr><th>Nemovitost</th><th>Typ</th><th>Cena</th><th>Plocha</th><th>Cena/m²</th><th><span class="dest-th">Pankrác</span> · auto</th><th><span class="dest-th">Pankrác</span> · MHD</th><th>Stav</th><th>PENB</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
   </section>
 
   <footer>
-    Lokální přehled · zdroj dat sreality.cz · ceny i dojezdy orientační, ověřit u makléře a v mapách<br>
-    Dojezdové časy jsou odhad mimo špičku do OC Arkády Pankrác (Praha 4). Klikni na štítek dojezdu pro živou trasu v Mapách Google.<br>
+    Lokální přehled · zdroje sreality.cz, bezrealitky.cz, bazoš · ceny i dojezdy orientační, ověřit u makléře a v mapách<br>
+    Dojezdové časy jsou odhad mimo špičku na <span id="dest-foot">Arkády Pankrác</span>. Klikni na štítek dojezdu pro živou trasu v Mapách Google.<br>
     Energetická třída „G*" u rozestavěných staveb je nejspíš jen nevyhotovený PENB, ne reálná spotřeba.
   </footer>
 </main>
@@ -125,9 +173,19 @@ const I = {
 };
 
 const API = "/.netlify/functions";
+const SRC_L = { sreality:"sreality.cz", bezrealitky:"bezrealitky.cz", bazos:"bazoš" };
 let DATA = [];
 let MINPPM = 0, MAXPPM = 1;
-const DEST = "Arkády Pankrác, Praha";
+// Cíl dojezdu drží kritéria hledání (viz CRIT.dest), odkazy do map i popisky se podle něj řídí.
+let DEST = "Arkády Pankrác, Praha";
+function applyDest(){
+  const kratce = DEST.split(",")[0].trim() || DEST;
+  const set=(el,t)=>{ if(el) el.textContent=t; };
+  set(document.getElementById("dest-note"), kratce);
+  set(document.getElementById("dest-foot"), DEST);
+  document.querySelectorAll(".dest-th").forEach(el=>{ el.textContent=kratce; });
+  if(DATA.length) renderAll();   // odkazy na trasu v kartách míří na DEST, překresli je
+}
 
 function computeExtents(){
   DATA.forEach(d => d.ppm = (d.area>0 && (d.dealPrice||d.price)) ? Math.round((d.dealPrice||d.price)/d.area) : 0);
@@ -165,7 +223,9 @@ function mapUrl(origin, mode){
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(DEST)}&travelmode=${mode}`;
 }
 
-let filter="all", sort="ppm", view="kept";
+// Řazení si každá záložka drží svoje: u Naše dává smysl cena/m², u kandidátů shoda.
+const SORTS = { kept:"ppm", cand:"score" };
+let filter="all", view="kept", sort=SORTS.kept;
 const kept = ()=> DATA.filter(d=> (d.status||'kept')!=='candidate');
 const cand = ()=> DATA.filter(d=> d.status==='candidate');
 let mRate=3.95, mYears=30, mDown=10, mIns=0;
@@ -184,6 +244,7 @@ function readyTag(d){return d.ready
 
 function sortRows(rows){
   return rows.sort((a,b)=>{
+    if(sort==="score") return ((b.score||0)-(a.score||0))||(a.ppm-b.ppm);
     if(sort==="ppm")   return a.ppm-b.ppm;
     if(sort==="price") return a.price-b.price;
     if(sort==="area")  return b.area-a.area;
@@ -254,8 +315,9 @@ function renderCards(){
       </div>
       <div class="body">
         <div class="ctitle">${d.n}</div>
-        <div class="csub">${d.disp||''}</div>
+        <div class="csub">${d.disp||''}${isCand&&d.src?` · <span class="srcchip">${esc(SRC_L[d.src]||d.src)}</span>`:''}</div>
         ${(d.flags&&d.flags.length)?`<div class="flagchips">${flagChips(d)}</div>`:''}
+        ${isCand&&(d.why||[]).length?`<div class="whyline">${d.why.map(w=>esc(w)).join(' · ')}</div>`:''}
         <div class="chips">
           <span class="chip">${I.ruler}${d.area} m²</span>
           ${d.land?`<span class="chip">${I.tree}${d.land}</span>`:''}
@@ -299,7 +361,7 @@ document.getElementById("filters").addEventListener("click", e=>{
   document.querySelectorAll("#filters button").forEach(x=>x.setAttribute("aria-pressed", x===b));
   renderCards();
 });
-document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderAll(); });
+document.getElementById("sort").addEventListener("change", e=>{ sort=SORTS[view]=e.target.value; renderAll(); });
 
 function updateTabs(){
   document.getElementById("cnt-kept").textContent = "("+kept().length+")";
@@ -307,15 +369,22 @@ function updateTabs(){
 }
 function applyView(){
   const cv = view==='cand';
+  document.getElementById("sort").value = sort;   // ať select odpovídá řazení dané záložky
   document.getElementById("hero").style.display = cv?'none':'';
   document.getElementById("tablewrap").style.display = cv?'none':'';
+  document.getElementById("findpanel").hidden = !cv;
   const note=document.querySelector(".sec-head .note"); if(note) note.style.display = cv?'none':'';
   const h=document.querySelector(".sec-head h3"); if(h) h.textContent = cv?'Kandidáti k roztřídění':'Nabídky';
   document.getElementById("tab-kept").classList.toggle("on", !cv);
   document.getElementById("tab-cand").classList.toggle("on", cv);
 }
-document.getElementById("tab-kept").addEventListener("click", ()=>{ view='kept'; applyView(); renderAll(); });
-document.getElementById("tab-cand").addEventListener("click", ()=>{ view='cand'; applyView(); renderAll(); });
+function switchView(v){
+  view=v; sort=SORTS[v];
+  document.getElementById("sort").value = sort;
+  applyView(); renderAll();
+}
+document.getElementById("tab-kept").addEventListener("click", ()=>switchView('kept'));
+document.getElementById("tab-cand").addEventListener("click", ()=>switchView('cand'));
 
 async function take(id){
   try{ const r=await fetch(API+"/status",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,status:'kept'})}); if(!r.ok) throw 0; }
@@ -323,7 +392,16 @@ async function take(id){
   window.dispatchEvent(new CustomEvent('nase:react',{detail:'add'}));
   loadData();
 }
-function discard(id){ delById(id); }
+// Zahození kandidáta: bez ptaní (na rozdíl od mazání z Naše) a s poznámkou,
+// aby ho příští hledání nenabídlo znovu.
+async function discard(id){
+  const item=DATA.find(x=>x.id===id);
+  try{ const r=await fetch(API+"/delete?id="+id,{method:"DELETE"}); if(!r.ok) throw 0; }
+  catch(e){ alert("Zahození selhalo."); return; }
+  if(item?.url) hide(item.url);
+  window.dispatchEvent(new CustomEvent('nase:react',{detail:'del'}));
+  loadData();
+}
 
 function editStav(id){
   const item=DATA.find(x=>x.id===id); if(!item) return;
@@ -475,6 +553,336 @@ function openAdd(){
   };
 }
 document.getElementById("btn-add").addEventListener("click", openAdd);
+
+/* ================= Hledání na portálech ================= */
+
+const KRAJE = [["praha","Praha"],["stredocesky-kraj","Středočeský"],["ustecky-kraj","Ústecký"],
+  ["liberecky-kraj","Liberecký"],["kralovehradecky-kraj","Královéhradecký"],["pardubicky-kraj","Pardubický"],
+  ["vysocina-kraj","Vysočina"],["jihocesky-kraj","Jihočeský"],["plzensky-kraj","Plzeňský"],
+  ["karlovarsky-kraj","Karlovarský"],["jihomoravsky-kraj","Jihomoravský"],["olomoucky-kraj","Olomoucký"],
+  ["zlinsky-kraj","Zlínský"],["moravskoslezsky-kraj","Moravskoslezský"]];
+const DISPS  = ["2+kk","3+kk","3+1","4+kk","4+1","5+kk"];
+const STAVY  = [["novostavba","novostavba"],["velmidobry","velmi dobrý"],["porekonstrukci","po rekonstrukci"],["vevystavbe","ve výstavbě"]];
+const ZDROJE = [["sreality","sreality.cz"],["bezrealitky","bezrealitky.cz"],["bazos","bazoš"]];
+const TYPY   = [["dum","domy"],["byt","byty"]];
+
+const CRIT_KEY = "nase.byd.kriteria", HIDE_KEY = "nase.byd.skryte";
+const CRIT_DEF = { dest:"Arkády Pankrác, Praha", maxMin:50, pmin:6, pmax:10, amin:70, amax:140,
+  landMin:120, psc:"14000", maxPages:4, minScore:80, maxSave:25, osobni:true, bezChat:true,
+  typ:["dum","byt"], disp:["3+kk","3+1","4+kk","4+1"], stav:[], zdroje:["sreality","bezrealitky"],
+  kraje:["praha","stredocesky-kraj"] };
+
+const lsGet = (k,f)=>{ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?f:v; }catch(e){ return f; } };
+const lsSet = (k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+const hidden = ()=> new Set(lsGet(HIDE_KEY, []));
+const hide = (url)=>{ const s=hidden(); s.add(url); lsSet(HIDE_KEY,[...s]); };
+
+let CRIT = { ...CRIT_DEF, ...lsGet(CRIT_KEY, {}) };
+let STOP = false, RUNNING = false;
+DEST = CRIT.dest || DEST; applyDest();
+
+function chipset(el, opts, selected, multi=true){
+  el.innerHTML = opts.map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${selected.includes(v)}">${l}</button>`).join("");
+  el.onclick = e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    const on = b.getAttribute("aria-pressed")==="true";
+    if(!multi) el.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed", String(!on));
+  };
+}
+const chipsVal = (el)=> [...el.querySelectorAll('button[aria-pressed="true"]')].map(b=>b.dataset.v);
+
+function fillCrit(){
+  const s=(id,v)=>{ document.getElementById(id).value = v==null?"":v; };
+  s("f-dest",CRIT.dest); s("f-max",CRIT.maxMin); s("f-pmin",CRIT.pmin); s("f-pmax",CRIT.pmax);
+  s("f-amin",CRIT.amin); s("f-amax",CRIT.amax); s("f-land",CRIT.landMin); s("f-psc",CRIT.psc);
+  s("f-pages",CRIT.maxPages); s("f-score",CRIT.minScore); s("f-max-save",CRIT.maxSave);
+  document.getElementById("f-osobni").checked = !!CRIT.osobni;
+  document.getElementById("f-bezchat").checked = !!CRIT.bezChat;
+  chipset(document.getElementById("f-typ"), TYPY, CRIT.typ);
+  chipset(document.getElementById("f-disp"), DISPS.map(d=>[d,d]), CRIT.disp);
+  chipset(document.getElementById("f-stav"), STAVY, CRIT.stav);
+  chipset(document.getElementById("f-zdroje"), ZDROJE, CRIT.zdroje);
+  chipset(document.getElementById("f-kraje"), KRAJE, CRIT.kraje);
+}
+
+function readCrit(){
+  const n=(id)=>{ const v=parseFloat(document.getElementById(id).value); return Number.isFinite(v)?v:null; };
+  const c = {
+    dest: document.getElementById("f-dest").value.trim() || CRIT_DEF.dest,
+    maxMin: n("f-max") || CRIT_DEF.maxMin,
+    pmin: n("f-pmin"), pmax: n("f-pmax"), amin: n("f-amin"), amax: n("f-amax"),
+    landMin: n("f-land"), psc: document.getElementById("f-psc").value.trim(),
+    maxPages: Math.min(20, Math.max(1, n("f-pages") || 4)),
+    minScore: Math.min(100, Math.max(0, n("f-score") ?? CRIT_DEF.minScore)),
+    maxSave: Math.min(200, Math.max(1, n("f-max-save") || CRIT_DEF.maxSave)),
+    osobni: document.getElementById("f-osobni").checked,
+    bezChat: document.getElementById("f-bezchat").checked,
+    typ: chipsVal(document.getElementById("f-typ")),
+    disp: chipsVal(document.getElementById("f-disp")),
+    stav: chipsVal(document.getElementById("f-stav")),
+    zdroje: chipsVal(document.getElementById("f-zdroje")),
+    kraje: chipsVal(document.getElementById("f-kraje"))
+  };
+  CRIT = c; lsSet(CRIT_KEY, c);
+  DEST = c.dest; applyDest();
+  return c;
+}
+
+const fStatus = (t)=>{ document.getElementById("f-status").textContent = t||""; };
+function fLog(t, cls){
+  const box=document.getElementById("f-log"); box.hidden=false;
+  const row=document.createElement("div"); row.className="fl"+(cls?" "+cls:""); row.textContent=t;
+  box.appendChild(row); box.scrollTop = box.scrollHeight;
+}
+function fBar(done, total){
+  const bar=document.getElementById("f-bar"); bar.hidden = !total;
+  document.getElementById("f-bar-i").style.width = total ? Math.round(done/total*100)+"%" : "0%";
+}
+
+// Skóre shody 0 až 100 podle zadaných kritérií.
+// Hodnotí se jen to, co o nabídce skutečně víme — chybějící údaj se z výpočtu vynechá,
+// aby portál, který o sobě prozradí méně (sreality nedává v seznamu PENB ani stav),
+// nedostával automaticky nižší skóre než ten upovídaný.
+function scoreOf(it, c, medPpm){
+  const why=[]; let got=0, max=0;
+  const add=(g,m)=>{ got+=g; max+=m; };
+
+  if(it.area){
+    const lo=c.amin||0, hi=c.amax||1e9;
+    if(it.area>=lo && it.area<=hi) add(22,22);
+    else { const off = it.area<lo ? lo-it.area : it.area-hi; add(Math.max(0, 22-Math.round(off/2)), 22); }
+  }
+  const d=(it.disp.match(/\d\+(?:kk|1)/)||[])[0];
+  if(d){ const hit = !c.disp.length || c.disp.includes(d); add(hit?15:0, 15); if(hit) why.push(d); }
+
+  if(it.when || it.en){
+    const isNew = /novostavba/i.test(it.when||"") || /^[AB]$/.test(it.en||"");
+    if(isNew){ add(20,20); why.push(it.en?("PENB "+it.en):"novostavba"); }
+    else if(/po (částečné )?rekonstrukci|velmi dobrý/i.test(it.when||"")){ add(13,20); why.push(it.when); }
+    else if(/^C$/.test(it.en||"")){ add(11,20); why.push("PENB C"); }
+    else { add(6,20); if(it.when) why.push(it.when); }
+  }
+  const featTxt = (it.feats||[]).join(" ")+" "+(it.land||"");
+  const outdoorKnown = it.t==="dum" || it.landM>0 || /zahrad|terasa|předzahrádka|lodžie|balkon/i.test(featTxt);
+  if(outdoorKnown){
+    const ok = (it.landM>0 && (it.t!=="dum" || !c.landMin || it.landM>=c.landMin))
+      || /zahrad|terasa|předzahrádka|lodžie|balkon/i.test(featTxt);
+    add(ok?15:0, 15);
+    if(ok) why.push(it.landM ? ("pozemek "+it.landM+" m²") : "venkovní prostor");
+  }
+  if(it.car){
+    add(it.car <= c.maxMin*0.75 ? 15 : (it.car <= c.maxMin ? 9 : 0), 15);
+    why.push(it.car+" min autem");
+  }
+  if(it.sub) add(/chata|chalupa/i.test(it.sub) ? 0 : 8, 8);
+
+  const ppm = (it.area && it.price) ? Math.round(it.price/it.area) : 0;
+  if(ppm && medPpm){ add(ppm<=medPpm?5:0, 5); if(ppm<=medPpm) why.push("dobrá cena/m²"); }
+
+  return { score: max ? Math.round(100*got/max) : 0, why };
+}
+
+// Sreality v seznamu výsledků neuvádí PENB, stav ani vybavení. U nadějných nálezů
+// si je doplníme z detailu inzerátu (přes existující extraktor) a skóre přepočítáme.
+const ENRICH_MAX = 30;
+async function enrich(items, onProgress){
+  const cele = items.filter(it=> it.src==="sreality" && !it.en && !it.when).slice(0, ENRICH_MAX);
+  let done=0;
+  for(const it of cele){
+    if(STOP) break;
+    try{
+      const r = await fetch(API+"/extract?url="+encodeURIComponent(it.url));
+      const j = await r.json();
+      const d = j && j.data;
+      if(d){
+        if(d.en) it.en=d.en;
+        if(d.when) it.when=d.when;
+        if(d.ready!=null) it.ready=d.ready;
+        if((d.feats||[]).length) it.feats=[...new Set([...(it.feats||[]), ...d.feats])];
+        if(!it.area && d.area) it.area=d.area;
+      }
+    }catch(e){}
+    onProgress(++done, cele.length);
+  }
+  return cele.length;
+}
+
+async function geocodeDest(q){
+  const r = await fetch(API+"/commute?geocode="+encodeURIComponent(q));
+  const j = await r.json();
+  return (j && j.lat!=null) ? { lat:j.lat, lon:j.lon } : null;
+}
+
+// dojezd po dávkách (endpoint bere max 24 bodů na volání)
+async function fillCommute(items, dest, onProgress){
+  const CH=24; let done=0;
+  for(let i=0; i<items.length; i+=CH){
+    if(STOP) break;
+    const part = items.slice(i, i+CH);
+    try{
+      const r = await fetch(API+"/commute-batch",{ method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({ dest, points: part.map((it,j)=>({ k:String(i+j), lat:it.lat, lon:it.lon, q:it.lat==null?it.origin:null })) }) });
+      const j = await r.json();
+      (j.results||[]).forEach(res=>{
+        const it=items[Number(res.k)];
+        if(!it) return;
+        it.car=res.car||0; it.km_car=res.km||null;
+        // u zdrojů bez GPS (bazoš) si podrž souřadnice zjištěné geokódováním
+        if(it.lat==null && res.lat!=null){ it.lat=res.lat; it.lon=res.lon; }
+      });
+    }catch(e){ /* dávka se nepovedla, položky zůstanou bez dojezdu */ }
+    done += part.length; onProgress(done);
+  }
+}
+
+async function runSearch(){
+  if(RUNNING) return;
+  const c = readCrit();
+  if(!c.zdroje.length || !c.typ.length){ fStatus("Vyber aspoň jeden zdroj a typ."); return; }
+  RUNNING=true; STOP=false;
+  document.getElementById("f-run").disabled=true;
+  document.getElementById("f-stop").hidden=false;
+  document.getElementById("f-log").innerHTML=""; document.getElementById("f-log").hidden=true;
+
+  const okruh = Math.min(100, Math.ceil(c.maxMin*1.25)); // hrubý okruh pro portály, dojezd dořeší filtr
+  const q = new URLSearchParams();
+  if(c.pmin) q.set("cenaOd", Math.round(c.pmin*1e6));
+  if(c.pmax) q.set("cenaDo", Math.round(c.pmax*1e6));
+  if(c.amin) q.set("plochaOd", c.amin);
+  if(c.amax) q.set("plochaDo", c.amax);
+  if(c.landMin) q.set("pozemekOd", c.landMin);
+  if(c.disp.length) q.set("disp", c.disp.join(","));
+  if(c.stav.length) q.set("stav", c.stav.join(","));
+  if(c.kraje.length) q.set("regiony", c.kraje.join(","));
+  if(c.psc) q.set("psc", c.psc);
+  q.set("okruh", okruh);
+  if(c.osobni) q.set("osobni","1");
+  if(c.bezChat) q.set("bezChat","1");
+
+  try{
+    fStatus("Hledám cíl dojezdu…");
+    const dest = await geocodeDest(c.dest);
+    if(!dest){ fStatus("Cíl „"+c.dest+"“ se nepodařilo najít."); return; }
+    fLog("Cíl: "+c.dest+" ("+dest.lat.toFixed(4)+", "+dest.lon.toFixed(4)+") · okruh hledání "+okruh+" km");
+
+    // 1) projít zdroje × typy × stránky
+    const raw=[]; const tasks=[];
+    for(const z of c.zdroje) for(const t of c.typ) tasks.push({ z, t, page:1 });
+    let doneT=0, totalT=tasks.length;
+    while(tasks.length){
+      if(STOP) break;
+      const task = tasks.shift();
+      const url = API+"/search?"+q+"&source="+task.z+"&typ="+task.t+"&page="+task.page;
+      fStatus("Prohledávám "+task.z+" · "+(task.t==="dum"?"domy":"byty")+" · strana "+task.page+" · nalezeno "+raw.length);
+      try{
+        const r = await fetch(url); const j = await r.json();
+        if(j.error){ fLog(task.z+"/"+task.t+" strana "+task.page+": "+j.error, "err"); }
+        else{
+          raw.push(...j.items);
+          if(task.page===1){
+            const p = Math.min(j.pages||1, c.maxPages);
+            for(let i=2;i<=p;i++){ tasks.push({ z:task.z, t:task.t, page:i }); totalT++; }
+            fLog(j.label+" · "+(task.t==="dum"?"domy":"byty")+": "+j.total+" nabídek, beru "+p+" z "+(j.pages||1)+" stran");
+          }
+        }
+      }catch(e){ fLog(task.z+"/"+task.t+" strana "+task.page+": "+e.message, "err"); }
+      fBar(++doneT, totalT);
+    }
+
+    if(STOP) return;
+
+    // 2) duplicity, už uložené a dřív skryté
+    const known = new Set(DATA.map(d=>d.url).filter(Boolean));
+    const skip = hidden();
+    const seen = new Set(); const cands=[];
+    let dupl=0, byloJiz=0;
+    for(const it of raw){
+      const key = it.t+"|"+it.price+"|"+it.area+"|"+(it.origin||"").toLowerCase();
+      if(seen.has(key) || seen.has(it.url)){ dupl++; continue; }
+      seen.add(key); seen.add(it.url);
+      if(known.has(it.url) || skip.has(it.url)){ byloJiz++; continue; }
+      cands.push(it);
+    }
+    fLog("Nalezeno "+raw.length+" inzerátů · "+dupl+" duplicit · "+byloJiz+" už známých → "+cands.length+" ke zpracování");
+    if(!cands.length){ fStatus("Nic nového. Zkus povolit víc krajů, zdrojů nebo zvýšit hloubku."); return; }
+
+    // 3) dojezd
+    fStatus("Počítám dojezd u "+cands.length+" nabídek…");
+    fBar(0, cands.length);
+    await fillCommute(cands, dest, (n)=>{ fBar(n, cands.length); fStatus("Počítám dojezd "+n+"/"+cands.length+"…"); });
+    if(STOP) return;
+
+    const vDojezdu = cands.filter(it=> it.car && it.car<=c.maxMin);
+    const bezDojezdu = cands.filter(it=> !it.car);
+    fLog("Do "+c.maxMin+" min: "+vDojezdu.length+" · dál: "+(cands.length-vDojezdu.length-bezDojezdu.length)+" · dojezd nespočítán: "+bezDojezdu.length);
+
+    // 4) skóre (medián cena/m² z toho, co prošlo)
+    const ppms = vDojezdu.map(it=> (it.area&&it.price)?Math.round(it.price/it.area):0).filter(Boolean).sort((a,b)=>a-b);
+    const medPpm = ppms.length ? ppms[Math.floor(ppms.length/2)] : 0;
+    const prehodnot = ()=>{ vDojezdu.forEach(it=>{ const s=scoreOf(it,c,medPpm); it.score=s.score; it.why=s.why; });
+                            vDojezdu.sort((a,b)=>b.score-a.score); };
+    prehodnot();
+
+    // 5) u nadějných sreality nálezů doplnit PENB a stav z detailu a přepočítat
+    const kDoplneni = vDojezdu.filter(it=> it.score>=Math.max(0,c.minScore-10));
+    const kolik = kDoplneni.filter(it=> it.src==="sreality" && !it.en && !it.when).length;
+    if(kolik){
+      fStatus("Doplňuji detaily u "+Math.min(kolik,ENRICH_MAX)+" nabídek…");
+      fBar(0, Math.min(kolik,ENRICH_MAX));
+      const n = await enrich(kDoplneni, (done,total)=>{ fBar(done,total); fStatus("Doplňuji detaily "+done+"/"+total+"…"); });
+      if(n) fLog("Doplněn PENB a stav u "+n+" nabídek ze sreality");
+      prehodnot();
+    }
+    if(STOP) return;
+
+    const proslo = vDojezdu.filter(it=> it.score>=c.minScore);
+    if(!proslo.length){
+      fStatus("Nic nepřekročilo skóre "+c.minScore+". Nejlepší nález měl "+(vDojezdu[0]?.score ?? 0)+".");
+      fLog("Zkus snížit hranici skóre nebo uvolnit kritéria.", "err");
+      return;
+    }
+    const kUlozeni = proslo.slice(0, c.maxSave);
+    fLog("Skóre "+c.minScore+" a výš mělo "+proslo.length+" nabídek"
+      + (proslo.length>kUlozeni.length ? " · ukládám "+kUlozeni.length+" nejlepších (strop)" : ""));
+
+    // 6) uložit jako kandidáty
+    fStatus("Ukládám "+kUlozeni.length+" kandidátů…");
+    fBar(0, kUlozeni.length);
+    let ok=0;
+    for(let i=0;i<kUlozeni.length;i++){
+      if(STOP) break;
+      const it = kUlozeni[i];
+      const data = { n:it.n, t:it.t, disp:it.disp, price:it.price, area:it.area, land:it.land,
+        ready:it.ready, when:it.when, en:it.en, car:it.car||0, pt:0, origin:it.origin,
+        img:it.img, feats:it.feats||[], url:it.url,
+        status:"candidate", score:it.score, why:it.why, src:it.src, km_car:it.km_car||null,
+        lat:it.lat??null, lon:it.lon??null };   // souřadnice ať má přepočet dojezdu z čeho počítat
+      try{
+        const r = await fetch(API+"/add",{ method:"POST", headers:{"content-type":"application/json"},
+          body: JSON.stringify({ section:"byd", data }) });
+        if(r.ok) ok++;
+      }catch(e){}
+      fBar(i+1, kUlozeni.length);
+    }
+    fLog("Uloženo "+ok+" kandidátů se skóre "+c.minScore+" a výš (nejlepší "+kUlozeni[0].score+")", "ok");
+    fStatus(STOP ? ("Zastaveno · uloženo "+ok+" kandidátů.") : ("Hotovo · uloženo "+ok+" kandidátů."));
+    window.dispatchEvent(new CustomEvent("nase:react",{detail:"add"}));
+    await loadData();
+  }catch(e){
+    fStatus("Hledání selhalo: "+e.message);
+  }finally{
+    if(STOP && !/^(Zastaveno|Hotovo)/.test(document.getElementById("f-status").textContent)) fStatus("Zastaveno.");
+    RUNNING=false; STOP=false;
+    document.getElementById("f-run").disabled=false;
+    document.getElementById("f-stop").hidden=true;
+    fBar(0,0);
+  }
+}
+
+fillCrit();
+document.getElementById("f-run").addEventListener("click", runSearch);
+document.getElementById("f-stop").addEventListener("click", ()=>{ STOP=true; fStatus("Zastavuji…"); });
 
 loadData();
 </script>

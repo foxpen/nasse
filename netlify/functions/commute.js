@@ -1,30 +1,31 @@
 import { json } from './_lib/http.js';
+import { geocode, route, resolveDest, via } from './_lib/route.js';
 
-const KEY = process.env.MAPY_API_KEY;
-// Arkády Pankrác, Praha 4 (lon, lat)
-const DEST = { lon: 14.4430, lat: 50.0598 };
-
+// Dojezd autem na cíl. Přijímá buď adresu (?q=...), nebo přímo souřadnice (?lat=&lon=).
+// Cíl lze přepsat přes ?dlat=&dlon= nebo ?dq=<adresa>; jinak Arkády Pankrác.
+// Bez MAPY_API_KEY jede přes veřejné OSM služby (viz _lib/route.js).
 export async function handler(event) {
-  if (!KEY) return json(200, { error: 'no_key', message: 'MAPY_API_KEY není nastavený v Netlify' });
-  const q = event.queryStringParameters?.q;
-  if (!q) return json(400, { error: 'missing q' });
+  const p = event.queryStringParameters || {};
   try {
-    const gr = await fetch(`https://api.mapy.com/v1/geocode?lang=cs&limit=5&apikey=${KEY}&query=${encodeURIComponent(q)}`);
-    const gj = await gr.json();
-    if (event.queryStringParameters?.debug) return json(200, { status: gr.status, geocode: gj });
-    const it = gj.items?.[0] || gj.results?.[0] || (Array.isArray(gj) ? gj[0] : null);
-    const pos = it?.position || (it && it.lon != null ? { lon: it.lon, lat: it.lat } : null);
-    if (!pos) return json(200, { error: 'not_found', message: 'adresa nenalezena: ' + q });
+    // ?geocode=<adresa> jen dohledá souřadnice (používá hledání pro cíl dojezdu)
+    if (p.geocode) {
+      const g = await geocode(p.geocode);
+      if (!g) return json(200, { error: 'not_found', message: 'adresa nenalezena: ' + p.geocode });
+      return json(200, { lat: g.lat, lon: g.lon, via: via() });
+    }
+    const lat = parseFloat(p.lat), lon = parseFloat(p.lon);
+    let from = Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+    if (!from) {
+      if (!p.q) return json(400, { error: 'missing q' });
+      from = await geocode(p.q);
+      if (!from) return json(200, { error: 'not_found', message: 'adresa nenalezena: ' + p.q });
+    }
+    const dest = await resolveDest(p);
+    if (p.debug) return json(200, { from, dest, via: via() });
 
-    const rr = await fetch(`https://api.mapy.com/v1/routing/route?apikey=${KEY}&lang=cs&routeType=car_fast&start=${pos.lon},${pos.lat}&end=${DEST.lon},${DEST.lat}`);
-    const rj = await rr.json();
-    const durSec = rj.duration ?? rj.time ?? null;
-    const lenM = rj.length ?? rj.distance ?? null;
-    return json(200, {
-      car: durSec != null ? Math.round(durSec / 60) : null,
-      km: lenM != null ? Math.round(lenM / 1000) : null,
-      lon: pos.lon, lat: pos.lat
-    });
+    const r = await route(from, dest);
+    if (!r) return json(200, { error: 'no_route', message: 'trasu se nepodařilo spočítat', lon: from.lon, lat: from.lat });
+    return json(200, { car: r.car, km: r.km, lon: from.lon, lat: from.lat, via: via() });
   } catch (e) {
     return json(500, { error: String(e?.message || e) });
   }

@@ -8,11 +8,25 @@ const meta = (html, prop) => {
 };
 const num = (s) => parseInt(String(s).replace(/[^\d]/g, ''), 10) || null;
 
+// Detail nemovitosti bývá i v SSR datech stránky (u domů; u bytů se dotahuje až v prohlížeči).
+// Je tam PENB, stav stavby, pozemek i vybavení, tedy věci, které z og tagů vyčíst nejde.
+function srealityDetail(html) {
+  const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+  if (!m) return null;
+  let data;
+  try { data = JSON.parse(m[1]); } catch (e) { return null; }
+  const objs = [];
+  (function walk(o) { if (o && typeof o === 'object') { if (!Array.isArray(o)) objs.push(o); for (const k in o) walk(o[k]); } })(data);
+  return objs.find(o => (o.energyEfficiencyRating && /^[A-G]\b/.test(o.energyEfficiencyRating.name || ''))
+    || (typeof o.usableArea === 'number' && 'buildingCondition' in o)) || null;
+}
+
 function parseSreality(url, html) {
   const title = meta(html, 'og:title');
   const desc = meta(html, 'og:description');
   let img = meta(html, 'og:image');
   if (img.startsWith('//')) img = 'https:' + img;
+  const det = srealityDetail(html);
 
   const t = /\/dum\//.test(url) ? 'dum' : 'byt';
   const area = num((title.match(/(\d[\d\s]*)\s*m²/) || [])[1]);
@@ -27,6 +41,23 @@ function parseSreality(url, html) {
   const featWords = ['sklep', 'garáž', 'parkování', 'zahrada', 'terasa', 'výtah', 'balkón', 'lodžie', 'bazén'];
   const feats = featWords.filter(w => new RegExp(w, 'i').test(desc));
 
+  // co víme z detailu, má přednost před hádáním z og tagů
+  const cond = det?.buildingCondition?.name || '';
+  const enD = (det?.energyEfficiencyRating?.name || '').match(/^([A-G])\b/);
+  const detFeats = [];
+  if (det) {
+    if (det.garage) detFeats.push('garáž');
+    if (det.parking) detFeats.push('parkování');
+    if (det.cellar) detFeats.push('sklep');
+    if (det.terrace) detFeats.push('terasa');
+    if (det.balcony) detFeats.push('balkón');
+    if (det.loggia) detFeats.push('lodžie');
+    if (det.lowEnergy) detFeats.push('nízkoenergetický');
+    if (det.objectKind?.name && !/nezadáno|vyber/i.test(det.objectKind.name)) detFeats.push(det.objectKind.name.toLowerCase());
+  }
+  const vystavbaD = /projekt|výstavb|příprav/i.test(cond);
+  const allFeats = [...new Set([...detFeats, ...(feats.length ? [feats.join(', ')] : [])])];
+
   return {
     section: 'byd',
     data: {
@@ -34,16 +65,17 @@ function parseSreality(url, html) {
       t,
       disp: (t === 'dum' ? 'dům ' : 'byt ') + (dispM ? dispM[1] : ''),
       price,
-      area,
-      land: land ? 'pozemek ' + land[1].replace(/\s+/g, ' ').trim() + ' m²' : '',
-      ready: vystavba ? 0 : 1,
-      when: novostavba ? 'novostavba' : (vystavba ? 've výstavbě' : ''),
-      en: '',
+      area: det?.usableArea || area,
+      land: det?.estateArea ? 'pozemek ' + det.estateArea + ' m²'
+        : (land ? 'pozemek ' + land[1].replace(/\s+/g, ' ').trim() + ' m²' : ''),
+      ready: (cond ? vystavbaD : vystavba) ? 0 : 1,
+      when: cond ? cond.toLowerCase() : (novostavba ? 'novostavba' : (vystavba ? 've výstavbě' : '')),
+      en: enD ? enD[1] : '',
       car: 0,
       pt: 0,
       origin: loc.split('-')[0].trim(),
       img,
-      feats: feats.length ? [feats.join(', ')] : [],
+      feats: allFeats,
       url
     }
   };
