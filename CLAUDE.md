@@ -1,0 +1,62 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Co je to za projekt
+
+„Naše" — soukromá rodinná webová aplikace (UI kompletně česky) se třemi sekcemi:
+
+| Sekce | Stránka | Barva (světlý/tmavý) | Data |
+|---|---|---|---|
+| Naše Bydleníčko (nemovitosti) | `bydleni.html` | teal `#0F766E` / `#5DCAA5` | Neon Postgres přes Netlify Functions |
+| Naše Autíčko (auta) | `auta.html` | azurová `#0284C7` / `#38BDF8` | Neon Postgres přes Netlify Functions |
+| Naše Hospodařeníčko (rozpočet) | `hospodareni.html` | zlatá `#D97706` / `#FBBF24` | **jen localStorage** (`nase.finance.v1`), žádný server |
+
+`index.html` je rozcestník. Frontend je vanilla HTML/CSS/JS **bez build kroku** — žádný framework, žádný bundler, žádné testy ani lint. Backend jsou Netlify Functions (ESM) nad jednou tabulkou `listings(id, section 'byd'|'auto', data jsonb, created_at)`.
+
+## Příkazy
+
+```powershell
+npm install                        # závislosti (pnpm-lock existuje, ale pnpm na tomto stroji není — používej npm/npx)
+npx netlify dev                    # plný lokální běh s funkcemi; vyžaduje env proměnné (.env)
+npx netlify deploy --prod --dir .  # ruční deploy (build command prázdný, publish ".")
+python -m http.server 8642         # rychlý statický náhled UI bez funkcí
+```
+
+Povinné env: `DATABASE_URL`/`NETLIFY_DATABASE_URL`, `APP_PASSWORD`/`NASE_PASSWORD`; doporučené `AUTH_SECRET`, `MAPY_API_KEY` (detaily v README).
+
+Při statickém náhledu funkce neběží → přihlášení projde do chybového stavu; bránu lze v konzoli obejít `document.getElementById('auth-gate').remove()` a stránka poběží s prázdnými daty. Sekce Hospodařeníčko funguje staticky celá (localStorage).
+
+Emoce, záměr a designový jazyk aplikace popisuje [design-brief.md](design-brief.md) — přečti si ho před návrhem čehokoli vizuálního. V `.claude/skills/` jsou projektové skilly `ui-ux-pro-max` (UI/UX pravidla, palety, audity) a `taste-skill` (anti-slop frontend) — použij je při designové práci.
+
+## Architektura a konvence
+
+### Theming (nejčastější past)
+
+Vše řídí CSS custom properties v `styles.css`. Každá barevná definice existuje **ve čtyřech blocích**: `:root` (světlý), `@media (prefers-color-scheme: dark)` (systémový tmavý), `html[data-theme="light"]` a `html[data-theme="dark"]` (ruční přepínač, ukládá se do `localStorage['nase.theme']`). Při změně barev vždy uprav všechny čtyři, jinak se rozjede ruční vs. systémový motiv.
+
+Sekce se přebarvují třídou na `<body>`: `theme-auto` (auta), `theme-finance` (hospodaření); bydlení používá výchozí `:root`. Tyto třídy přepisují `--primary`, `--accent`, `--tint-*` — komponenty pak barvy dědí automaticky. Nikdy nepiš sekční hex přímo do komponent.
+
+### Autentizace
+
+Jedno sdílené heslo pro celou aplikaci. `auth.js` běží na každé stránce: GET na `/.netlify/functions/auth`, při neúspěchu vloží celoobrazovkovou bránu `#auth-gate` — landing stránku: vlevo titulek a CTA, vpravo organický panel (SVG `clip-path` přes celou výšku) s „lava lamp" pozadím tří sekčních barev. Stavy brány řídí třídy na gate: `auth-open` (v panelu se zjeví přihlašovací karta, klik „Otevřít můj plán"), `how-open` (láva se srovná do tří koulí = tří sekcí s popisem; textové bloky mají identickou geometrii i animaci jako koule, aby plavaly spolu). Stránky čekají na `window.naseAuthReady` (promise) než volají API. Server (`netlify/functions/_lib/auth.js`) vydává HMAC-podepsanou cookie `nase_auth` (session 1 den / remember 180 dní). Proměnná `--gp` (barva tlačítek) cykluje sekčními barvami spolu s důrazem lávy; `sessionStorage['nase.gate.auth']` po prvním kliku přeskakuje landing rovnou na kartu.
+
+### Netlify Functions
+
+`netlify/functions/*.js`, sdílené helpery v `_lib/` (`db.js` — neon klient, `auth.js`, `http.js`, `validate.js`). Redirect `/api/*` → `/.netlify/functions/*` v `netlify.toml`. Klíčové funkce: `list`, `add`, `update`, `delete`, `extract` (import inzerátů ze sreality/bezrealitky/sauto/bazoš/mobile.de), `refresh-listings`, `search-listings`/`search-cars` (hledání nových inzerátů dle filtru na sreality/sauto — modál „Hledat nové", filtr se pamatuje v `localStorage['nase.search.byd'|'nase.search.auto']`; obě mají ~8,5s rozpočet kvůli 10s limitu Netlify a vrací `timedOut` pro navazující běh), `commute`/`recompute-commute` (Mapy.com API), `address-suggest`, `image-proxy` (cache fotek; klientsky ji cachuje i `sw.js` — jediné, co service worker dělá).
+
+### Frontend konvence
+
+- JS každé stránky je inline v jejím HTML; sdílené helpery v `app-utils.js` (`window.Nase`: `esc()`, `initThemeToggle()`); do HTML vkládaných šablon vždy `esc()`.
+- Ikony jsou výhradně inline SVG `stroke="currentColor"` stroke-width 1.8–2, žádné emoji ani ikonfonty. Výjimka: ilustrační PNG dlaždice (hero obrázky `img/hero-*.jpg`, KPI ikony `img/kpi-*.png` v Hospodaříčku) — renderované 3D ilustrace dodává uživatel, do repa jdou zmenšené (~112 px, ořez + zaoblená alfa maska), originály zůstávají necommitované.
+- Intro/splash animace: každá stránka má overlay, který se hraje **jen jednou za session** (`sessionStorage['nase.intro.*']`) a respektuje `prefers-reduced-motion` (globální kill-switch v `styles.css` + kontroly v JS).
+- Destruktivní akce v Hospodaříčku používají undo toast (`showUndo()` v `hospodareni.html`), ne confirm.
+- Cíle plánu (progress bary na kartách rozcestníku) žijí v `localStorage['nase.goals.v1']` (`{v:1, byd:[{id,text,done}], aut:[], fin:[]}`); editor je modál „Upravit cíle plánu" na `index.html`.
+- Peníze formátuj `toLocaleString('cs-CZ')`; písmo Plus Jakarta Sans s `font-feature-settings: "tnum"`.
+- Počty vždy skloňuj přes `Nase.plural(n, '1 tvar', '2–4 tvar', '5+ tvar')` (např. vůz/vozy/vozů) — nikdy nelep pevnou koncovku k číslu. U vět se s počtem musí shodovat i sloveso („Připravena 1 nemovitost" vs. „Připraveno 5 nemovitostí").
+- Layout má `main{max-width:2000px; margin:0 auto}` (kvůli ultrawide monitorům, aby se karty nerozlévaly do stran); karty používají `auto-fill, minmax(320px,1fr)` — na 2000px šířce vychází ~5 karet na řádek.
+- `login-demo.html` je jen referenční demo (claymorphism), není nalinkované z aplikace.
+
+### Verzování
+
+Verze aplikace je v `package.json` a bumpuje se samostatným commitem (viz historie „Bump app version"). Commity jsou česky nebo anglicky, krátké, imperativní.

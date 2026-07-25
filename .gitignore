@@ -1,4 +1,10 @@
 node_modules/
 .netlify/
+.codex-review/
+.netlify-deploy.zip
 .env
 .apify_token
+node_modules/
+__pycache__/
+*.pyc
+.env

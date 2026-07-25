@@ -1,7 +1,10 @@
 import { sql } from './_lib/db.js';
+import { requireAuth } from './_lib/auth.js';
 import { json } from './_lib/http.js';
 
 export async function handler(event) {
+  const unauthorized = requireAuth(event);
+  if (unauthorized) return unauthorized;
   try {
     const section = event.queryStringParameters?.section;
     const rows = section

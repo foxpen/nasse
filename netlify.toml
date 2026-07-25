@@ -2,6 +2,11 @@
   publish = "."
   functions = "netlify/functions"
 
+[dev]
+  port = 8889
+  functionsPort = 9445
+  staticServerPort = 9446
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
