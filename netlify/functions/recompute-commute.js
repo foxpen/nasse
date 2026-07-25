@@ -1,7 +1,6 @@
 import { sql } from './_lib/db.js';
 import { requireAuth } from './_lib/auth.js';
 import { json } from './_lib/http.js';
-import { geocode, route, resolveDest, via } from './_lib/route.js';
 
 const KEY = process.env.MAPY_API_KEY;
 const DEFAULT_DEST = 'Jankovcova 1522/53, Praha 7';
