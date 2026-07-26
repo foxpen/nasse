@@ -305,7 +305,20 @@ const ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
 const I_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.6 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/><path d="M12 17h.01"/></svg>';
 const TAX = { social: .071, health: .045, income: .15, income2: .23, band2Monthly: 146901 };
+// Nastavení hypotéky sdílíme s Bydleníčkem (panel „Hypotéka" tam zapisuje nase.mortgage.v1),
+// aby stejná cena nedávala na obou stránkách jinou splátku.
 const MORTGAGE = { rate: 4.94, years: 30, loanPct: 90, insurance: 0 };
+function loadMortgageSettings(){
+  try{
+    const s = JSON.parse(localStorage.getItem('nase.mortgage.v1') || 'null');
+    if(!s || typeof s!=='object') return;
+    if(s.rate!=null && Number.isFinite(+s.rate)) MORTGAGE.rate = Math.max(0, +s.rate);
+    if(s.years!=null && Number.isFinite(+s.years)) MORTGAGE.years = Math.min(40, Math.max(1, Math.round(+s.years)));
+    if(s.loanPct!=null && Number.isFinite(+s.loanPct)) MORTGAGE.loanPct = Math.min(100, Math.max(10, +s.loanPct));
+    if(s.insurance!=null && Number.isFinite(+s.insurance)) MORTGAGE.insurance = Math.max(0, +s.insurance);
+  }catch(e){}
+}
+loadMortgageSettings();
 const CAR_COST = { kmYear: 12000, fuelPrice: 38, service: 1500, insurance: 1200, tires: true, highway: true };
 const QUICK_EXPENSES_DEFAULT = [
   ['Bydlen\u00ed','N\u00e1jem',15000],
@@ -537,6 +550,7 @@ function renderQuickExpenses(){
     <button type="button" class="chip-exp" title="${esc(cat)}" data-cat="${esc(cat)}" data-name="${esc(name)}" data-amount="${amount}">+ ${esc(name)} · ${money(amount)}</button>`).join('');
 }
 function renderImports(){
+  loadMortgageSettings();
   const homeSel = document.getElementById('import-home');
   const carSel = document.getElementById('import-car');
   homeSel.innerHTML = SOURCE.homes.length
@@ -547,7 +561,7 @@ function renderImports(){
     : '<option value="">\u017d\u00e1dn\u00e1 auta</option>';
   const nh = SOURCE.homes.length, nc = SOURCE.cars.length;
   document.getElementById('import-home-note').textContent = nh
-    ? `${nh===1?'Připravena':(nh<5?'Připraveny':'Připraveno')} ${nh} ${plural(nh,'nemovitost','nemovitosti','nemovitostí')}. Splátka je orientačně 90 % ceny, 4,94 %, 30 let.`
+    ? `${nh===1?'Připravena':(nh<5?'Připraveny':'Připraveno')} ${nh} ${plural(nh,'nemovitost','nemovitosti','nemovitostí')}. Splátka je orientačně ${MORTGAGE.loanPct} % ceny, ${String(MORTGAGE.rate).replace('.',',')} %, ${MORTGAGE.years} ${plural(MORTGAGE.years,'rok','roky','let')}${MORTGAGE.insurance>0?` + pojištění ${money(MORTGAGE.insurance)}`:''}.`
     : 'Nemovitosti se nepodařilo načíst nebo nejsou uložené.';
   document.getElementById('import-car-note').textContent = nc
     ? `${nc===1?'Připraveno':(nc<5?'Připravena':'Připraveno')} ${nc} ${plural(nc,'auto','auta','aut')}. Provoz počítá palivo, servis, pojištění, pneu a dálniční známku.`

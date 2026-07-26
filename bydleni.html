@@ -441,14 +441,27 @@ const DEFAULT_WEIGHTS = {price:22, area:13, outdoor:17, commute:22, ready:9, mor
 let W = Object.assign({}, DEFAULT_WEIGHTS);
 try{ Object.assign(W, JSON.parse(localStorage.getItem('nase.scoreWeights')||'{}')); }catch(e){}
 function saveWeights(){ localStorage.setItem('nase.scoreWeights', JSON.stringify(W)); }
+const MORT_KEY = "nase.mortgage.v1";
 let mRate=4.94, mYears=30, mLoan=90, mIns=0;
+try{
+  const s = JSON.parse(localStorage.getItem(MORT_KEY) || "null");
+  if(s && typeof s==="object"){
+    if(s.rate!=null && Number.isFinite(+s.rate)) mRate = Math.max(0, +s.rate);
+    if(s.years!=null && Number.isFinite(+s.years)) mYears = Math.min(40, Math.max(1, Math.round(+s.years)));
+    if(s.loanPct!=null && Number.isFinite(+s.loanPct)) mLoan = Math.min(100, Math.max(10, +s.loanPct));
+    if(s.insurance!=null && Number.isFinite(+s.insurance)) mIns = Math.max(0, +s.insurance);
+  }
+}catch(e){}
 function monthly(price){
+  price = Number(price)||0;
   if(!price) return 0;
   const P=price*(mLoan/100), r=mRate/100/12, n=mYears*12;
-  const m = r===0 ? P/n : P*r/(1-Math.pow(1+r,-n));
-  return Math.round(m/100)*100;
+  return r===0 ? P/n : P*r/(1-Math.pow(1+r,-n));
 }
-function totalPay(price){ return Math.round((monthly(price)+mIns)/100)*100; }
+function totalPay(price){
+  const m = monthly(price);
+  return m ? Math.round((m+mIns)/100)*100 : 0;
+}
 function getActiveBudgetSummary(){
   let raw=null;
   try{ raw = JSON.parse(localStorage.getItem('nase.finance.v2') || localStorage.getItem('nase.finance.v1') || 'null'); }catch(e){ raw=null; }
@@ -1548,11 +1561,17 @@ function recalcMortgage(){
   mIns = Math.max(0, parseFloat(document.getElementById("m-ins").value) || 0);
   energyPrice = Math.max(0, parseFloat(document.getElementById("m-energy").value) || 4.5);
   localStorage.setItem("nase.energyPrice", energyPrice);
+  localStorage.setItem(MORT_KEY, JSON.stringify({rate:mRate, years:mYears, loanPct:mLoan, insurance:mIns}));
   document.getElementById("m-loan-out").textContent = mLoan + " %";
   computeExtents();
   renderPick(); renderAll();
 }
 document.getElementById("m-energy").value = energyPrice;
+document.getElementById("m-rate").value = mRate;
+document.getElementById("m-years").value = mYears;
+document.getElementById("m-loan").value = mLoan;
+document.getElementById("m-loan-out").textContent = mLoan + " %";
+document.getElementById("m-ins").value = mIns;
 document.getElementById("m-fix").addEventListener("change", e=>{
   document.getElementById("m-rate").value = e.target.value;
   recalcMortgage();
