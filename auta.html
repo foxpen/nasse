@@ -770,7 +770,7 @@ async function refreshAutoListings(){
     }).join("");
     if(removable.length){
       const actions=wrap.querySelector("#refresh-actions");
-      actions.insertAdjacentHTML("afterbegin", `<button class="btn-del" type="button" id="refresh-delete-missing">Smazat nenalezené (${removable.length})</button>`);
+      actions.insertAdjacentHTML("afterbegin", `<button class="btn-ghost danger-toggle" type="button" id="refresh-delete-missing">Smazat nenalezené (${removable.length})</button>`);
       wrap.querySelector("#refresh-delete-missing").onclick=async()=>{
         const sure=await Nase.confirmModal({title:'Smazat nenalezené?', message:`Opravdu smazat ${removable.length} nenalezených aut? Tahle akce se uloží do databáze.`});
         if(!sure) return;

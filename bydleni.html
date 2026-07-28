@@ -692,8 +692,13 @@ function renderCards(){
           <span>${topBadge(metricRank(d.id, outdoorMetric, true))}<b>${esc(outdoorValue)}</b><small>${esc(outdoorLabel)}</small></span>
           <span class="dur-mini ${durationClass(d.car)}">${topBadge(metricRank(d.id, x=>x.car, false))}<b>${d.car?fmtDuration(d.car):'?'}</b><small>dojezd</small></span>
         </div>
-        <div class="mort">${bankIcon}Splátka <b>~${czk(totalPay(ep))} Kč</b>/měs <span class="loan-amount">půjčka ~${czk(loanAmount(ep))} Kč</span>${mIns>0?' <span style="font-weight:600">(vč. poj.)</span>':''}</div>
-        ${estimateEnergyCost(d)?`<div class="mort energy-mort">${I.bolt}Energie <b>~${czk(estimateEnergyCost(d))} Kč</b>/měs <span class="loan-amount">celkem ~${czk(totalPay(ep)+estimateEnergyCost(d))} Kč/měs</span></div>`:''}
+        <div class="cost-box">
+          <div class="cost-row"><span class="cost-label">${bankIcon}Splátka</span><b class="cost-val">~${czk(totalPay(ep))} Kč<small>/měs</small></b></div>
+          <div class="cost-sub">z toho půjčka ~${czk(loanAmount(ep))} Kč${mIns>0?' · vč. pojištění':''}</div>
+          ${estimateEnergyCost(d)?`
+          <div class="cost-row"><span class="cost-label">${I.bolt}Energie</span><b class="cost-val">~${czk(estimateEnergyCost(d))} Kč<small>/měs</small></b></div>
+          <div class="cost-row cost-total"><span class="cost-label">Celkem měsíčně</span><b class="cost-val">~${czk(totalPay(ep)+estimateEnergyCost(d))} Kč<small>/měs</small></b></div>`:''}
+        </div>
         <div class="route-line">
           <a class="route-time ${durationClass(d.car)}" href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${I.car}<span>${d.car?fmtDuration(d.car):'trasa'}</span><small>auto</small></a>
           <a class="route-time ${durationClass(d.pt)}" href="${mapUrl(d.origin,'transit')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${I.transit}<span>${d.pt?fmtDuration(d.pt):'trasa'}</span><small>MHD</small></a>
@@ -1205,7 +1210,7 @@ function openManageDestinations(){
     <h3>Uložené adresy</h3>
     <p class="hint">Předdefinované lokality zůstávají napevno. Vlastní uložené adresy můžeš smazat, když se uklikneš nebo přestanou dávat smysl.</p>
     <div class="refresh-list" id="md-list">
-      ${savedDestinations.length ? savedDestinations.map((d,i)=>`<div class="refresh-item"><b>${esc(d.name)}</b><br><span>${esc(d.address)}</span><button class="btn-del" type="button" data-remove="${i}">Smazat</button></div>`).join("") : '<p class="hint">Nemáš uloženou žádnou vlastní adresu.</p>'}
+      ${savedDestinations.length ? savedDestinations.map((d,i)=>`<div class="refresh-item"><b>${esc(d.name)}</b><br><span>${esc(d.address)}</span><button class="btn-ghost danger-toggle" type="button" data-remove="${i}">Smazat</button></div>`).join("") : '<p class="hint">Nemáš uloženou žádnou vlastní adresu.</p>'}
     </div>
     <div class="actions"><button class="btn-ghost" type="button" id="md-close">Zavřít</button></div>
   </div>`;
@@ -1419,7 +1424,7 @@ async function refreshAllListings(){
       <p class="hint">Aktualizováno ${s.updated||0} z ${s.total||0}. Beze změny ${s.unchanged||0}. Chyby ${s.errors||0}. Nenalezeno ${s.notFound||0}.</p>
       ${problem.length?`<div class="score-breakdown">${problem.map(x=>`<div class="score-row"><b>${esc(x.n||'Inzerát')}</b><p>${esc(x.status)} · ${esc(x.message||'')}</p></div>`).join("")}</div>`:''}
       <div class="actions">
-        ${problem.some(x=>x.status==='not_found')?`<button class="btn-del" type="button" id="delete-not-found">Smazat nenalezené</button>`:''}
+        ${problem.some(x=>x.status==='not_found')?`<button class="btn-ghost danger-toggle" type="button" id="delete-not-found">Smazat nenalezené</button>`:''}
         <button class="btn-ghost" type="button" id="refresh-close-2">Zavřít</button>
       </div>
     </div>`;
