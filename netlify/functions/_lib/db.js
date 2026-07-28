@@ -1,14 +1,12 @@
-import { getDatabase } from '@netlify/database';
+import { neon } from '@neondatabase/serverless';
 
-// @netlify/database si sam vyresi spravne read-write pripojeni k produkcni
-// vetvi - rucni cteni DATABASE_URL/NETLIFY_DATABASE_URL davalo jen read-only
-// connection string a zapisy (INSERT/UPDATE/DELETE) padaly na permission denied.
-let sqlFn;
-try {
-  sqlFn = getDatabase().sql;
-} catch (e) {
-  sqlFn = () => {
-    throw new Error('Pripojeni k databazi selhalo: ' + (e?.message || e));
-  };
-}
-export const sql = sqlFn;
+// @netlify/database vyzaduje NETLIFY_DB_URL, kterou Netlify injektuje jen
+// pri buildu pres propojeny Git repo - u CLI-only deploye (bez vlastniho
+// repa) se nikdy nenastavi. Misto toho se pripojujeme primo vlastnim
+// Neon projektem pres klasicky connection string.
+const url = process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL;
+export const sql = url
+  ? neon(url)
+  : () => {
+      throw new Error('DATABASE_URL neni nastavena');
+    };
