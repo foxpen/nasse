@@ -422,6 +422,15 @@ function attrs(d){
 }
 
 let filter="all", sort="ppm", view="kept";
+let SORTS = {};
+const HIDDEN_URLS_KEY = 'nase.hiddenUrls';
+function hiddenUrls(){ try{ return new Set(JSON.parse(localStorage.getItem(HIDDEN_URLS_KEY)||'[]')); }catch(e){ return new Set(); } }
+function hide(url){
+  if(!url) return;
+  const set = hiddenUrls();
+  set.add(url);
+  localStorage.setItem(HIDDEN_URLS_KEY, JSON.stringify([...set]));
+}
 const DEFAULT_HARD_FILTERS = {priceMax:0, areaMin:0, garden:false, garage:false, carMax:0};
 let hardFilters = Object.assign({}, DEFAULT_HARD_FILTERS);
 try{ Object.assign(hardFilters, JSON.parse(localStorage.getItem('nase.hardFilters')||'{}')); }catch(e){}

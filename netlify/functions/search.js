@@ -1,4 +1,5 @@
 import { json, preflight } from './_lib/http.js';
+import { requireAuth } from './_lib/auth.js';
 import { SOURCES } from './_lib/sources.js';
 
 // Načte JEDNU stránku výsledků z JEDNOHO portálu a vrátí je v jednotném tvaru.
@@ -45,6 +46,8 @@ function refine(items, c) {
 
 export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') return preflight();
+  const unauthorized = requireAuth(event);
+  if (unauthorized) return unauthorized;
   const p = event.queryStringParameters || {};
   const src = SOURCES[p.source];
   if (!src) return json(400, { error: 'neznámý zdroj (sreality / bezrealitky / bazos)' });

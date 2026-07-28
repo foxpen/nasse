@@ -1,4 +1,5 @@
 import { json, preflight } from './_lib/http.js';
+import { requireAuth } from './_lib/auth.js';
 import { geocode, route, resolveDest, pool, via } from './_lib/route.js';
 
 // Dávkový dojezd pro výsledky hledání.
@@ -10,6 +11,8 @@ const PARALEL = 6;
 
 export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') return preflight();
+  const unauthorized = requireAuth(event);
+  if (unauthorized) return unauthorized;
   if (event.httpMethod !== 'POST') return json(405, { error: 'POST only' });
   try {
     const body = JSON.parse(event.body || '{}');
