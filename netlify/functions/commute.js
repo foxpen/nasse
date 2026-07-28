@@ -1,5 +1,6 @@
 import { requireAuth } from './_lib/auth.js';
 import { json } from './_lib/http.js';
+import { geocode, route, resolveDest, via } from './_lib/route.js';
 
 const MAPY_KEY = process.env.MAPY_API_KEY;
 const GOOGLE_KEY = process.env.GOOGLE_MAPS_API_KEY;

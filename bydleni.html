@@ -102,6 +102,7 @@
     </div>
     <div class="spacer"></div>
     <select id="sort" aria-label="Řazení">
+      <option value="score">Nejvyšší shoda</option>
       <option value="ppm">Nejlepší cena/m²</option>
       <option value="price">Nejnižší cena</option>
       <option value="area">Největší plocha</option>
@@ -230,6 +231,7 @@ const I = {
 };
 
 const API = "/.netlify/functions";
+const SRC_L = { sreality:"sreality.cz", bezrealitky:"bezrealitky.cz", bazos:"bazoš" };
 let DATA = [];
 let MINPPM = 0, MAXPPM = 1;
 let MINMORT = 0, MAXMORT = 1, MINAREA = 0, MAXAREA = 1;
@@ -564,6 +566,7 @@ function readyTag(d){return d.ready
 
 function sortRows(rows){
   return rows.sort((a,b)=>{
+    if(sort==="score") return ((b.score||0)-(a.score||0))||(a.ppm-b.ppm);
     if(sort==="ppm")   return a.ppm-b.ppm;
     if(sort==="price") return a.price-b.price;
     if(sort==="area")  return b.area-a.area;
@@ -1089,7 +1092,7 @@ document.getElementById("filters").addEventListener("click", e=>{
   document.querySelectorAll("#filters button").forEach(x=>x.setAttribute("aria-pressed", x===b));
   renderCards();
 });
-document.getElementById("sort").addEventListener("change", e=>{ sort=e.target.value; renderAll(); });
+document.getElementById("sort").addEventListener("change", e=>{ sort=SORTS[view]=e.target.value; renderAll(); });
 
 function updateTabs(){}
 function applyView(){}
@@ -1482,7 +1485,16 @@ async function take(id){
   window.dispatchEvent(new CustomEvent('nase:react',{detail:'add'}));
   loadData();
 }
-function discard(id){ delById(id); }
+// Zahození kandidáta: bez ptaní (na rozdíl od mazání z Naše) a s poznámkou,
+// aby ho příští hledání nenabídlo znovu.
+async function discard(id){
+  const item=DATA.find(x=>x.id===id);
+  try{ const r=await fetch(API+"/delete?id="+id,{method:"DELETE"}); if(!r.ok) throw 0; }
+  catch(e){ alert("Zahození selhalo."); return; }
+  if(item?.url) hide(item.url);
+  window.dispatchEvent(new CustomEvent('nase:react',{detail:'del'}));
+  loadData();
+}
 
 const VISIT_FIELDS = [
   {key:'hluk', label:'Hluk a okolí'},
