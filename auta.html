@@ -256,6 +256,68 @@ const openUrl = window.Nase.openUrl;
 let filter="all", sort="price";
 let MINPRICE=0, MAXPRICE=1, MAXKM=0, MINKM=0, MINYEAR=0, MAXYEAR=1, MINPOWER=0, MAXPOWER=1;
 let MINCOST=0, MAXCOST=1;
+let raterNames = { a:"Osoba 1", b:"Osoba 2" };
+try{ Object.assign(raterNames, JSON.parse(localStorage.getItem("nase.raterNames")||"{}")); }catch(e){}
+function saveRaterNames(){ localStorage.setItem("nase.raterNames", JSON.stringify(raterNames)); }
+function ratingOf(d, person){ return Number(d.rating?.[person]) || 0; }
+function ratingSummaryChip(d){
+  const a = ratingOf(d,'a'), b = ratingOf(d,'b');
+  if(!a && !b) return '';
+  const disagree = a && b && Math.abs(a-b) >= 2;
+  return `<div class="rating-chip${disagree?' mismatch':''}" title="${esc(raterNames.a)}: ${a||'nehodnoceno'} · ${esc(raterNames.b)}: ${b||'nehodnoceno'}">${I.star}<b>${a||'–'}</b><span class="rc-sep">·</span>${I.star}<b>${b||'–'}</b>${disagree?'<small>rozdílný názor</small>':''}</div>`;
+}
+function starRow(id, person, value){
+  return `<div class="rate-row" data-person="${person}">
+    <span class="rate-name">${esc(raterNames[person])}</span>
+    <span class="rate-stars" role="group" aria-label="Hodnocení ${esc(raterNames[person])}">
+      ${[1,2,3,4,5].map(n=>`<button type="button" class="rate-star${n<=value?' on':''}" data-n="${n}" onclick="setRating(${id},'${person}',${n===value?0:n})" aria-label="${n} z 5">${I.star}</button>`).join('')}
+    </span>
+  </div>`;
+}
+async function setRating(id, person, value){
+  const item=CARS.find(x=>x.id===id); if(!item) return;
+  const rating = Object.assign({}, item.rating, {[person]:value});
+  item.rating = rating;
+  const box=document.querySelector(`.rating-box[data-id="${id}"]`);
+  if(box) box.outerHTML = ratingBoxHtml(id, rating);
+  try{
+    await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch:{rating}})});
+  }catch(e){ Nase.toast("Uložení hodnocení selhalo.", 'err'); }
+}
+function ratingBoxHtml(id, rating){
+  rating = rating || {};
+  return `<div class="rating-box" data-id="${id}">
+    ${starRow(id,'a',Number(rating.a)||0)}
+    ${starRow(id,'b',Number(rating.b)||0)}
+  </div>`;
+}
+function openRenameRaters(){
+  const wrap=document.createElement("div"); wrap.className="modal-bg";
+  wrap.innerHTML=`<div class="modal" style="max-width:400px">
+    <button class="modal-x" type="button" id="rn-x" aria-label="Zavřít">×</button>
+    <h3>Jména hodnotitelů</h3>
+    <label>První osoba</label><input id="rn-a" value="${esc(raterNames.a)}">
+    <label>Druhá osoba</label><input id="rn-b" value="${esc(raterNames.b)}">
+    <div class="actions"><button class="btn-ghost" type="button" id="rn-cancel">Zrušit</button><button class="btn-add" type="button" id="rn-save">Uložit</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const close=()=>wrap.remove();
+  wrap.querySelector("#rn-x").onclick=close;
+  wrap.querySelector("#rn-cancel").onclick=close;
+  wrap.querySelector("#rn-save").onclick=()=>{
+    raterNames.a = wrap.querySelector("#rn-a").value.trim()||"Osoba 1";
+    raterNames.b = wrap.querySelector("#rn-b").value.trim()||"Osoba 2";
+    saveRaterNames();
+    close();
+    renderCards();
+  };
+}
+const VISIT_FIELDS_AUTO = [
+  {key:'stav', label:'Skutečný stav (vs. inzerát)'},
+  {key:'zvuky', label:'Zvuky/vibrace při jízdě'},
+  {key:'servis', label:'Servisní historie'},
+  {key:'pneu', label:'Pneumatiky a brzdy'}
+];
 let compareMode=false;
 const selectedCompare = new Set();
 let deleteMode=false;
@@ -458,6 +520,7 @@ function renderCards(){
       <div class="body">
         <div class="ctitle">${esc(d.n)}</div>
         <div class="csub">${esc(d.variant)}</div>
+        ${ratingSummaryChip(d)}
         <div class="card-metrics">
           <span>${topBadge(metricRank(d.id, x=>x.year, true))}<b>${esc(carMade(d))}</b><small>rok výroby</small></span>
           <span>${topBadge(metricRank(d.id, x=>x.km, false))}<b>${km(d.km||0)} km</b><small>nájezd</small></span>
@@ -910,6 +973,8 @@ function openDetail(id){
         </div>
       </div>
       <div class="detail-info auto-detail-info">
+        <div class="rating-head"><h4>Naše hodnocení</h4><button class="inline-link" type="button" onclick="openRenameRaters()">upravit jména</button></div>
+        ${ratingBoxHtml(d.id, d.rating)}
         <dl class="detail-dl">
           <div><dt>Cena</dt><dd>${czk(pCzk(d))}</dd></div>
           <div><dt>Cena EUR</dt><dd>${eur(pEur(d))}</dd></div>
@@ -929,6 +994,7 @@ function openDetail(id){
           const fmt = n => n.toLocaleString('cs-CZ');
           return `<li class="${down?'good':'bad'}">${down?I.trendDown:I.trendUp}<span>${fmtHistDate(r.at)} · ${fmt(r.from)} → ${fmt(r.to)} ${unit} (${down?'−':'+'}${fmt(Math.abs(r.to-r.from))} ${unit})</span></li>`;
         }).join("")}</ul>`:''}
+        ${VISIT_FIELDS_AUTO.some(vf=>d.visitNotes?.[vf.key])?`<h4>Poznámky z prohlídky</h4><dl class="detail-dl">${VISIT_FIELDS_AUTO.filter(vf=>d.visitNotes?.[vf.key]).map(vf=>`<div><dt>${esc(vf.label)}</dt><dd>${esc(d.visitNotes[vf.key])}</dd></div>`).join("")}</dl>`:''}
         ${d.note?`<div class="cardnote">${esc(d.note)}</div>`:''}
       </div>
     </div>
@@ -963,12 +1029,16 @@ function openDetail(id){
 
 function editNote(id){
   const item=CARS.find(x=>x.id===id); if(!item) return;
+  const v=item.visitNotes||{};
+  const visitFields=VISIT_FIELDS_AUTO.map(vf=>`<label>${esc(vf.label)}</label><input id="vn_${vf.key}" value="${esc(v[vf.key]||'')}">`).join("");
   const wrap=document.createElement("div"); wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal" style="max-width:460px">
     <button class="modal-x" type="button" id="nm_x" aria-label="Zavřít">×</button>
     <h3>Poznámka</h3>
     <p class="hint">${esc(item.n)}</p>
-    <textarea id="nm_txt" rows="5" placeholder="Napiš si poznámku k tomuhle autu…">${esc(item.note)}</textarea>
+    <textarea id="nm_txt" rows="4" placeholder="Napiš si poznámku k tomuhle autu…">${esc(item.note)}</textarea>
+    <h4 style="margin:14px 0 2px;">Poznámky z prohlídky</h4>
+    ${visitFields}
     <div class="msg" id="nm_msg"></div>
     <div class="actions"><button class="btn-ghost" type="button" id="nm_cancel">Zrušit</button><button class="btn-add" type="button" id="nm_save">Uložit</button></div>
   </div>`;
@@ -979,9 +1049,11 @@ function editNote(id){
   wrap.querySelector("#nm_txt").focus();
   wrap.querySelector("#nm_save").onclick=async()=>{
     const note=wrap.querySelector("#nm_txt").value;
+    const visitNotes={};
+    VISIT_FIELDS_AUTO.forEach(vf=>{ visitNotes[vf.key]=wrap.querySelector("#vn_"+vf.key).value.trim(); });
     const msg=wrap.querySelector("#nm_msg"); msg.className="msg"; msg.textContent="Ukládám…";
     try{
-      const r=await fetch(API+"/note",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,note})});
+      const r=await fetch(API+"/update",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,patch:{note,visitNotes}})});
       if(!r.ok){ let m="HTTP "+r.status; try{ const j=await r.json(); if(j.error) m=j.error; }catch(e){} throw new Error(m); }
       window.dispatchEvent(new CustomEvent('nase:react',{detail:'note'}));
       close(); loadData();

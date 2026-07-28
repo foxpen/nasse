@@ -698,6 +698,7 @@ function renderCards(){
           ${estimateEnergyCost(d)?`
           <div class="cost-row"><span class="cost-label">${I.bolt}Energie</span><b class="cost-val">~${czk(estimateEnergyCost(d))} Kč<small>/měs</small></b></div>
           <div class="cost-row cost-total"><span class="cost-label">Celkem měsíčně</span><b class="cost-val">~${czk(totalPay(ep)+estimateEnergyCost(d))} Kč<small>/měs</small></b></div>`:''}
+          ${(()=>{ const bs=getActiveBudgetSummary(); if(!bs || !bs.income) return ''; const totalCost=totalPay(ep)+estimateEnergyCost(d); const pctOfIncome=Math.min(100,Math.round(totalCost/bs.income*100)); const left=bs.balance-totalCost; const col=left>=0?'var(--ok)':'#ef4444'; return `<div class="cost-budget"><div class="cost-row"><span class="cost-label">Podíl na rozpočtu</span><b class="cost-val" style="color:${col}">${pctOfIncome} %</b></div><div class="cat-bar"><i style="width:${Math.max(pctOfIncome,2)}%; background:${col}"></i></div></div>`; })()}
         </div>
         <div class="route-line">
           <a class="route-time ${durationClass(d.car)}" href="${mapUrl(d.origin,'driving')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${I.car}<span>${d.car?fmtDuration(d.car):'trasa'}</span><small>auto</small></a>

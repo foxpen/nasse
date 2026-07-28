@@ -124,7 +124,10 @@ export function cleanPatch(patch) {
       hluk: str(v.hluk).slice(0, 300),
       sousede: str(v.sousede).slice(0, 300),
       stav: str(v.stav).slice(0, 300),
-      poplatky: str(v.poplatky).slice(0, 300)
+      poplatky: str(v.poplatky).slice(0, 300),
+      zvuky: str(v.zvuky).slice(0, 300),
+      servis: str(v.servis).slice(0, 300),
+      pneu: str(v.pneu).slice(0, 300)
     };
   }
   return out;

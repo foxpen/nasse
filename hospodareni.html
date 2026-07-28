@@ -84,6 +84,11 @@
     <div class="bar"><i id="health-bar"></i></div>
   </div>
 
+  <div class="alerts-box" id="alerts-box" hidden>
+    <div class="box-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.6 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/><path d="M12 17h.01"/></svg>Aktivní upozornění</div>
+    <div id="alerts-list"></div>
+  </div>
+
   <section class="finance-columns">
     <div class="finance-col">
       <div class="col-label">Příjmová strana</div>
@@ -509,9 +514,28 @@ function renderCategories(){
     return {cat, value, limit, over: limit>0 && value>limit, pct: total ? Math.round(value/total*100) : 0};
   }).filter(r=>r.value>0).sort((a,b2)=>b2.value-a.value);
   document.getElementById('category-list').innerHTML = rows.length
-    ? rows.map(r=>`<div class="cat-leg${r.over?' over':''}"><span class="cat-dot" style="background:${r.over?'#ef4444':catColor(r.cat)}" aria-hidden="true"></span><strong>${esc(r.cat)}</strong><b class="amt">${money(r.value)}${r.limit?` <span class="cat-limit">/ ${money(r.limit)}</span>`:''}</b>${r.over?`<span class="cat-over-tag">${I_WARN} přes limit</span>`:`<span class="pct">${r.pct} %</span>`}</div>`).join('')
+    ? rows.map(r=>`<div class="cat-row${r.over?' over':''}">
+        <div class="cat-row-head"><strong>${esc(r.cat)}</strong><span><b class="amt">${money(r.value)}</b><span class="pct">${r.pct} %</span></span></div>
+        <div class="cat-bar"><i style="width:${Math.max(r.pct,2)}%; background:${r.over?'#ef4444':catColor(r.cat)}"></i></div>
+        ${r.limit?`<div class="cat-limit-note${r.over?' over':''}">${r.over?`${I_WARN} přes limit o ${money(r.value-r.limit)}`:`limit ${money(r.limit)}`}</div>`:''}
+      </div>`).join('')
     : '<p class="hint" style="padding:0 0 8px">Zatím žádné výdaje k rozpadu.</p>';
   renderDonut(rows, total);
+}
+function renderAlerts(){
+  const b=budget();
+  const spend = b.expenses.concat(b.txns.filter(t=>t.type!=='income'));
+  const alerts = [];
+  CATEGORIES.forEach(cat=>{
+    const limit = Number(b.categoryLimits[cat])||0;
+    if(!limit) return;
+    const value = sum(spend.filter(x=>x.category===cat));
+    if(value>limit) alerts.push({title:`${cat}: přes limit`, note:`Utraceno ${money(value)}, limit ${money(limit)} (o ${money(value-limit)} víc).`});
+  });
+  const box=document.getElementById('alerts-box');
+  box.hidden = !alerts.length;
+  if(!alerts.length) return;
+  document.getElementById('alerts-list').innerHTML = alerts.map(a=>`<div class="alert-row"><span class="alert-dot"></span><div><b>${esc(a.title)}</b><span>${esc(a.note)}</span></div></div>`).join('');
 }
 function renderLimitsGrid(){
   const b=budget();
@@ -713,6 +737,7 @@ function renderAll(){
   renderMembers();
   renderLists();
   renderCategories();
+  renderAlerts();
   renderKpis();
   renderTxns();
   renderScenarios();
