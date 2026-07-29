@@ -138,5 +138,27 @@
     });
   }
 
+  // Locks background scroll on <html> while any modal (.modalback not [hidden], or a dynamically
+  // appended .modal-bg from confirmModal) is open — without this, iOS Safari lets the page rubber-band
+  // scroll behind a fixed modal overlay, which feels broken on a touch screen.
+  function initModalScrollLock() {
+    const recompute = () => {
+      const open = document.querySelector('.modalback:not([hidden]), .modal-bg');
+      document.documentElement.classList.toggle('modal-lock', !!open);
+    };
+    new MutationObserver(recompute).observe(document.documentElement, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['hidden'],
+      childList: true,
+    });
+    recompute();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initModalScrollLock);
+  } else {
+    initModalScrollLock();
+  }
+
   window.Nase = { esc, jsstr, safeUrl, openUrl, plural, initThemeToggle, toast, confirmModal, parseThousands, wireThousands, wireThousandsAll };
 })();
