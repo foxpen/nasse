@@ -659,7 +659,7 @@ html[data-theme="dark"] .auth-gate{
   .agh-bub.byd{left:6%; top:68%; width:88%; height:25%;}
   .agh-video{left:50%; bottom:1%; font-size:12.5px; min-height:38px; padding:7px 15px;}
 }
-.ag-close{display:none; position:fixed; top:14px; right:14px; z-index:6; width:42px; height:42px; border-radius:999px;
+.ag-close{display:none; position:fixed; top:calc(14px + env(safe-area-inset-top)); right:calc(14px + env(safe-area-inset-right)); z-index:6; width:44px; height:44px; border-radius:999px;
   border:1px solid rgba(255,255,255,.25); background:rgba(10,26,23,.6); color:#fff; font:inherit; cursor:pointer;
   align-items:center; justify-content:center;}
 .ag-close::before{content:"×"; font-size:22px; line-height:1; transform:translateY(-1px);}
@@ -1345,7 +1345,7 @@ input.slider::-moz-range-thumb{
 .trend-leg.income::before{background:var(--ok);}
 .trend-leg.expense::before{background:#ef4444;}
 .pin-modal label{display:grid; gap:6px; margin:12px 0; color:var(--muted-fg); font-size:13px; font-weight:850;}
-.undo-toast{position:fixed; left:50%; bottom:22px; transform:translate(-50%, 14px); z-index:1500;
+.undo-toast{position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom)); transform:translate(-50%, 14px); z-index:1500;
   display:flex; align-items:center; gap:14px; background:var(--fg); color:var(--bg);
   border-radius:var(--r-pill); padding:10px 12px 10px 20px; box-shadow:var(--sh-lg);
   font-size:14px; font-weight:700; max-width:calc(100vw - 32px);
@@ -1356,7 +1356,7 @@ input.slider::-moz-range-thumb{
   background:color-mix(in srgb, var(--bg) 18%, transparent); border:0; border-radius:var(--r-pill);
   padding:7px 14px; min-height:36px; cursor:pointer;}
 .undo-toast button:hover{background:color-mix(in srgb, var(--bg) 30%, transparent);}
-.app-toast{position:fixed; left:50%; bottom:22px; transform:translate(-50%, 14px); z-index:1500;
+.app-toast{position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom)); transform:translate(-50%, 14px); z-index:1500;
   display:flex; align-items:center; gap:14px; background:var(--fg); color:var(--bg);
   border-radius:var(--r-pill); padding:10px 12px 10px 20px; box-shadow:var(--sh-lg);
   font-size:14px; font-weight:700; max-width:calc(100vw - 32px);
@@ -1421,8 +1421,8 @@ input.slider::-moz-range-thumb{
   }
   .detail-bg .modal-x,.map-modal-bg .modal-x,.compare-modal .modal-x{
     position:fixed;
-    top:10px;
-    right:10px;
+    top:calc(10px + env(safe-area-inset-top));
+    right:calc(10px + env(safe-area-inset-right));
     z-index:20;
     background:color-mix(in srgb, var(--surface) 94%, transparent);
     box-shadow:var(--sh-sm);
