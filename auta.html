@@ -791,7 +791,8 @@ function renderCompare(){
     compareMetric("Najeto", d=>d.km||0, v=>km(Math.abs(v))+" km", false),
     compareMetric("Výkon", d=>d.kw||0, v=>Math.abs(v)+" kW", true),
     compareMetric("Měsíční provoz", d=>monthlyCost(d)||0, v=>czk(Math.abs(v))+"/měs", false),
-    compareMetric("Skóre", d=>d.score||0, v=>Math.abs(v)+"/100", true)
+    compareMetric("Skóre", d=>d.score||0, v=>Math.abs(v)+"/100", true),
+    compareMetric("Naše hodnocení", d=>(Number(d.rating?.a)||0)+(Number(d.rating?.b)||0), v=>Math.abs(v)+"/10", true)
   ];
   const wrap=document.createElement("div"); wrap.className="modal-bg";
   wrap.innerHTML=`<div class="modal compare-modal">

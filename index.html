@@ -178,13 +178,18 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     const r=await fetch('/.netlify/functions/list'); if(!r.ok) return;
     const all=await r.json();
     const byd=all.filter(x=>x.section==='byd'), aut=all.filter(x=>x.section==='auto');
+    function bestRatingSuffix(rows){
+      const rated = rows.map(x=>({total:(Number(x.rating?.a)||0)+(Number(x.rating?.b)||0), n:x.n}))
+        .filter(r=>r.total>0).sort((p,q)=>q.total-p.total);
+      return rated.length ? ' · nejlépe hodnoceno '+rated[0].total+'/10' : '';
+    }
     if(byd.length){
       const prices=byd.map(x=>x.price).filter(Boolean);
       const m=prices.length?(Math.min(...prices)/1e6).toFixed(2).replace('.',','):null;
-      document.getElementById('stat-byd').textContent = byd.length+' '+plural(byd.length,'nemovitost','nemovitosti','nemovitostí')+(m?' · od '+m+' mil. Kč':'');
+      document.getElementById('stat-byd').textContent = byd.length+' '+plural(byd.length,'nemovitost','nemovitosti','nemovitostí')+(m?' · od '+m+' mil. Kč':'')+bestRatingSuffix(byd);
     }
     if(aut.length){
-      document.getElementById('stat-aut').textContent = aut.length+' '+plural(aut.length,'vůz','vozy','vozů');
+      document.getElementById('stat-aut').textContent = aut.length+' '+plural(aut.length,'vůz','vozy','vozů')+bestRatingSuffix(aut);
     }
   }catch(e){}
 })();</script>

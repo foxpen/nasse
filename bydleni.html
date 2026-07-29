@@ -906,6 +906,7 @@ function renderCompare(){
     metric("Splátka", d=>totalPay(d.dealPrice||d.price)||0, v=>czk(Math.abs(v))+" Kč/měs", false),
     metric("Půjčka", d=>loanAmount(d.dealPrice||d.price)||0, v=>czk(Math.abs(v))+" Kč", false),
     metric("Skóre", d=>d.score||0, v=>Math.abs(v)+"/100", true),
+    metric("Naše hodnocení", d=>(Number(d.rating?.a)||0)+(Number(d.rating?.b)||0), v=>Math.abs(v)+"/10", true),
     textRow("Stav", d=>readyLabel(d)),
     textRow("PENB", d=>d.en ? esc(d.en) : '<span title="Energetický štítek není specifikováno">?</span>'),
     textRow("Odkazy", d=>`${safeUrl(d.url)?`<a href="${esc(safeUrl(d.url))}" target="_blank" rel="noopener">inzerát</a> · `:''}<a href="${mapyPlaceUrl(d.origin||d.n)}" target="_blank" rel="noopener">mapa</a> · <button class="inline-link" type="button" onclick="openDetail(${d.id})">detail</button>`)
