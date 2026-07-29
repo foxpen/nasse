@@ -268,7 +268,7 @@ function ratingSummaryChip(d){
   const a = ratingOf(d,'a'), b = ratingOf(d,'b');
   if(!a && !b) return '';
   const disagree = a && b && Math.abs(a-b) >= 2;
-  return `<div class="rating-chip${disagree?' mismatch':''}" title="${esc(raterNames.a)}: ${a||'nehodnoceno'} · ${esc(raterNames.b)}: ${b||'nehodnoceno'}">${I.star}<b>${a||'–'}</b><span class="rc-sep">·</span>${I.star}<b>${b||'–'}</b>${disagree?'<small>rozdílný názor</small>':''}</div>`;
+  return `<span class="rating-badge${disagree?' mismatch':''}" title="${esc(raterNames.a)}: ${a||'nehodnoceno'} · ${esc(raterNames.b)}: ${b||'nehodnoceno'}">${I.star}${a+b}/10</span>`;
 }
 function starRow(id, person, value){
   return `<div class="rate-row" data-person="${person}">
@@ -519,12 +519,14 @@ function renderCards(){
         ${selecting?`<span class="select-pill">${selected?'Vybráno':'Vybrat'}</span>`:''}
         ${img?`<img src="${esc(img)}" alt="Foto auta · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:""}
         <span class="pricechip">${czk(pCzk(d))}</span>
-        ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openGallery(${d.id})">${imgs} fotek</button>`:''}
+        <div class="media-badges">
+          ${ratingSummaryChip(d)}
+          ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openGallery(${d.id})">${imgs} fotek</button>`:''}
+        </div>
       </div>
       <div class="body">
         <div class="ctitle">${esc(d.n)}</div>
         <div class="csub">${esc(d.variant)}</div>
-        ${ratingSummaryChip(d)}
         <div class="card-metrics">
           <span>${topBadge(metricRank(d.id, x=>x.year, true))}<b>${esc(carMade(d))}</b><small>rok výroby</small></span>
           <span>${topBadge(metricRank(d.id, x=>x.km, false))}<b>${km(d.km||0)} km</b><small>nájezd</small></span>

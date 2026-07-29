@@ -814,11 +814,11 @@ html[data-theme="dark"] .auth-gate{
 .rate-star svg{width:19px;height:19px;}
 .rate-star.on{color:#eab308;}
 .rate-star:hover{color:#eab308;}
-.rating-chip{display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:800; color:var(--muted-fg); background:var(--bg); border:1px solid var(--line); border-radius:var(--r-pill); padding:3px 9px; margin:6px 0 0; width:fit-content;}
-.rating-chip svg{width:13px;height:13px; color:#eab308;}
-.rating-chip .rc-sep{color:var(--line-2);}
-.rating-chip.mismatch{border-color:var(--warn); color:var(--warn);}
-.rating-chip.mismatch small{margin-left:4px; font-weight:700;}
+.media-badges{position:absolute; right:14px; bottom:14px; z-index:4; display:flex; align-items:center; gap:7px;}
+.rating-badge{display:inline-flex; align-items:center; gap:4px; border:none; border-radius:var(--r-pill); background:rgba(15,44,41,.78);
+  color:#fff; font:inherit; font-size:12px; font-weight:800; padding:6px 11px; backdrop-filter:blur(8px); white-space:nowrap;}
+.rating-badge svg{width:12px;height:12px; color:#eab308;}
+.rating-badge.mismatch{background:rgba(146,86,10,.85);}
 .decision-panel .decision-box{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:10px 12px;}
 .mortgage input{width:64px; font:inherit; font-size:14px; font-weight:700; color:var(--fg); background:var(--bg);
   border:1px solid var(--line-2); border-radius:8px; padding:6px 9px; text-align:right; min-height:34px;}
@@ -1081,8 +1081,8 @@ input.slider::-moz-range-thumb{
 .compare-scroll thead th{position:sticky; top:0; z-index:1;}
 .cmp-title{font:inherit; font-size:13px; font-weight:950; color:var(--fg); background:transparent; border:none; padding:0; cursor:pointer; text-align:left; text-transform:uppercase;}
 .cmp-title:hover{color:var(--primary); text-decoration:underline;}
-.photo-count{position:absolute; right:14px; bottom:14px; z-index:4; border:none; border-radius:var(--r-pill); background:rgba(15,44,41,.78);
-  color:#fff; font:inherit; font-size:12px; font-weight:800; padding:6px 11px; cursor:pointer; backdrop-filter:blur(8px);}
+.photo-count{border:none; border-radius:var(--r-pill); background:rgba(15,44,41,.78);
+  color:#fff; font:inherit; font-size:12px; font-weight:800; padding:6px 11px; cursor:pointer; backdrop-filter:blur(8px); white-space:nowrap;}
 .gallery-modal{max-width:980px;}
 .gallery-main{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; position:relative;}
 .gallery-nav{position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:999px; border:1px solid var(--line); background:rgba(15,30,27,.72); color:#fff; font:inherit; font-size:30px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px);}

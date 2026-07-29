@@ -683,14 +683,16 @@ function renderCards(){
         ${commuteRunning?`<span class="recalc-chip">přepočítávám…</span>`:''}
         <span class="glyph" aria-hidden="true">${isHouse?I.house:I.building}</span>
         ${img?`<img src="${esc(img)}" alt="Foto · ${esc(d.n)}" loading="lazy" onerror="this.remove()">`:''}
-        ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openGallery(${d.id})">${imgs} fotek</button>`:''}
+        <div class="media-badges">
+          ${ratingSummaryChip(d)}
+          ${imgs>1?`<button class="photo-count" type="button" onclick="event.stopPropagation();openGallery(${d.id})">${imgs} fotek</button>`:''}
+        </div>
         <span class="pricechip">${d.dealPrice?`<span class="deal"><span class="old">${czk(d.price)}</span>${czk(d.dealPrice)} Kč</span>`:`${czk(d.price)} Kč`}</span>
       </div>
       <div class="body">
         <div class="ctitle">${esc(d.n)}</div>
         <div class="csub">${esc(d.disp||'')} · ${readyLabel(d)}</div>
         ${(d.flags&&d.flags.length)?`<div class="flagchips">${flagChips(d)}</div>`:''}
-        ${ratingSummaryChip(d)}
         <div class="card-metrics">
           <span>${topBadge(metricRank(d.id, x=>x.area, true))}<b>${d.area||0} m²</b><small>užitná</small></span>
           <span>${topBadge(metricRank(d.id, outdoorMetric, true))}<b>${esc(outdoorValue)}</b><small>${esc(outdoorLabel)}</small></span>
@@ -932,7 +934,7 @@ function ratingSummaryChip(d){
   const a = ratingOf(d,'a'), b = ratingOf(d,'b');
   if(!a && !b) return '';
   const disagree = a && b && Math.abs(a-b) >= 2;
-  return `<div class="rating-chip${disagree?' mismatch':''}" title="${esc(raterNames.a)}: ${a||'nehodnoceno'} · ${esc(raterNames.b)}: ${b||'nehodnoceno'}">${I.star}<b>${a||'–'}</b><span class="rc-sep">·</span>${I.star}<b>${b||'–'}</b>${disagree?'<small>rozdílný názor</small>':''}</div>`;
+  return `<span class="rating-badge${disagree?' mismatch':''}" title="${esc(raterNames.a)}: ${a||'nehodnoceno'} · ${esc(raterNames.b)}: ${b||'nehodnoceno'}">${I.star}${a+b}/10</span>`;
 }
 function starRow(id, person, value){
   return `<div class="rate-row" data-person="${person}">
